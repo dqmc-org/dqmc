@@ -2,7 +2,4 @@
 #define CHECKERBOARD_CUBIC_H
 #pragma once
 
-
-
-
-#endif // CHECKERBOARD_CUBIC_H
+#endif  // CHECKERBOARD_CUBIC_H

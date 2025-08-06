@@ -2,61 +2,57 @@
 #define CHECKERBOARD_SQUARE_H
 #pragma once
 
-
 /**
-  *  This header file defines the CheckerBoard::Square class for the checkerboard breakups
-  *  of 2d square lattice, which is derived from the base class CheckerBoard::Base .
-  *  Notice that the break-ups can only be applied to the square lattice with even side length.
-  */
+ *  This header file defines the CheckerBoard::Square class for the checkerboard
+ * breakups of 2d square lattice, which is derived from the base class
+ * CheckerBoard::Base . Notice that the break-ups can only be applied to the
+ * square lattice with even side length.
+ */
 
 #include "checkerboard/checkerboard_base.h"
 
-
 namespace CheckerBoard {
-    
 
-    // ---------------------------- Derived Checkerboard class CheckerBoard::Square ----------------------------
-    class Square : public CheckerBoardBase {
-        private:
+// ---------------------------- Derived Checkerboard class CheckerBoard::Square
+// ----------------------------
+class Square : public CheckerBoardBase {
+ private:
+  int m_side_length{};  // side length of the lattice
+  int m_space_size{};   // total number of sites
+  RealScalar m_hopping_t{};
+  RealScalar m_chemical_potential{};
+  RealScalar m_time_interval{};
 
-            int m_side_length{};                // side length of the lattice
-            int m_space_size{};                 // total number of sites
-            RealScalar m_hopping_t{};
-            RealScalar m_chemical_potential{};
-            RealScalar m_time_interval{};
+  // exponent of (inverse) hopping within plaquette
+  Eigen::Matrix4d m_expK_plaquette{};
+  Eigen::Matrix4d m_inv_expK_plaquette{};
 
-            // exponent of (inverse) hopping within plaquette
-            Eigen::Matrix4d m_expK_plaquette{};
-            Eigen::Matrix4d m_inv_expK_plaquette{};
+ public:
+  // set up parameters
+  void set_checkerboard_params(const LatticeBase &lattice,
+                               const ModelBase &model,
+                               const DqmcWalker &walker);
 
+  // initialization
+  void initial();
 
-        public:
-            // set up parameters
-            void set_checkerboard_params( const LatticeBase& lattice, 
-                                          const ModelBase& model, 
-                                          const DqmcWalker& walker );
+  // multiply the exponent of hopping matrix K using checkerboard breakups
+  void mult_expK_from_left(Matrix &matrix) const;
+  void mult_expK_from_right(Matrix &matrix) const;
+  void mult_inv_expK_from_left(Matrix &matrix) const;
+  void mult_inv_expK_from_right(Matrix &matrix) const;
+  void mult_trans_expK_from_left(Matrix &matrix) const;
 
-            // initialization
-            void initial();
+ private:
+  // multiply hopping matrix K within single plaquette, labeled by site vector
+  void mult_expK_plaquette_from_left(Matrix &matrix, const Site &site) const;
+  void mult_expK_plaquette_from_right(Matrix &matrix, const Site &site) const;
+  void mult_inv_expK_plaquette_from_left(Matrix &matrix,
+                                         const Site &site) const;
+  void mult_inv_expK_plaquette_from_right(Matrix &matrix,
+                                          const Site &site) const;
+};
 
-            // multiply the exponent of hopping matrix K using checkerboard breakups
-            void mult_expK_from_left        ( Matrix &matrix ) const ;
-            void mult_expK_from_right       ( Matrix &matrix ) const ;
-            void mult_inv_expK_from_left    ( Matrix &matrix ) const ;
-            void mult_inv_expK_from_right   ( Matrix &matrix ) const ;
-            void mult_trans_expK_from_left  ( Matrix &matrix ) const ;
+}  // namespace CheckerBoard
 
-
-        private:
-            // multiply hopping matrix K within single plaquette, labeled by site vector
-            void mult_expK_plaquette_from_left       ( Matrix &matrix, const Site& site ) const ;
-            void mult_expK_plaquette_from_right      ( Matrix &matrix, const Site& site ) const ;
-            void mult_inv_expK_plaquette_from_left   ( Matrix &matrix, const Site& site ) const ;
-            void mult_inv_expK_plaquette_from_right  ( Matrix &matrix, const Site& site ) const ;
-    };
-
-
-} // namespace CheckerBoard
-
-
-#endif // CHECKERBOARD_SQUARE_H
+#endif  // CHECKERBOARD_SQUARE_H

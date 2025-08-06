@@ -1,13 +1,12 @@
 #include "random.h"
+
 #include <ctime>
 
 namespace Utils {
 
-    // initialization of the static member
-    std::default_random_engine Random::Engine( time(nullptr) );
+// initialization of the static member
+std::default_random_engine Random::Engine(time(nullptr));
 
-    void Random::set_seed( const int seed ) {
-        Engine.seed( seed );
-    }
+void Random::set_seed(const int seed) { Engine.seed(seed); }
 
-} // namespace Utils
+}  // namespace Utils

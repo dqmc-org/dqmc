@@ -2,6 +2,4 @@
 #define LATTICE_HONEYCOMB_H
 #pragma once
 
-
-
-#endif // LATTICE_HONEYCOMB_H
+#endif  // LATTICE_HONEYCOMB_H
