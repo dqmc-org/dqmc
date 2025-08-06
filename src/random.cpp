@@ -1,4 +1,5 @@
 #include "random.h"
+#include <ctime>
 
 namespace Utils {
 
