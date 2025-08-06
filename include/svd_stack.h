@@ -15,10 +15,8 @@
  * Requires Intel MKL for high-performance LAPACK SVD routines.
  */
 
-#include <vector>
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
 #include <Eigen/Core>
+#include <vector>
 
 namespace Utils {
 
@@ -44,8 +42,6 @@ class SvdClass {
   vMat m_v_mat{};
 
  public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   SvdClass() = default;
 
   // Initialize with specified matrix dimension
@@ -89,8 +85,6 @@ class SvdStack {
   Matrix m_tmp_matrix{};  // Workspace for intermediate calculations
 
  public:
-  EIGEN_MAKE_ALIGNED_OPERATOR_NEW
-
   SvdStack() = default;
 
   // Pre-allocate space for a stack of given depth
