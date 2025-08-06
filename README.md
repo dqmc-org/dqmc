@@ -1,6 +1,8 @@
 # dqmc-framework
 ![workflow](https://github.com/JefferyWangSH/dqmc-framework/actions/workflows/make.yml/badge.svg?branch=master)
 
+**This is a fork of the original [dqmc-framework](https://github.com/JefferyWangSH/dqmc-framework) by JefferyWangSH.**
+
 In this repository, we present a general C++ implementation of determinant Quantum Monte Carlo `(DQMC)` algorithm for the simulation of fermionic quantum models on various lattice geometries.
 
 Currently, simulations of the fermionic Hubbard model with both attractive and repulsive interaction are supported. Different lattices, e.g. 2d square lattice, 2d honeycomb lattice (todo) and 3d cubic lattice (todo) are supported or scheduled to be implemented.
