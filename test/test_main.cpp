@@ -19,7 +19,6 @@
 #include "dqmc_io.h"
 
 #include "svd_stack.h"
-#include "fft_solver.h"
 #include "utils/linear_algebra.hpp"
 #include "utils/numerical_stable.hpp"
 #include "random.h"
