@@ -19,6 +19,23 @@ Currently, simulations of the fermionic Hubbard model with both attractive and r
 * `Intel Math Kernel Library (MKL)` for high-accuracy linear algebra and numerical stabilization.
 * `Message Passing Interface (MPI)` for large scales of distributed parallel accelerations. Both `OpenMPI` and `Intel MPI` have been tested and work well.
 
+### Building ###
+
+1. Set up Intel MKL environment variables:
+   ```shell
+   source /opt/intel/oneapi/setvars.sh
+   ```
+
+2. Configure the build with CMake:
+   ```shell
+   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+   ```
+
+3. Build the project:
+   ```shell
+   cmake --build build
+   ```
+
 ### Usages ###
 
 To be accomplished
