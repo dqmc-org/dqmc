@@ -113,9 +113,9 @@ int main(int argc, char* argv[]) {
   // ------------------------------------------------------------------------------------------------
 
   // set up random seeds for different processes
-  Utils::Random::set_seed(std::time(nullptr) + rank);
+  // Utils::Random::set_seed(std::time(nullptr) + rank);
   // // fixed random seed for debug
-  // Utils::Random::set_seed( 12345 );
+  Utils::Random::set_seed( 42 );
 
   // -----------------------------------  Initializations
   // ------------------------------------------
