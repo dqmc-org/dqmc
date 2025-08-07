@@ -15,7 +15,7 @@ result = subprocess.run(
     capture_output=True, text=True, check=True
 )
 
-files = [f for f in result.stdout.splitlines() if f.endswith(('.c', '.cpp', '.h'))]
+files = [f for f in result.stdout.splitlines() if f.endswith(('.c', '.cpp', '.h', 'hpp'))]
 
 if files:
     subprocess.run(["clang-format", "-i"] + files, check=True)
