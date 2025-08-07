@@ -14,6 +14,7 @@
  */
 
 #include <Eigen/Core>
+#include <iostream>
 #include <vector>
 
 namespace Utils {
@@ -75,12 +76,14 @@ class SvdStack {
   using Matrix = Eigen::MatrixXd;
   using Vector = Eigen::VectorXd;
 
- public:
   VecSvd m_stack{};       // Stack of SVD decompositions
   int m_mat_dim{};        // Dimension of matrices (assumed square)
   int m_stack_length{0};  // Current depth of the stack
 
   Matrix m_tmp_matrix{};  // Workspace for intermediate calculations
+
+  Matrix m_cached_v_matrix{};
+  bool is_v_matrix_cached = false;
 
  public:
   SvdStack() = default;

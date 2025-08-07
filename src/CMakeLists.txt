@@ -31,6 +31,7 @@ target_include_directories(
 target_link_libraries(
   dqmc
   PUBLIC
+  BLAS::BLAS
   MPI::MPI_CXX
   Eigen3::Eigen
   ${Boost_LIBRARIES}

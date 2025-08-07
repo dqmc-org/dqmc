@@ -23,11 +23,10 @@ using Vector = Eigen::VectorXd;
 // Constructor: pre-allocate SVD storage for the specified stack depth
 // This avoids memory allocations during the simulation
 SvdStack::SvdStack(int mat_dim, int stack_length)
-    : m_mat_dim(mat_dim), m_tmp_matrix(mat_dim, mat_dim) {
-  this->m_stack.reserve(stack_length);
-  for (int i = 0; i < stack_length; ++i) {
-    this->m_stack.emplace_back(mat_dim);
-  }
+    : m_mat_dim(mat_dim),
+      m_tmp_matrix(mat_dim, mat_dim),
+      m_cached_v_matrix(mat_dim, mat_dim) {
+  this->m_stack.resize(stack_length);
 }
 
 // Basic stack state queries
@@ -53,6 +52,7 @@ void SvdStack::push(const Matrix& matrix) {
         this->m_stack[this->m_stack_length].MatrixU(),
         this->m_stack[this->m_stack_length].SingularValues(),
         this->m_stack[this->m_stack_length].MatrixV());
+    this->m_cached_v_matrix = this->m_stack[this->m_stack_length].MatrixV();
   } else {
     // Subsequent matrices: multiply with existing decomposition
     // We compute matrix * U * S, then take SVD of the result
@@ -67,6 +67,7 @@ void SvdStack::push(const Matrix& matrix) {
         this->m_stack[this->m_stack_length].MatrixU(),
         this->m_stack[this->m_stack_length].SingularValues(),
         this->m_stack[this->m_stack_length].MatrixV());
+    this->m_cached_v_matrix *= this->m_stack[this->m_stack_length].MatrixV();
   }
   this->m_stack_length += 1;
 }
@@ -76,6 +77,7 @@ void SvdStack::push(const Matrix& matrix) {
 void SvdStack::pop() {
   assert(this->m_stack_length > 0);
   this->m_stack_length -= 1;
+  is_v_matrix_cached = false;
 }
 
 // Get the current singular values of the accumulated product
@@ -95,12 +97,21 @@ const Matrix SvdStack::MatrixU() {
 // since each push() operation creates a new V that must be composed with
 // previous ones
 const Matrix SvdStack::MatrixV() {
+  if (is_v_matrix_cached) {
+    return this->m_cached_v_matrix;
+  }
+
   assert(this->m_stack_length > 0);
+
   Matrix r = this->m_stack[0].MatrixV();
   for (int i = 1; i < this->m_stack_length; ++i) {
     r = r * this->m_stack[i].MatrixV();
   }
-  return r;
+
+  this->m_cached_v_matrix = std::move(r);
+  is_v_matrix_cached = true;
+
+  return this->m_cached_v_matrix;
 }
 
 }  // namespace Utils

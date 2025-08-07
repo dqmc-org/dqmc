@@ -16,6 +16,8 @@
 #include <Eigen/SVD>
 #include <iostream>
 
+#include "lapacke.h"
+
 namespace Utils {
 
 // -------------------------------------  Utils::LinearAlgebra class
@@ -43,22 +45,41 @@ class LinearAlgebra {
     // if the input matrix has different rows and columns
     assert(row == col);
 
-    // use Eigen's JacobiSVD for SVD decomposition
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(
-        mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    // matrix size
+    int matrix_layout = LAPACK_ROW_MAJOR;
+    lapack_int info, lda = row, ldu = row, ldvt = col;
 
-    if (svd.info() != Eigen::Success) {
-      std::cerr << "Utils::LinearAlgebra::dgesvd(): "
+    // local arrays
+    double tmp_s[ldu * ldu], tmp_u[ldu * row], tmp_vt[ldvt * col];
+    double mat_in[lda * col];
+    double super_mat[ldu * lda];
+
+    // convert eigen matrix to c-style array
+    Eigen::Map<
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
+        &mat_in[0], lda, col) = mat;
+
+    // compute SVD
+    info = LAPACKE_dgesvd(matrix_layout, 'A', 'A', row, col, mat_in, lda, tmp_s,
+                          tmp_u, ldu, tmp_vt, ldvt, super_mat);
+
+    // check for convergence
+    if (info > 0) {
+      std::cerr << "Utils::LinearAlgebra::mkl_lapack_dgesvd(): "
                 << "the algorithm computing SVD failed to converge."
                 << std::endl;
       exit(1);
     }
 
-    // get SVD components: A = U * S * V^T
-    // Note: the function comment says V is returned, not V^T
-    u = svd.matrixU();
-    s = svd.singularValues();
-    v = svd.matrixV();
+    // convert the results into Eigen style
+    u = Eigen::Map<
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
+        tmp_u, col, col);
+    s = Eigen::Map<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>(
+        tmp_s, 1, col);
+    v = Eigen::Map<
+        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>(
+        tmp_vt, row, row);
   }
 
   /**
