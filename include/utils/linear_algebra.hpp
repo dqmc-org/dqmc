@@ -4,16 +4,12 @@
 
 /**
  *  This source file includes some diagonalizing tools with C++/Eigen interface
- *  for diagonalizing real matrices using mkl and lapack.
+ *  for diagonalizing real matrices.
  *  including:
  *    1. generalized SVD decomposition for arbitrary M * N matrices
  *    2. optimized diagonalizing mechanism for N * N real symmetric matrix
  *  The calculation accuracy and efficiency are guaranteed.
  */
-
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
-#include <mkl_lapacke.h>
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -27,7 +23,7 @@ namespace Utils {
 class LinearAlgebra {
  public:
   /**
-   *  SVD decomposition of arbitrary M * N real matrix, using MKL_LAPACK:
+   *  SVD decomposition of arbitrary M * N real matrix:
    *       A  ->  U * S * V^T
    *  Remind that V is returned in this subroutine, not V transpose.
    *
@@ -38,9 +34,9 @@ class LinearAlgebra {
    *  @param s -> eigenvalues s of type Eigen::VectorXd, descending sorted.
    *  @param v -> v matrix of type Eigen::MatrixXd, `col` * `col`.
    */
-  static void mkl_lapack_dgesvd(const int& row, const int& col,
-                                const Eigen::MatrixXd& mat, Eigen::MatrixXd& u,
-                                Eigen::VectorXd& s, Eigen::MatrixXd& v) {
+  static void dgesvd(const int& row, const int& col, const Eigen::MatrixXd& mat,
+                     Eigen::MatrixXd& u, Eigen::VectorXd& s,
+                     Eigen::MatrixXd& v) {
     assert(row == mat.rows());
     assert(col == mat.cols());
     // TODO: currently, the subroutine would fail
@@ -52,7 +48,7 @@ class LinearAlgebra {
         mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
     if (svd.info() != Eigen::Success) {
-      std::cerr << "Utils::LinearAlgebra::mkl_lapack_dgesvd(): "
+      std::cerr << "Utils::LinearAlgebra::dgesvd(): "
                 << "the algorithm computing SVD failed to converge."
                 << std::endl;
       exit(1);
@@ -67,7 +63,7 @@ class LinearAlgebra {
 
   /**
    *  Calculate eigenvalues and eigenstates given an arbitrary N * N real
-   * symmetric matrix, using MKL_LAPACK A  ->  T^dagger * S * T where T is the
+   * symmetric matrix, A  ->  T^dagger * S * T where T is the
    * rotation matrix, which is orthogonal; S is a diagonal matrix with
    * eigenvalues being diagonal elements.
    *
@@ -77,8 +73,8 @@ class LinearAlgebra {
    *  @param s -> diagonal eigen matrix.
    *  @param t -> rotation matrix, whose columns are corresponding eigenstates.
    */
-  static void mkl_lapack_dsyev(const int& size, const Eigen::MatrixXd& mat,
-                               Eigen::VectorXd& s, Eigen::MatrixXd& t) {
+  static void dsyev(const int& size, const Eigen::MatrixXd& mat,
+                    Eigen::VectorXd& s, Eigen::MatrixXd& t) {
     assert(mat.rows() == size);
     assert(mat.cols() == size);
     // make sure the input matrix is symmetric
@@ -87,7 +83,7 @@ class LinearAlgebra {
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
 
     if (solver.info() != Eigen::Success) {
-      std::cerr << "Utils::LinearAlgebra::mkl_lapack_dsyev(): "
+      std::cerr << "Utils::LinearAlgebra::dsyev(): "
                 << "the algorithm failed to compute eigenvalues." << std::endl;
       exit(1);
     }

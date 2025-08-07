@@ -1,12 +1,10 @@
 #include "checkerboard/square.h"
 
+#include <unsupported/Eigen/MatrixFunctions>
+
 #include "dqmc_walker.h"
 #include "lattice/square.h"
 #include "model/model_base.h"
-
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
-#include <unsupported/Eigen/MatrixFunctions>
 
 namespace CheckerBoard {
 

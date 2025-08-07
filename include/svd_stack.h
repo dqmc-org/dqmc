@@ -11,8 +11,6 @@
  *
  * The approach decomposes each matrix product as A = U * S * V^T and carefully
  * manages the singular values to prevent overflow/underflow conditions.
- *
- * Requires Intel MKL for high-performance LAPACK SVD routines.
  */
 
 #include <Eigen/Core>

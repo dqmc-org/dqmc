@@ -7,11 +7,9 @@
  *  to organize the entire dqmc program.
  */
 
+#include <Eigen/Core>
 #include <memory>
 #include <vector>
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
-#include <Eigen/Core>
 
 namespace Utils {
 class SvdStack;

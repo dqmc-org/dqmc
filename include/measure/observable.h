@@ -9,14 +9,12 @@
  * simualtions. Support observable types of scalar, vector and matrix kinds.
  */
 
+#include <Eigen/Core>
 #include <functional>
 #include <iostream>
 #include <numeric>
 #include <string>
 #include <vector>
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
-#include <Eigen/Core>
 
 // forward declaration
 namespace QuantumMonteCarlo {

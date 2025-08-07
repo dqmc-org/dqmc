@@ -16,22 +16,16 @@ Currently, simulations of the fermionic Hubbard model with both attractive and r
 * `gcc/g++` `( version >= 7.1, support C++17 standard )` and `cmake` `( version >= 3.21 )` installed.
 * `Boost C++ libraries` `( version >= 1.71 )` installed.
 * `Eigen library` `( version >= 3.4.0 )` providing a user-friendly matrix interfaces.
-* `Intel Math Kernel Library (MKL)` for high-accuracy linear algebra and numerical stabilization.
 * `Message Passing Interface (MPI)` for large scales of distributed parallel accelerations. Both `OpenMPI` and `Intel MPI` have been tested and work well.
 
 ### Building ###
 
-1. Set up Intel MKL environment variables:
-   ```shell
-   source /opt/intel/oneapi/setvars.sh
-   ```
-
-2. Configure the build with CMake:
+1. Configure the build with CMake:
    ```shell
    cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
    ```
 
-3. Build the project:
+2. Build the project:
    ```shell
    cmake --build build
    ```

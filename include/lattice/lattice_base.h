@@ -8,8 +8,6 @@
  * quantum systems live.
  */
 
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
 #include <Eigen/Core>
 
 namespace Lattice {

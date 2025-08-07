@@ -1,13 +1,11 @@
 #include "model/repulsive_hubbard.h"
 
+#include <Eigen/Core>
+#include <unsupported/Eigen/MatrixFunctions>
+
 #include "dqmc_walker.h"
 #include "lattice/lattice_base.h"
 #include "random.h"
-
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
-#include <Eigen/Core>
-#include <unsupported/Eigen/MatrixFunctions>
 
 namespace Model {
 

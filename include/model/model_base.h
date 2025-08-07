@@ -7,11 +7,9 @@
  *  which is pure virtual, for describing different kinds of quantum models.
  */
 
+#include <Eigen/Core>
 #include <functional>
 #include <memory>
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
-#include <Eigen/Core>
 
 // forward declaration
 namespace QuantumMonteCarlo {

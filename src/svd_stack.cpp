@@ -4,7 +4,6 @@
 #include <cmath>
 #include <iostream>
 
-#include "mkl_lapacke.h"
 #include "utils/linear_algebra.hpp"
 
 namespace Utils {
@@ -49,7 +48,7 @@ void SvdStack::push(const Matrix& matrix) {
 
   if (this->m_stack_length == 0) {
     // First matrix: just compute its SVD directly
-    Utils::LinearAlgebra::mkl_lapack_dgesvd(
+    Utils::LinearAlgebra::dgesvd(
         this->m_mat_dim, this->m_mat_dim, matrix,
         this->m_stack[this->m_stack_length].MatrixU(),
         this->m_stack[this->m_stack_length].SingularValues(),
@@ -63,7 +62,7 @@ void SvdStack::push(const Matrix& matrix) {
     // 3. Finally compute SVD of the combined result
     this->m_tmp_matrix =
         (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
-    Utils::LinearAlgebra::mkl_lapack_dgesvd(
+    Utils::LinearAlgebra::dgesvd(
         this->m_mat_dim, this->m_mat_dim, this->m_tmp_matrix,
         this->m_stack[this->m_stack_length].MatrixU(),
         this->m_stack[this->m_stack_length].SingularValues(),

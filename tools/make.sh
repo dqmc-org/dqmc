@@ -4,7 +4,7 @@ set -e
 set -x
 set -o pipefail
 
-source /opt/intel/oneapi/setvars.sh
+./tools/format.py
 
 CXXFLAGS="-O2 -Wall -Wformat -Wformat=2 -Wimplicit-fallthrough -Werror=format-security -U_FORTIFY_SOURCE -D_FORTIFY_SOURCE=3 -D_GLIBCXX_ASSERTIONS -fstrict-flex-arrays=3 -fstack-clash-protection -fstack-protector-strong"
 cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="$CXXFLAGS"

@@ -23,7 +23,6 @@ target_include_directories(
   dqmc
   PUBLIC
   ${PROJECT_SOURCE_DIR}/include
-  ${MKL_INCLUDE_DIR}
   ${MPI_CXX_INCLUDE_PATH}
   ${EIGEN3_INCLUDE_DIR}
   ${Boost_INCLUDE_DIRS}
@@ -32,7 +31,6 @@ target_include_directories(
 target_link_libraries(
   dqmc
   PUBLIC
-  ${MKL_LIBRARIES}
   MPI::MPI_CXX
   Eigen3::Eigen
   ${Boost_LIBRARIES}
@@ -41,6 +39,12 @@ target_link_libraries(
 add_executable(
   main
   dqmc_main.cpp
+)
+
+set_target_properties(
+  main
+  PROPERTIES
+  RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}"
 )
 
 target_link_libraries(

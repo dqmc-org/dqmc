@@ -8,8 +8,6 @@
  *  time-displaced (dynamical) Greens function in a stable manner.
  */
 
-#define EIGEN_USE_MKL_ALL
-#define EIGEN_VECTORIZE_SSE4_2
 #include <Eigen/Core>
 #include <Eigen/LU>
 #include <Eigen/QR>
