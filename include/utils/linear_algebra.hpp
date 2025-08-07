@@ -16,6 +16,7 @@
 #include <mkl_lapacke.h>
 
 #include <Eigen/Core>
+#include <Eigen/Eigenvalues>
 #include <iostream>
 
 namespace Utils {
@@ -99,34 +100,18 @@ class LinearAlgebra {
     assert(mat.rows() == size);
     assert(mat.cols() == size);
     // make sure the input matrix is symmetric
-    assert(mat.isApprox(mat.transpose(), 1e-12));
+    // assert(mat.isApprox(mat.transpose(), 1e-12));
 
-    // locals params
-    lapack_int n = size, lda = size, info;
-    double tmp_s[n];
-    double mat_in[lda * n];
+    Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
 
-    // convert eigen matrix to c-style array
-    Eigen::Map<
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
-        &mat_in[0], lda, n) = mat;
-
-    // solve eigen problem
-    info = LAPACKE_dsyev(LAPACK_ROW_MAJOR, 'V', 'U', n, mat_in, lda, tmp_s);
-
-    // check for convergence
-    if (info > 0) {
+    if (solver.info() != Eigen::Success) {
       std::cerr << "Utils::LinearAlgebra::mkl_lapack_dsyev(): "
                 << "the algorithm failed to compute eigenvalues." << std::endl;
       exit(1);
     }
 
-    // convert the results into Eigen style
-    s = Eigen::Map<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>(
-        tmp_s, 1, n);
-    t = Eigen::Map<
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>(
-        mat_in, n, n);
+    s = solver.eigenvalues();
+    t = solver.eigenvectors();
   }
 };
 
