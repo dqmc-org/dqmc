@@ -1,0 +1,49 @@
+add_library(
+  dqmc
+  dqmc.cpp
+  lattice/cubic.cpp
+  lattice/square.cpp
+  lattice/honeycomb.cpp
+  lattice/lattice_base.cpp
+  svd_stack.cpp
+  random.cpp
+  checkerboard/cubic.cpp
+  checkerboard/square.cpp
+  dqmc_initializer.cpp
+  dqmc_walker.cpp
+  measure/measure_methods.cpp
+  measure/measure_handler.cpp
+  measure/observable_handler.cpp
+  model/model_base.cpp
+  model/attractive_hubbard.cpp
+  model/repulsive_hubbard.cpp
+)
+
+target_include_directories(
+  dqmc
+  PUBLIC
+  ${PROJECT_SOURCE_DIR}/include
+  ${MKL_INCLUDE_DIR}
+  ${MPI_CXX_INCLUDE_PATH}
+  ${EIGEN3_INCLUDE_DIR}
+  ${Boost_INCLUDE_DIRS}
+)
+
+target_link_libraries(
+  dqmc
+  PUBLIC
+  ${MKL_LIBRARIES}
+  MPI::MPI_CXX
+  Eigen3::Eigen
+  ${Boost_LIBRARIES}
+)
+
+add_executable(
+  main
+  dqmc_main.cpp
+)
+
+target_link_libraries(
+  main
+  dqmc
+)
