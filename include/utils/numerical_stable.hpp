@@ -100,6 +100,45 @@ class NumericalStable {
   }
 
   /*
+   *  Applies element-wise scaling to matrices Atmp and Btmp based on
+   *  dlmax, drmax, dlmin, and drmin vectors.
+   *
+   *  Specifically:
+   *  Atmp(i, j) = Atmp(i, j) / (dlmax(i) * drmax(j))
+   *  Btmp(i, j) = Btmp(i, j) * (dlmin(i) * drmin(j))
+   *
+   *  Input/Output: Atmp, Btmp
+   *  Input: dlmax, drmax, dlmin, drmin
+   */
+  static void scale_Atmp_Btmp_dl_dr(Matrix& Atmp, Matrix& Btmp,
+                                    const Vector& dlmax, const Vector& drmax,
+                                    const Vector& dlmin, const Vector& drmin) {
+    assert(Atmp.rows() == dlmax.size());
+    assert(Atmp.cols() == drmax.size());
+    assert(Btmp.rows() == dlmin.size());
+    assert(Btmp.cols() == drmin.size());
+    assert(Atmp.rows() == Btmp.rows());
+    assert(Atmp.cols() == Btmp.cols());
+
+    Atmp.array().colwise() /= dlmax.array();
+    Atmp.array().rowwise() /= drmax.array().transpose();
+
+    Btmp.array().colwise() *= dlmin.array();
+    Btmp.array().rowwise() *= drmin.array().transpose();
+  }
+
+   /*
+    *  Applies element-wise scaling to matrices Xtmp and Ytmp with swapped vector roles
+    *  compared to applyElementWiseScaling.
+    *
+    *  Specifically:
+    *  Xtmp(i, j) = Xtmp(i, j) / (drmax(i) * dlmax(j))
+    *  Ytmp(i, j) = Ytmp(i, j) * (drmin(i) * dlmin(j))
+    *
+    *  Input/Output: Xtmp, Ytmp
+    *  Input: drmax, dlmax, drmin, dlmin
+    */
+  /*
    *  return (1 + USV^T)^-1, with method of QR decomposition
    *  to obtain equal-time Green's functions G(t,t)
    */
@@ -190,12 +229,7 @@ class NumericalStable {
 
     // Atmp = dlmax^-1 * (ul^T * ur) * drmax^-1
     // Btmp = dlmin * (vl^T * vr) * drmin
-    for (int j = 0; j < ndim; ++j) {
-      for (int i = 0; i < ndim; ++i) {
-        Atmp(i, j) = Atmp(i, j) / (dlmax(i) * drmax(j));
-        Btmp(i, j) = Btmp(i, j) * dlmin(i) * drmin(j);
-      }
-    }
+    scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
 
     tmp = Atmp + Btmp;
     mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
@@ -266,12 +300,8 @@ class NumericalStable {
 
     // Atmp = dlmax^-1 * (ul^T * ur) * drmax^-1
     // Btmp = dlmin * (vl^T * vr) * drmin
-    for (int j = 0; j < ndim; ++j) {
-      for (int i = 0; i < ndim; ++i) {
-        Atmp(i, j) = Atmp(i, j) / (dlmax(i) * drmax(j));
-        Btmp(i, j) = Btmp(i, j) * dlmin(i) * drmin(j);
-      }
-    }
+    scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
+
     tmp = Atmp + Btmp;
     mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
     mult_v_d_u(Atmp, dlmin, vl.transpose(), gt0);
