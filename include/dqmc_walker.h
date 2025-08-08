@@ -106,11 +106,11 @@ class DqmcWalker {
   // -------------------------------- Interfaces and friend class
   // --------------------------------
 
-  const int TimeSize() const { return this->m_time_size; }
-  const RealScalar Beta() const { return this->m_beta; }
-  const RealScalar TimeInterval() const { return this->m_time_interval; }
-  const RealScalar WrapError() const { return this->m_wrap_error; }
-  const int StabilizationPace() const { return this->m_stabilization_pace; }
+  int TimeSize() const { return this->m_time_size; }
+  RealScalar Beta() const { return this->m_beta; }
+  RealScalar TimeInterval() const { return this->m_time_interval; }
+  RealScalar WrapError() const { return this->m_wrap_error; }
+  int StabilizationPace() const { return this->m_stabilization_pace; }
 
   // interface for greens functions
   // todo: this may cause problems if the pointer is nullptr
