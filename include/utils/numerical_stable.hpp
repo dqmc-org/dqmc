@@ -46,19 +46,9 @@ class NumericalStable {
   static void div_dvec_max_min(const Vector& dvec, Vector& dmax, Vector& dmin) {
     assert(dvec.size() == dmax.size());
     assert(dvec.size() == dmin.size());
-
-    const int ndim = (int)dvec.size();
-    for (int i = 0; i < ndim; ++i) {
-      assert(dvec(i) >= 0);
-      if (dvec(i) >= 1.0) {
-        dmin(i) = 1.0;
-        dmax(i) = dvec(i);
-      }
-      if (dvec(i) < 1.0) {
-        dmax(i) = 1.0;
-        dmin(i) = dvec(i);
-      }
-    }
+    assert((dvec.array() >= 0).all());
+    dmax = dvec.cwiseMax(Vector::Ones(dvec.size()));
+    dmin = dvec.cwiseMin(Vector::Ones(dvec.size()));
   }
 
   /*
