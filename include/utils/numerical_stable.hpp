@@ -202,8 +202,8 @@ class NumericalStable {
    * factorization note: (1 + left * right^T)^-1 = (1 + (USV^T)_left *
    * (VSU^T)_right)^-1
    */
-  static void compute_equaltime_greens(SvdStack& left, SvdStack& right,
-                                       Matrix& gtt) {
+  static void compute_equaltime_greens(const SvdStack& left,
+                                       const SvdStack& right, Matrix& gtt) {
     assert(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
 
@@ -259,8 +259,9 @@ class NumericalStable {
    *  return time-displaced Green's function in a stable manner,
    *  with the method of MGS factorization
    */
-  static void compute_dynamic_greens(SvdStack& left, SvdStack& right,
-                                     Matrix& gt0, Matrix& g0t) {
+  static void compute_dynamic_greens(const SvdStack& left,
+                                     const SvdStack& right, Matrix& gt0,
+                                     Matrix& g0t) {
     assert(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
 
