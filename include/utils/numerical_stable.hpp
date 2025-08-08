@@ -127,17 +127,34 @@ class NumericalStable {
     Btmp.array().rowwise() *= drmin.array().transpose();
   }
 
-   /*
-    *  Applies element-wise scaling to matrices Xtmp and Ytmp with swapped vector roles
-    *  compared to applyElementWiseScaling.
-    *
-    *  Specifically:
-    *  Xtmp(i, j) = Xtmp(i, j) / (drmax(i) * dlmax(j))
-    *  Ytmp(i, j) = Ytmp(i, j) * (drmin(i) * dlmin(j))
-    *
-    *  Input/Output: Xtmp, Ytmp
-    *  Input: drmax, dlmax, drmin, dlmin
-    */
+  /*
+   *  Applies element-wise scaling to matrices Xtmp and Ytmp with swapped vector
+   * roles compared to scale_Atmp_Btmp_dl_dr.
+   *
+   *  Specifically:
+   *  Xtmp(i, j) = Xtmp(i, j) / (drmax(i) * dlmax(j))
+   *  Ytmp(i, j) = Ytmp(i, j) * (drmin(i) * dlmin(j))
+   *
+   *  Input/Output: Xtmp, Ytmp
+   *  Input: drmax, dlmax, drmin, dlmin
+   */
+  static void scale_Xtmp_Ytmp_dl_dr(Matrix& Xtmp, Matrix& Ytmp,
+                                    const Vector& drmax, const Vector& dlmax,
+                                    const Vector& drmin, const Vector& dlmin) {
+    assert(Xtmp.rows() == drmax.size());
+    assert(Xtmp.cols() == dlmax.size());
+    assert(Ytmp.rows() == drmin.size());
+    assert(Ytmp.cols() == dlmin.size());
+    assert(Xtmp.rows() == Ytmp.rows());
+    assert(Xtmp.cols() == Ytmp.cols());
+
+    Xtmp.array().colwise() /= drmax.array();
+    Xtmp.array().rowwise() /= dlmax.array().transpose();
+
+    Ytmp.array().colwise() *= drmin.array();
+    Ytmp.array().rowwise() *= dlmin.array().transpose();
+  }
+
   /*
    *  return (1 + USV^T)^-1, with method of QR decomposition
    *  to obtain equal-time Green's functions G(t,t)
@@ -313,12 +330,8 @@ class NumericalStable {
 
     // Xtmp = drmax^-1 * (vr^T * vl) * dlmax^-1
     // Ytmp = drmin * (ur^T * ul) * dlmin
-    for (int j = 0; j < ndim; ++j) {
-      for (int i = 0; i < ndim; ++i) {
-        Xtmp(i, j) = Xtmp(i, j) / (drmax(i) * dlmax(j));
-        Ytmp(i, j) = Ytmp(i, j) * drmin(i) * dlmin(j);
-      }
-    }
+    scale_Xtmp_Ytmp_dl_dr(Xtmp, Ytmp, drmax, dlmax, drmin, dlmin);
+
     tmp = Xtmp + Ytmp;
     mult_v_invd_u(-vl, dlmax, tmp.inverse(), Xtmp);
     mult_v_d_u(Xtmp, drmin, ur.transpose(), g0t);
