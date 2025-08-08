@@ -80,18 +80,9 @@ class NumericalStable {
     assert(vmat.rows() == zmat.rows());
     assert(vmat.rows() == vmat.cols());
     assert(vmat.cols() == dvec.size());
+    zmat.noalias() = vmat * dvec.asDiagonal() * umat;
+  }
 
-    const int ndim = (int)vmat.rows();
-
-    for (int i = 0; i < ndim; ++i) {
-      for (int j = 0; j < ndim; ++j) {
-        double ztmp = 0.0;
-        for (int k = 0; k < ndim; ++k) {
-          ztmp += vmat(j, k) * umat(k, i) * dvec(k);
-        }
-        zmat(j, i) = ztmp;
-      }
-    }
   }
 
   /*
