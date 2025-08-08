@@ -107,7 +107,6 @@ class DqmcWalker {
   int StabilizationPace() const { return this->m_stabilization_pace; }
 
   // interface for greens functions
-  // todo: this may cause problems if the pointer is nullptr
   GreensFunc& GreenttUp() { return this->m_green_tt_up; }
   GreensFunc& GreenttDn() { return this->m_green_tt_dn; }
 
