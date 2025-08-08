@@ -10,9 +10,8 @@
 #include <memory>
 #include <vector>
 
-namespace Utils {
-class SvdStack;
-}
+#include "svd_stack.h"
+
 namespace Model {
 class ModelBase;
 }
@@ -39,14 +38,10 @@ class DqmcWalker {
   using TimeIndex = int;
   using RealScalar = double;
   using RealScalarVec = Eigen::VectorXd;
-  using ptrRealScalarVec = std::unique_ptr<Eigen::VectorXd>;
   using SvdStack = Utils::SvdStack;
-  using ptrSvdStack = std::unique_ptr<SvdStack>;
 
   using GreensFunc = Eigen::MatrixXd;
   using GreensFuncVec = std::vector<Eigen::MatrixXd>;
-  using ptrGreensFunc = std::unique_ptr<Eigen::MatrixXd>;
-  using ptrGreensFuncVec = std::unique_ptr<std::vector<Eigen::MatrixXd>>;
 
   // --------------------------------- Walker params
   // ---------------------------------------------
@@ -63,15 +58,15 @@ class DqmcWalker {
   // Equal-time green's functions, which is the most crucial quantities during
   // dqmc simulations for spin-1/2 systems, we label the spin index with up and
   // down
-  ptrGreensFunc m_green_tt_up{}, m_green_tt_dn{};
-  ptrGreensFuncVec m_vec_green_tt_up{}, m_vec_green_tt_dn{};
+  GreensFunc m_green_tt_up{}, m_green_tt_dn{};
+  GreensFuncVec m_vec_green_tt_up{}, m_vec_green_tt_dn{};
 
   // Time-displaced green's functions G(t,0) and G(0,t)
   // important for time-displaced measurements of physical observables
-  ptrGreensFunc m_green_t0_up{}, m_green_t0_dn{};
-  ptrGreensFunc m_green_0t_up{}, m_green_0t_dn{};
-  ptrGreensFuncVec m_vec_green_t0_up{}, m_vec_green_t0_dn{};
-  ptrGreensFuncVec m_vec_green_0t_up{}, m_vec_green_0t_dn{};
+  GreensFunc m_green_t0_up{}, m_green_t0_dn{};
+  GreensFunc m_green_0t_up{}, m_green_0t_dn{};
+  GreensFuncVec m_vec_green_t0_up{}, m_vec_green_t0_dn{};
+  GreensFuncVec m_vec_green_0t_up{}, m_vec_green_0t_dn{};
 
   bool m_is_equaltime{};
   bool m_is_dynamic{};
@@ -81,10 +76,10 @@ class DqmcWalker {
 
   // Utils::SvdStack class
   // for efficient svd decompositions and numerical stabilization
-  ptrSvdStack m_svd_stack_left_up{};
-  ptrSvdStack m_svd_stack_left_dn{};
-  ptrSvdStack m_svd_stack_right_up{};
-  ptrSvdStack m_svd_stack_right_dn{};
+  SvdStack m_svd_stack_left_up{};
+  SvdStack m_svd_stack_left_dn{};
+  SvdStack m_svd_stack_right_up{};
+  SvdStack m_svd_stack_right_dn{};
 
   // pace of numerical stabilizations
   // or equivalently, the number of consequent wrapping steps of equal-time
@@ -97,7 +92,7 @@ class DqmcWalker {
   // ---------------------------------- Reweighting params
   // --------------------------------------- keep track of the sign problem
   RealScalar m_config_sign{};
-  ptrRealScalarVec m_vec_config_sign{};
+  RealScalarVec m_vec_config_sign{};
 
  public:
   DqmcWalker() = default;
@@ -113,43 +108,41 @@ class DqmcWalker {
 
   // interface for greens functions
   // todo: this may cause problems if the pointer is nullptr
-  GreensFunc& GreenttUp() { return *this->m_green_tt_up; }
-  GreensFunc& GreenttDn() { return *this->m_green_tt_dn; }
+  GreensFunc& GreenttUp() { return this->m_green_tt_up; }
+  GreensFunc& GreenttDn() { return this->m_green_tt_dn; }
 
   const GreensFunc& GreenttUp(int t) const {
-    return (*this->m_vec_green_tt_up)[t];
+    return this->m_vec_green_tt_up[t];
   }
   const GreensFunc& GreenttDn(int t) const {
-    return (*this->m_vec_green_tt_dn)[t];
+    return this->m_vec_green_tt_dn[t];
   }
   const GreensFunc& Greent0Up(int t) const {
-    return (*this->m_vec_green_t0_up)[t];
+    return this->m_vec_green_t0_up[t];
   }
   const GreensFunc& Greent0Dn(int t) const {
-    return (*this->m_vec_green_t0_dn)[t];
+    return this->m_vec_green_t0_dn[t];
   }
   const GreensFunc& Green0tUp(int t) const {
-    return (*this->m_vec_green_0t_up)[t];
+    return this->m_vec_green_0t_up[t];
   }
   const GreensFunc& Green0tDn(int t) const {
-    return (*this->m_vec_green_0t_dn)[t];
+    return this->m_vec_green_0t_dn[t];
   }
 
-  const GreensFuncVec& vecGreenttUp() const { return *this->m_vec_green_tt_up; }
-  const GreensFuncVec& vecGreenttDn() const { return *this->m_vec_green_tt_dn; }
-  const GreensFuncVec& vecGreent0Up() const { return *this->m_vec_green_t0_up; }
-  const GreensFuncVec& vecGreent0Dn() const { return *this->m_vec_green_t0_dn; }
-  const GreensFuncVec& vecGreen0tUp() const { return *this->m_vec_green_0t_up; }
-  const GreensFuncVec& vecGreen0tDn() const { return *this->m_vec_green_0t_dn; }
+  const GreensFuncVec& vecGreenttUp() const { return this->m_vec_green_tt_up; }
+  const GreensFuncVec& vecGreenttDn() const { return this->m_vec_green_tt_dn; }
+  const GreensFuncVec& vecGreent0Up() const { return this->m_vec_green_t0_up; }
+  const GreensFuncVec& vecGreent0Dn() const { return this->m_vec_green_t0_dn; }
+  const GreensFuncVec& vecGreen0tUp() const { return this->m_vec_green_0t_up; }
+  const GreensFuncVec& vecGreen0tDn() const { return this->m_vec_green_0t_dn; }
 
   // interfaces for configuration signs
   const RealScalar& ConfigSign() const { return this->m_config_sign; }
   const RealScalar& ConfigSign(int t) const {
-    return (*this->m_vec_config_sign)[t];
+    return this->m_vec_config_sign[t];
   }
-  const RealScalarVec& vecConfigSign() const {
-    return *this->m_vec_config_sign;
-  }
+  const RealScalarVec& vecConfigSign() const { return this->m_vec_config_sign; }
 
   friend class DqmcInitializer;
 

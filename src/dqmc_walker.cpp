@@ -36,101 +36,38 @@ void DqmcWalker::initial(const LatticeBase& lattice,
 }
 
 void DqmcWalker::allocate_svd_stacks() {
-  // release the pointers if initialized before
-  if (this->m_svd_stack_left_up) {
-    this->m_svd_stack_left_up.reset();
-  }
-  if (this->m_svd_stack_left_dn) {
-    this->m_svd_stack_left_dn.reset();
-  }
-  if (this->m_svd_stack_right_up) {
-    this->m_svd_stack_right_up.reset();
-  }
-  if (this->m_svd_stack_right_dn) {
-    this->m_svd_stack_right_dn.reset();
-  }
-
   // allocate memory for SvdStack classes
-  this->m_svd_stack_left_up =
-      std::make_unique<SvdStack>(this->m_space_size, this->m_time_size);
-  this->m_svd_stack_left_dn =
-      std::make_unique<SvdStack>(this->m_space_size, this->m_time_size);
-  this->m_svd_stack_right_up =
-      std::make_unique<SvdStack>(this->m_space_size, this->m_time_size);
-  this->m_svd_stack_right_dn =
-      std::make_unique<SvdStack>(this->m_space_size, this->m_time_size);
+  this->m_svd_stack_left_up = SvdStack(this->m_space_size, this->m_time_size);
+  this->m_svd_stack_left_dn = SvdStack(this->m_space_size, this->m_time_size);
+  this->m_svd_stack_right_up = SvdStack(this->m_space_size, this->m_time_size);
+  this->m_svd_stack_right_dn = SvdStack(this->m_space_size, this->m_time_size);
 }
 
 void DqmcWalker::allocate_greens_functions() {
-  // release the memory if initialized before
-  if (this->m_green_tt_up) {
-    this->m_green_tt_up.reset();
-  }
-  if (this->m_green_tt_dn) {
-    this->m_green_tt_dn.reset();
-  }
-  if (this->m_green_t0_up) {
-    this->m_green_t0_up.reset();
-  }
-  if (this->m_green_t0_dn) {
-    this->m_green_t0_dn.reset();
-  }
-  if (this->m_green_0t_up) {
-    this->m_green_0t_up.reset();
-  }
-  if (this->m_green_0t_dn) {
-    this->m_green_0t_dn.reset();
-  }
-
-  if (this->m_vec_green_tt_up) {
-    this->m_vec_green_tt_up.reset();
-  }
-  if (this->m_vec_green_tt_dn) {
-    this->m_vec_green_tt_dn.reset();
-  }
-  if (this->m_vec_green_t0_up) {
-    this->m_vec_green_t0_up.reset();
-  }
-  if (this->m_vec_green_t0_dn) {
-    this->m_vec_green_t0_dn.reset();
-  }
-  if (this->m_vec_green_0t_up) {
-    this->m_vec_green_0t_up.reset();
-  }
-  if (this->m_vec_green_0t_dn) {
-    this->m_vec_green_0t_dn.reset();
-  }
-
   // allocate memory for greens functions
-  this->m_green_tt_up =
-      std::make_unique<GreensFunc>(this->m_space_size, this->m_space_size);
-  this->m_green_tt_dn =
-      std::make_unique<GreensFunc>(this->m_space_size, this->m_space_size);
+  this->m_green_tt_up = GreensFunc(this->m_space_size, this->m_space_size);
+  this->m_green_tt_dn = GreensFunc(this->m_space_size, this->m_space_size);
 
   if (this->m_is_equaltime || this->m_is_dynamic) {
-    this->m_vec_green_tt_up = std::make_unique<GreensFuncVec>(
+    this->m_vec_green_tt_up = GreensFuncVec(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_tt_dn = std::make_unique<GreensFuncVec>(
+    this->m_vec_green_tt_dn = GreensFuncVec(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
   }
 
   if (this->m_is_dynamic) {
-    this->m_green_t0_up =
-        std::make_unique<GreensFunc>(this->m_space_size, this->m_space_size);
-    this->m_green_t0_dn =
-        std::make_unique<GreensFunc>(this->m_space_size, this->m_space_size);
-    this->m_green_0t_up =
-        std::make_unique<GreensFunc>(this->m_space_size, this->m_space_size);
-    this->m_green_0t_dn =
-        std::make_unique<GreensFunc>(this->m_space_size, this->m_space_size);
+    this->m_green_t0_up = GreensFunc(this->m_space_size, this->m_space_size);
+    this->m_green_t0_dn = GreensFunc(this->m_space_size, this->m_space_size);
+    this->m_green_0t_up = GreensFunc(this->m_space_size, this->m_space_size);
+    this->m_green_0t_dn = GreensFunc(this->m_space_size, this->m_space_size);
 
-    this->m_vec_green_t0_up = std::make_unique<GreensFuncVec>(
+    this->m_vec_green_t0_up = GreensFuncVec(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_t0_dn = std::make_unique<GreensFuncVec>(
+    this->m_vec_green_t0_dn = GreensFuncVec(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_0t_up = std::make_unique<GreensFuncVec>(
+    this->m_vec_green_0t_up = GreensFuncVec(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_0t_dn = std::make_unique<GreensFuncVec>(
+    this->m_vec_green_0t_dn = GreensFuncVec(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
   }
 }
@@ -156,8 +93,8 @@ void DqmcWalker::initial_svd_stacks(const LatticeBase& lattice,
 
     // stabilize every nwrap steps with svd decomposition
     if ((t - 1) % this->m_stabilization_pace == 0) {
-      this->m_svd_stack_right_up->push(tmp_stack_up);
-      this->m_svd_stack_right_dn->push(tmp_stack_dn);
+      this->m_svd_stack_right_up.push(tmp_stack_up);
+      this->m_svd_stack_right_dn.push(tmp_stack_dn);
       tmp_stack_up = Matrix::Identity(this->m_space_size, this->m_space_size);
       tmp_stack_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
     }
@@ -171,33 +108,27 @@ void DqmcWalker::initial_greens_functions() {
   // compute greens function at time slice t = 0
   // which corresponds to imaginary-time tau = beta
   // the svd stacks should be initialized correctly ahead of time
-  NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_up,
-                                            *this->m_svd_stack_right_up,
-                                            *this->m_green_tt_up);
-  NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_dn,
-                                            *this->m_svd_stack_right_dn,
-                                            *this->m_green_tt_dn);
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
+                                            this->m_svd_stack_right_up,
+                                            this->m_green_tt_up);
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
+                                            this->m_svd_stack_right_dn,
+                                            this->m_green_tt_dn);
 }
 
 void DqmcWalker::initial_config_sign() {
-  // realease memory if previously initialized
-  if (this->m_vec_config_sign) {
-    this->m_vec_config_sign.reset();
-  }
-
   // allocate memory for config sign vector
   // if equal-time measurements are to be performed
   if (this->m_is_equaltime) {
-    this->m_vec_config_sign =
-        std::make_unique<RealScalarVec>(this->m_time_size);
+    this->m_vec_config_sign = RealScalarVec(this->m_time_size);
   }
 
   // initialize the sign of the initial bosonic configurations
-  this->m_config_sign = (this->m_green_tt_up->determinant() *
-                             this->m_green_tt_dn->determinant() >=
-                         0)
-                            ? +1.0
-                            : -1.0;
+  this->m_config_sign =
+      (this->m_green_tt_up.determinant() * this->m_green_tt_dn.determinant() >=
+       0)
+          ? +1.0
+          : -1.0;
 }
 
 /*
@@ -242,10 +173,10 @@ void DqmcWalker::wrap_from_0_to_beta(const ModelBase& model, TimeIndex t) {
   assert(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == this->m_time_size) ? 1 : t + 1;
-  model.mult_B_from_left(*this->m_green_tt_up, eff_t, +1);
-  model.mult_invB_from_right(*this->m_green_tt_up, eff_t, +1);
-  model.mult_B_from_left(*this->m_green_tt_dn, eff_t, -1);
-  model.mult_invB_from_right(*this->m_green_tt_dn, eff_t, -1);
+  model.mult_B_from_left(this->m_green_tt_up, eff_t, +1);
+  model.mult_invB_from_right(this->m_green_tt_up, eff_t, +1);
+  model.mult_B_from_left(this->m_green_tt_dn, eff_t, -1);
+  model.mult_invB_from_right(this->m_green_tt_dn, eff_t, -1);
 }
 
 /*
@@ -259,10 +190,10 @@ void DqmcWalker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
   assert(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == 0) ? this->m_time_size : t;
-  model.mult_B_from_right(*this->m_green_tt_up, eff_t, +1);
-  model.mult_invB_from_left(*this->m_green_tt_up, eff_t, +1);
-  model.mult_B_from_right(*this->m_green_tt_dn, eff_t, -1);
-  model.mult_invB_from_left(*this->m_green_tt_dn, eff_t, -1);
+  model.mult_B_from_right(this->m_green_tt_up, eff_t, +1);
+  model.mult_invB_from_left(this->m_green_tt_up, eff_t, +1);
+  model.mult_B_from_right(this->m_green_tt_dn, eff_t, -1);
+  model.mult_invB_from_left(this->m_green_tt_dn, eff_t, -1);
 }
 
 /*
@@ -278,10 +209,10 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
   assert(this->m_current_time_slice == 1);
-  assert(this->m_svd_stack_left_up->empty() &&
-         this->m_svd_stack_left_dn->empty());
-  assert(this->m_svd_stack_right_up->StackLength() == stack_length &&
-         this->m_svd_stack_right_dn->StackLength() == stack_length);
+  assert(this->m_svd_stack_left_up.empty() &&
+         this->m_svd_stack_left_dn.empty());
+  assert(this->m_svd_stack_right_up.StackLength() == stack_length &&
+         this->m_svd_stack_right_dn.StackLength() == stack_length);
 
   // temporary matrices
   Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
@@ -295,9 +226,9 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
     // update auxiliary fields and record the updated greens functions
     this->metropolis_update(model, t);
     if (this->m_is_equaltime) {
-      (*this->m_vec_green_tt_up)[t - 1] = *this->m_green_tt_up;
-      (*this->m_vec_green_tt_dn)[t - 1] = *this->m_green_tt_dn;
-      (*this->m_vec_config_sign)[t - 1] = this->m_config_sign;
+      this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
+      this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
+      this->m_vec_config_sign[t - 1] = this->m_config_sign;
     }
 
     model.mult_B_from_left(tmp_mat_up, t, +1);
@@ -306,10 +237,10 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
     // perform the stabilizations
     if (t % this->m_stabilization_pace == 0 || t == this->m_time_size) {
       // update svd stacks
-      this->m_svd_stack_right_up->pop();
-      this->m_svd_stack_right_dn->pop();
-      this->m_svd_stack_left_up->push(tmp_mat_up);
-      this->m_svd_stack_left_dn->push(tmp_mat_dn);
+      this->m_svd_stack_right_up.pop();
+      this->m_svd_stack_right_dn.pop();
+      this->m_svd_stack_left_up.push(tmp_mat_up);
+      this->m_svd_stack_left_dn.push(tmp_mat_dn);
 
       // collect the wrapping errors
       Matrix tmp_green_tt_up =
@@ -322,28 +253,28 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
       // compute fresh greens every 'stabilization_pace' steps: g = ( 1 +
       // stack_left*stack_right^T )^-1 stack_left = B(t-1) * ... * B(0)
       // stack_right = B(t)^T * ... * B(ts-1)^T
-      NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_up,
-                                                *this->m_svd_stack_right_up,
+      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
+                                                this->m_svd_stack_right_up,
                                                 tmp_green_tt_up);
-      NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_dn,
-                                                *this->m_svd_stack_right_dn,
+      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
+                                                this->m_svd_stack_right_dn,
                                                 tmp_green_tt_dn);
 
       // compute wrapping errors
       NumericalStable::matrix_compare_error(
-          tmp_green_tt_up, *this->m_green_tt_up, tmp_wrap_error_tt_up);
+          tmp_green_tt_up, this->m_green_tt_up, tmp_wrap_error_tt_up);
       NumericalStable::matrix_compare_error(
-          tmp_green_tt_dn, *this->m_green_tt_dn, tmp_wrap_error_tt_dn);
+          tmp_green_tt_dn, this->m_green_tt_dn, tmp_wrap_error_tt_dn);
       this->m_wrap_error =
           std::max(this->m_wrap_error,
                    std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
 
-      *this->m_green_tt_up = tmp_green_tt_up;
-      *this->m_green_tt_dn = tmp_green_tt_dn;
+      this->m_green_tt_up = tmp_green_tt_up;
+      this->m_green_tt_dn = tmp_green_tt_dn;
 
       if (this->m_is_equaltime) {
-        (*this->m_vec_green_tt_up)[t - 1] = *this->m_green_tt_up;
-        (*this->m_vec_green_tt_dn)[t - 1] = *this->m_green_tt_dn;
+        this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
+        this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
       }
 
       tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
@@ -356,8 +287,8 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
 
   // end with fresh greens functions
   if (this->m_is_equaltime) {
-    (*this->m_vec_green_tt_up)[this->m_time_size - 1] = *this->m_green_tt_up;
-    (*this->m_vec_green_tt_dn)[this->m_time_size - 1] = *this->m_green_tt_dn;
+    this->m_vec_green_tt_up[this->m_time_size - 1] = this->m_green_tt_up;
+    this->m_vec_green_tt_dn[this->m_time_size - 1] = this->m_green_tt_dn;
   }
 }
 
@@ -374,10 +305,10 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
   assert(this->m_current_time_slice == this->m_time_size);
-  assert(this->m_svd_stack_right_up->empty() &&
-         this->m_svd_stack_right_dn->empty());
-  assert(this->m_svd_stack_left_up->StackLength() == stack_length &&
-         this->m_svd_stack_left_dn->StackLength() == stack_length);
+  assert(this->m_svd_stack_right_up.empty() &&
+         this->m_svd_stack_right_dn.empty());
+  assert(this->m_svd_stack_left_up.StackLength() == stack_length &&
+         this->m_svd_stack_left_dn.StackLength() == stack_length);
 
   // temporary matrices
   Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
@@ -388,10 +319,10 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
     // perform the stabilizations
     if (t % this->m_stabilization_pace == 0 && t != this->m_time_size) {
       // update svd stacks
-      this->m_svd_stack_left_up->pop();
-      this->m_svd_stack_left_dn->pop();
-      this->m_svd_stack_right_up->push(tmp_mat_up);
-      this->m_svd_stack_right_dn->push(tmp_mat_dn);
+      this->m_svd_stack_left_up.pop();
+      this->m_svd_stack_left_dn.pop();
+      this->m_svd_stack_right_up.push(tmp_mat_up);
+      this->m_svd_stack_right_dn.push(tmp_mat_dn);
 
       // collect the wrapping errors
       Matrix tmp_green_tt_up =
@@ -401,24 +332,24 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
       double tmp_wrap_error_tt_up = 0.0;
       double tmp_wrap_error_tt_dn = 0.0;
 
-      NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_up,
-                                                *this->m_svd_stack_right_up,
+      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
+                                                this->m_svd_stack_right_up,
                                                 tmp_green_tt_up);
-      NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_dn,
-                                                *this->m_svd_stack_right_dn,
+      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
+                                                this->m_svd_stack_right_dn,
                                                 tmp_green_tt_dn);
 
       // compute the wrapping errors
       NumericalStable::matrix_compare_error(
-          tmp_green_tt_up, *this->m_green_tt_up, tmp_wrap_error_tt_up);
+          tmp_green_tt_up, this->m_green_tt_up, tmp_wrap_error_tt_up);
       NumericalStable::matrix_compare_error(
-          tmp_green_tt_dn, *this->m_green_tt_dn, tmp_wrap_error_tt_dn);
+          tmp_green_tt_dn, this->m_green_tt_dn, tmp_wrap_error_tt_dn);
       this->m_wrap_error =
           std::max(this->m_wrap_error,
                    std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
 
-      *this->m_green_tt_up = tmp_green_tt_up;
-      *this->m_green_tt_dn = tmp_green_tt_dn;
+      this->m_green_tt_up = tmp_green_tt_up;
+      this->m_green_tt_dn = tmp_green_tt_dn;
 
       tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
       tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
@@ -427,9 +358,9 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
     // update auxiliary fields and record the updated greens functions
     this->metropolis_update(model, t);
     if (this->m_is_equaltime) {
-      (*this->m_vec_green_tt_up)[t - 1] = *this->m_green_tt_up;
-      (*this->m_vec_green_tt_dn)[t - 1] = *this->m_green_tt_dn;
-      (*this->m_vec_config_sign)[t - 1] = this->m_config_sign;
+      this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
+      this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
+      this->m_vec_config_sign[t - 1] = this->m_config_sign;
     }
 
     model.mult_transB_from_left(tmp_mat_up, t, +1);
@@ -441,22 +372,22 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
   }
 
   // at time slice t = 0
-  this->m_svd_stack_left_up->pop();
-  this->m_svd_stack_left_dn->pop();
-  this->m_svd_stack_right_up->push(tmp_mat_up);
-  this->m_svd_stack_right_dn->push(tmp_mat_dn);
+  this->m_svd_stack_left_up.pop();
+  this->m_svd_stack_left_dn.pop();
+  this->m_svd_stack_right_up.push(tmp_mat_up);
+  this->m_svd_stack_right_dn.push(tmp_mat_dn);
 
-  NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_up,
-                                            *this->m_svd_stack_right_up,
-                                            *this->m_green_tt_up);
-  NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_dn,
-                                            *this->m_svd_stack_right_dn,
-                                            *this->m_green_tt_dn);
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
+                                            this->m_svd_stack_right_up,
+                                            this->m_green_tt_up);
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
+                                            this->m_svd_stack_right_dn,
+                                            this->m_green_tt_dn);
 
   // end with fresh greens functions
   if (this->m_is_equaltime) {
-    (*this->m_vec_green_tt_up)[this->m_time_size - 1] = *this->m_green_tt_up;
-    (*this->m_vec_green_tt_dn)[this->m_time_size - 1] = *this->m_green_tt_dn;
+    this->m_vec_green_tt_up[this->m_time_size - 1] = this->m_green_tt_up;
+    this->m_vec_green_tt_dn[this->m_time_size - 1] = this->m_green_tt_dn;
   }
 }
 
@@ -476,19 +407,19 @@ void DqmcWalker::sweep_for_dynamic_greens(ModelBase& model) {
             ? this->m_time_size / this->m_stabilization_pace
             : this->m_time_size / this->m_stabilization_pace + 1;
     assert(this->m_current_time_slice == 1);
-    assert(this->m_svd_stack_left_up->empty() &&
-           this->m_svd_stack_left_dn->empty());
-    assert(this->m_svd_stack_right_up->StackLength() == stack_length &&
-           this->m_svd_stack_right_dn->StackLength() == stack_length);
+    assert(this->m_svd_stack_left_up.empty() &&
+           this->m_svd_stack_left_dn.empty());
+    assert(this->m_svd_stack_right_up.StackLength() == stack_length &&
+           this->m_svd_stack_right_dn.StackLength() == stack_length);
 
     // initialize greens functions: at t = 0, gt0 = g00, g0t = g00 - 1
-    *this->m_green_t0_up = *this->m_green_tt_up;
-    *this->m_green_t0_dn = *this->m_green_tt_dn;
-    *this->m_green_0t_up =
-        *this->m_green_tt_up -
+    this->m_green_t0_up = this->m_green_tt_up;
+    this->m_green_t0_dn = this->m_green_tt_dn;
+    this->m_green_0t_up =
+        this->m_green_tt_up -
         Matrix::Identity(this->m_space_size, this->m_space_size);
-    *this->m_green_0t_dn =
-        *this->m_green_tt_dn -
+    this->m_green_0t_dn =
+        this->m_green_tt_dn -
         Matrix::Identity(this->m_space_size, this->m_space_size);
 
     // temporary matrices
@@ -501,20 +432,20 @@ void DqmcWalker::sweep_for_dynamic_greens(ModelBase& model) {
     for (auto t = 1; t <= this->m_time_size; ++t) {
       // wrap the equal time greens functions to current time slice t
       this->wrap_from_0_to_beta(model, t - 1);
-      (*this->m_vec_green_tt_up)[t - 1] = *this->m_green_tt_up;
-      (*this->m_vec_green_tt_dn)[t - 1] = *this->m_green_tt_dn;
+      this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
+      this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
 
       // calculate and record the time-displaced greens functions at different
       // time slices
-      model.mult_B_from_left(*this->m_green_t0_up, t, +1);
-      model.mult_B_from_left(*this->m_green_t0_dn, t, -1);
-      (*this->m_vec_green_t0_up)[t - 1] = *this->m_green_t0_up;
-      (*this->m_vec_green_t0_dn)[t - 1] = *this->m_green_t0_dn;
+      model.mult_B_from_left(this->m_green_t0_up, t, +1);
+      model.mult_B_from_left(this->m_green_t0_dn, t, -1);
+      this->m_vec_green_t0_up[t - 1] = this->m_green_t0_up;
+      this->m_vec_green_t0_dn[t - 1] = this->m_green_t0_dn;
 
-      model.mult_invB_from_right(*this->m_green_0t_up, t, +1);
-      model.mult_invB_from_right(*this->m_green_0t_dn, t, -1);
-      (*this->m_vec_green_0t_up)[t - 1] = *this->m_green_0t_up;
-      (*this->m_vec_green_0t_dn)[t - 1] = *this->m_green_0t_dn;
+      model.mult_invB_from_right(this->m_green_0t_up, t, +1);
+      model.mult_invB_from_right(this->m_green_0t_dn, t, -1);
+      this->m_vec_green_0t_up[t - 1] = this->m_green_0t_up;
+      this->m_vec_green_0t_dn[t - 1] = this->m_green_0t_dn;
 
       model.mult_B_from_left(tmp_mat_up, t, +1);
       model.mult_B_from_left(tmp_mat_dn, t, -1);
@@ -522,10 +453,10 @@ void DqmcWalker::sweep_for_dynamic_greens(ModelBase& model) {
       // perform the stabilizations
       if (t % this->m_stabilization_pace == 0 || t == this->m_time_size) {
         // update svd stacks
-        this->m_svd_stack_right_up->pop();
-        this->m_svd_stack_right_dn->pop();
-        this->m_svd_stack_left_up->push(tmp_mat_up);
-        this->m_svd_stack_left_dn->push(tmp_mat_dn);
+        this->m_svd_stack_right_up.pop();
+        this->m_svd_stack_right_dn.pop();
+        this->m_svd_stack_left_up.push(tmp_mat_up);
+        this->m_svd_stack_left_dn.push(tmp_mat_dn);
 
         // collect the wrapping errors
         Matrix tmp_green_t0_up =
@@ -546,47 +477,47 @@ void DqmcWalker::sweep_for_dynamic_greens(ModelBase& model) {
         // stack_right = B(t)^T * ... * B(ts-1)^T
         // equal time green's function are re-evaluated for current field
         // configurations
-        NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_up,
-                                                  *this->m_svd_stack_right_up,
-                                                  *this->m_green_tt_up);
-        NumericalStable::compute_equaltime_greens(*this->m_svd_stack_left_dn,
-                                                  *this->m_svd_stack_right_dn,
-                                                  *this->m_green_tt_dn);
+        NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
+                                                  this->m_svd_stack_right_up,
+                                                  this->m_green_tt_up);
+        NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
+                                                  this->m_svd_stack_right_dn,
+                                                  this->m_green_tt_dn);
         NumericalStable::compute_dynamic_greens(
-            *this->m_svd_stack_left_up, *this->m_svd_stack_right_up,
+            this->m_svd_stack_left_up, this->m_svd_stack_right_up,
             tmp_green_t0_up, tmp_green_0t_up);
         NumericalStable::compute_dynamic_greens(
-            *this->m_svd_stack_left_dn, *this->m_svd_stack_right_dn,
+            this->m_svd_stack_left_dn, this->m_svd_stack_right_dn,
             tmp_green_t0_dn, tmp_green_0t_dn);
 
         // compute wrapping errors
         NumericalStable::matrix_compare_error(
-            tmp_green_t0_up, *this->m_green_t0_up, tmp_wrap_error_t0_up);
+            tmp_green_t0_up, this->m_green_t0_up, tmp_wrap_error_t0_up);
         NumericalStable::matrix_compare_error(
-            tmp_green_t0_dn, *this->m_green_t0_dn, tmp_wrap_error_t0_dn);
+            tmp_green_t0_dn, this->m_green_t0_dn, tmp_wrap_error_t0_dn);
         this->m_wrap_error =
             std::max(this->m_wrap_error,
                      std::max(tmp_wrap_error_t0_up, tmp_wrap_error_t0_dn));
 
         NumericalStable::matrix_compare_error(
-            tmp_green_0t_up, *this->m_green_0t_up, tmp_wrap_error_0t_up);
+            tmp_green_0t_up, this->m_green_0t_up, tmp_wrap_error_0t_up);
         NumericalStable::matrix_compare_error(
-            tmp_green_0t_dn, *this->m_green_0t_dn, tmp_wrap_error_0t_dn);
+            tmp_green_0t_dn, this->m_green_0t_dn, tmp_wrap_error_0t_dn);
         this->m_wrap_error =
             std::max(this->m_wrap_error,
                      std::max(tmp_wrap_error_0t_up, tmp_wrap_error_0t_dn));
 
-        *this->m_green_t0_up = tmp_green_t0_up;
-        *this->m_green_t0_dn = tmp_green_t0_dn;
-        *this->m_green_0t_up = tmp_green_0t_up;
-        *this->m_green_0t_dn = tmp_green_0t_dn;
+        this->m_green_t0_up = tmp_green_t0_up;
+        this->m_green_t0_dn = tmp_green_t0_dn;
+        this->m_green_0t_up = tmp_green_0t_up;
+        this->m_green_0t_dn = tmp_green_0t_dn;
 
-        (*this->m_vec_green_tt_up)[t - 1] = *this->m_green_tt_up;
-        (*this->m_vec_green_tt_dn)[t - 1] = *this->m_green_tt_dn;
-        (*this->m_vec_green_t0_up)[t - 1] = *this->m_green_t0_up;
-        (*this->m_vec_green_t0_dn)[t - 1] = *this->m_green_t0_dn;
-        (*this->m_vec_green_0t_up)[t - 1] = *this->m_green_0t_up;
-        (*this->m_vec_green_0t_dn)[t - 1] = *this->m_green_0t_dn;
+        this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
+        this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
+        this->m_vec_green_t0_up[t - 1] = this->m_green_t0_up;
+        this->m_vec_green_t0_dn[t - 1] = this->m_green_t0_dn;
+        this->m_vec_green_0t_up[t - 1] = this->m_green_0t_up;
+        this->m_vec_green_0t_dn[t - 1] = this->m_green_0t_dn;
 
         tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
         tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
