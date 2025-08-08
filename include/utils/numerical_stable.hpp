@@ -156,7 +156,7 @@ class NumericalStable {
         Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
 
     // compute gtt using QR decomposition
-    gtt = H.fullPivHouseholderQr().solve(Sbi.asDiagonal() * U.transpose());
+    gtt = H.colPivHouseholderQr().solve(Sbi.asDiagonal() * U.transpose());
   }
 
   /*
@@ -177,7 +177,7 @@ class NumericalStable {
         Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
 
     // compute gtt using QR decomposition
-    gt0 = H.fullPivHouseholderQr().solve(Ss.asDiagonal() * V.transpose());
+    gt0 = H.colPivHouseholderQr().solve(Ss.asDiagonal() * V.transpose());
   }
 
   /*
