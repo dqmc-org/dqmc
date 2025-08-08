@@ -109,6 +109,8 @@ class DqmcWalker {
   // interface for greens functions
   GreensFunc& GreenttUp() { return this->m_green_tt_up; }
   GreensFunc& GreenttDn() { return this->m_green_tt_dn; }
+  const GreensFunc& GreenttUp() const { return this->m_green_tt_up; }
+  const GreensFunc& GreenttDn() const { return this->m_green_tt_dn; }
 
   const GreensFunc& GreenttUp(int t) const {
     return this->m_vec_green_tt_up[t];
