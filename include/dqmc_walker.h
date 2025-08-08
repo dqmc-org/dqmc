@@ -1,6 +1,5 @@
 #ifndef DQMC_WALKER_H
 #define DQMC_WALKER_H
-#pragma once
 
 /**
  *  This header file defines the crucial class QuantumMonteCarlo::DqmcWalker
