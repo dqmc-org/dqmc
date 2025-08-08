@@ -51,6 +51,10 @@ class SvdClass {
   uMat& MatrixU() { return this->m_u_mat; }
   sVec& SingularValues() { return this->m_s_vec; }
   vMat& MatrixV() { return this->m_v_mat; }
+
+  const uMat& MatrixU() const { return this->m_u_mat; }
+  const sVec& SingularValues() const { return this->m_s_vec; }
+  const vMat& MatrixV() const { return this->m_v_mat; }
 };
 
 /*
@@ -76,14 +80,9 @@ class SvdStack {
   using Matrix = Eigen::MatrixXd;
   using Vector = Eigen::VectorXd;
 
-  VecSvd m_stack{};       // Stack of SVD decompositions
-  int m_mat_dim{};        // Dimension of matrices (assumed square)
-  int m_stack_length{0};  // Current depth of the stack
-
-  Matrix m_tmp_matrix{};  // Workspace for intermediate calculations
-
-  Matrix m_cached_v_matrix{};
-  bool is_v_matrix_cached = false;
+  VecSvd m_stack{};                  // Stack of SVD decompositions
+  int m_mat_dim{};                   // Dimension of matrices (assumed square)
+  std::vector<Matrix> m_prefix_v{};  // Prefix multiplication of V matrices
 
  public:
   SvdStack() = default;
@@ -98,9 +97,9 @@ class SvdStack {
 
   // Access to the current accumulated product's SVD components
   // These represent the decomposition of the entire matrix chain
-  const Vector SingularValues();  // Current singular values
-  const Matrix MatrixU();         // Current U matrix
-  const Matrix MatrixV();         // Accumulated V matrix across all operations
+  Vector SingularValues() const;  // Current singular values
+  Matrix MatrixU() const;         // Current U matrix
+  Matrix MatrixV() const;         // Accumulated V matrix across all operations
 
   // Reset the stack to empty state (memory remains allocated for reuse)
   void clear();
@@ -111,7 +110,6 @@ class SvdStack {
   void push(const Matrix& matrix);
 
   // Pop: remove the most recently added matrix from the product
-  // Note: this only decrements the stack counter, actual memory is not freed
   void pop();
 };
 

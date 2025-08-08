@@ -22,37 +22,37 @@ using Vector = Eigen::VectorXd;
 
 // Constructor: pre-allocate SVD storage for the specified stack depth
 // This avoids memory allocations during the simulation
-SvdStack::SvdStack(int mat_dim, int stack_length)
-    : m_mat_dim(mat_dim),
-      m_tmp_matrix(mat_dim, mat_dim),
-      m_cached_v_matrix(mat_dim, mat_dim) {
-  this->m_stack.resize(stack_length);
+SvdStack::SvdStack(int mat_dim, int stack_length) : m_mat_dim(mat_dim) {
+  this->m_stack.reserve(stack_length);
+  this->m_prefix_v.reserve(stack_length);
 }
 
 // Basic stack state queries
-bool SvdStack::empty() const { return this->m_stack_length == 0; }
+bool SvdStack::empty() const { return this->m_stack.empty(); }
 
 int SvdStack::MatDim() const { return this->m_mat_dim; }
 
-int SvdStack::StackLength() const { return this->m_stack_length; }
+int SvdStack::StackLength() const { return this->m_stack.size(); }
 
 // Reset stack to empty state without deallocating memory
-void SvdStack::clear() { this->m_stack_length = 0; }
+void SvdStack::clear() {
+  this->m_stack.clear();
+  this->m_prefix_v.clear();
+}
 
 // Add a matrix to the product from the left: Product = matrix * Product
 // This is the core of the numerical stabilization algorithm
 void SvdStack::push(const Matrix& matrix) {
   assert(matrix.rows() == this->m_mat_dim && matrix.cols() == this->m_mat_dim);
-  assert(this->m_stack_length < (int)this->m_stack.size());
 
-  if (this->m_stack_length == 0) {
+  if (this->m_stack.empty()) {
     // First matrix: just compute its SVD directly
-    Utils::LinearAlgebra::dgesvd(
-        this->m_mat_dim, this->m_mat_dim, matrix,
-        this->m_stack[this->m_stack_length].MatrixU(),
-        this->m_stack[this->m_stack_length].SingularValues(),
-        this->m_stack[this->m_stack_length].MatrixV());
-    this->m_cached_v_matrix = this->m_stack[this->m_stack_length].MatrixV();
+    SvdClass svd(this->m_mat_dim);
+    Utils::LinearAlgebra::dgesvd(this->m_mat_dim, this->m_mat_dim, matrix,
+                                 svd.MatrixU(), svd.SingularValues(),
+                                 svd.MatrixV());
+    this->m_stack.push_back(svd);
+    this->m_prefix_v.push_back(svd.MatrixV());
   } else {
     // Subsequent matrices: multiply with existing decomposition
     // We compute matrix * U * S, then take SVD of the result
@@ -60,58 +60,45 @@ void SvdStack::push(const Matrix& matrix) {
     // 1. First multiply matrix * U (preserves orthogonality)
     // 2. Then scale by singular values S
     // 3. Finally compute SVD of the combined result
-    this->m_tmp_matrix =
+    Matrix tmp =
         (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
-    Utils::LinearAlgebra::dgesvd(
-        this->m_mat_dim, this->m_mat_dim, this->m_tmp_matrix,
-        this->m_stack[this->m_stack_length].MatrixU(),
-        this->m_stack[this->m_stack_length].SingularValues(),
-        this->m_stack[this->m_stack_length].MatrixV());
-    this->m_cached_v_matrix *= this->m_stack[this->m_stack_length].MatrixV();
+    SvdClass svd(this->m_mat_dim);
+    Utils::LinearAlgebra::dgesvd(this->m_mat_dim, this->m_mat_dim, tmp,
+                                 svd.MatrixU(), svd.SingularValues(),
+                                 svd.MatrixV());
+    this->m_stack.push_back(svd);
+    this->m_prefix_v.push_back(this->m_prefix_v.back() * svd.MatrixV());
   }
-  this->m_stack_length += 1;
 }
 
 // Remove the most recent matrix from the stack
 // Memory is not deallocated, just stack depth is decreased
 void SvdStack::pop() {
-  assert(this->m_stack_length > 0);
-  this->m_stack_length -= 1;
-  is_v_matrix_cached = false;
+  assert(!this->m_stack.empty());
+  this->m_stack.pop_back();
+  this->m_prefix_v.pop_back();
 }
 
 // Get the current singular values of the accumulated product
-const Vector SvdStack::SingularValues() {
-  assert(this->m_stack_length > 0);
-  return this->m_stack[this->m_stack_length - 1].SingularValues();
+Vector SvdStack::SingularValues() const {
+  assert(!this->m_stack.empty());
+  return this->m_stack.back().SingularValues();
 }
 
 // Get the current U matrix (left singular vectors) of the accumulated product
-const Matrix SvdStack::MatrixU() {
-  assert(this->m_stack_length > 0);
-  return this->m_stack[this->m_stack_length - 1].MatrixU();
+Matrix SvdStack::MatrixU() const {
+  assert(!this->m_stack.empty());
+  return this->m_stack.back().MatrixU();
 }
 
 // Get the accumulated V matrix across all operations in the stack
 // This requires multiplying all V matrices from bottom to top of stack
 // since each push() operation creates a new V that must be composed with
-// previous ones
-const Matrix SvdStack::MatrixV() {
-  if (is_v_matrix_cached) {
-    return this->m_cached_v_matrix;
-  }
-
-  assert(this->m_stack_length > 0);
-
-  Matrix r = this->m_stack[0].MatrixV();
-  for (int i = 1; i < this->m_stack_length; ++i) {
-    r = r * this->m_stack[i].MatrixV();
-  }
-
-  this->m_cached_v_matrix = std::move(r);
-  is_v_matrix_cached = true;
-
-  return this->m_cached_v_matrix;
+// previous ones. We avoid performing these multiplications by storing the
+// partial left multiplications on a separated stack.
+Matrix SvdStack::MatrixV() const {
+  assert(!this->m_stack.empty());
+  return this->m_prefix_v.back();
 }
 
 }  // namespace Utils
