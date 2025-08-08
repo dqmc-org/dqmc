@@ -10,16 +10,8 @@
 namespace QuantumMonteCarlo {
 
 // alias conventions
-using TimeIndex = int;
-using RealScalar = double;
-using RealScalarVec = Eigen::VectorXd;
-using ptrRealScalarVec = std::unique_ptr<Eigen::VectorXd>;
-using SvdStack = Utils::SvdStack;
-using ptrSvdStack = std::unique_ptr<SvdStack>;
 using Matrix = Eigen::MatrixXd;
 using NumericalStable = Utils::NumericalStable;
-using GreensFunc = Eigen::MatrixXd;
-using GreensFuncVec = std::vector<Eigen::MatrixXd>;
 
 void DqmcWalker::set_physical_params(RealScalar beta, int time_size) {
   assert(beta > 0.0);
