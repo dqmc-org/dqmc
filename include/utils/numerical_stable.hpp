@@ -83,6 +83,20 @@ class NumericalStable {
     zmat.noalias() = vmat * dvec.asDiagonal() * umat;
   }
 
+  /*
+   * This function applies the following logic element-wise:
+   * - If S(i) > 1: Sbi(i) = 1.0 / S(i), Ss(i) = 1.0
+   * - If S(i) <= 1: Sbi(i) = 1.0, Ss(i) = S(i)
+   *  Input: S
+   *  Output: Sbi, Ss
+   */
+  static void computeSbiSs(const Eigen::VectorXd& S, Eigen::VectorXd& Sbi,
+                           Eigen::VectorXd& Ss) {
+    assert((S.array() >= 0).all());
+    assert(Sbi.size() == S.size());
+    assert(Ss.size() == S.size());
+    Ss = S.array().min(1.0);
+    Sbi = 1.0 / S.array().max(1.0);
   }
 
   /*
@@ -94,16 +108,7 @@ class NumericalStable {
     // split S = Sbi^-1 * Ss
     Vector Sbi(S.size());
     Vector Ss(S.size());
-    for (int i = 0; i < S.size(); ++i) {
-      assert(S(i) >= 0);
-      if (S(i) > 1) {
-        Sbi(i) = 1.0 / S(i);
-        Ss(i) = 1.0;
-      } else {
-        Sbi(i) = 1.0;
-        Ss(i) = S(i);
-      }
-    }
+    computeSbiSs(S, Sbi, Ss);
 
     // compute (1 + USV^T)^-1 in a stable manner
     // note that H is good conditioned, which only contains information of small
@@ -124,16 +129,7 @@ class NumericalStable {
     // split S = Sbi^-1 * Ss
     Vector Sbi(S.size());
     Vector Ss(S.size());
-    for (int i = 0; i < S.size(); ++i) {
-      assert(S(i) >= 0);
-      if (S(i) > 1) {
-        Sbi(i) = 1.0 / S(i);
-        Ss(i) = 1.0;
-      } else {
-        Sbi(i) = 1.0;
-        Ss(i) = S(i);
-      }
-    }
+    computeSbiSs(S, Sbi, Ss);
 
     // compute (1 + USV^T)^-1 * USV^T in a stable manner
     // note that H is good conditioned, which only contains information of small
