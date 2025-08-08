@@ -166,12 +166,12 @@ class NumericalStable {
     }
 
     // local params
-    const Matrix ul = left.MatrixU();
-    const Vector dl = left.SingularValues();
-    const Matrix vl = left.MatrixV();
-    const Matrix ur = right.MatrixU();
-    const Vector dr = right.SingularValues();
-    const Matrix vr = right.MatrixV();
+    const Matrix& ul = left.MatrixU();
+    const Vector& dl = left.SingularValues();
+    const Matrix& vl = left.MatrixV();
+    const Matrix& ur = right.MatrixU();
+    const Vector& dr = right.SingularValues();
+    const Matrix& vr = right.MatrixV();
 
     Vector dlmax(dl.size()), dlmin(dl.size());
     Vector drmax(dr.size()), drmin(dr.size());
@@ -240,12 +240,12 @@ class NumericalStable {
     }
 
     // local params
-    const Matrix ul = left.MatrixU();
-    const Vector dl = left.SingularValues();
-    const Matrix vl = left.MatrixV();
-    const Matrix ur = right.MatrixU();
-    const Vector dr = right.SingularValues();
-    const Matrix vr = right.MatrixV();
+    const Matrix& ul = left.MatrixU();
+    const Vector& dl = left.SingularValues();
+    const Matrix& vl = left.MatrixV();
+    const Matrix& ur = right.MatrixU();
+    const Vector& dr = right.SingularValues();
+    const Matrix& vr = right.MatrixV();
 
     Vector dlmax(dl.size()), dlmin(dl.size());
     Vector drmax(dr.size()), drmin(dr.size());
