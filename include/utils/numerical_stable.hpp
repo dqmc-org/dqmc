@@ -33,15 +33,7 @@ class NumericalStable {
     assert(umat.rows() == vmat.rows());
     assert(umat.cols() == vmat.cols());
     assert(umat.rows() == umat.cols());
-
-    const int ndim = (int)umat.rows();
-    double tmp_error = 0.0;
-    for (int i = 0; i < ndim; ++i) {
-      for (int j = 0; j < ndim; ++j) {
-        tmp_error = std::max(tmp_error, std::abs(umat(i, j) - vmat(i, j)));
-      }
-    }
-    error = tmp_error;
+    error = (umat - vmat).cwiseAbs().maxCoeff();
   }
 
   /*
