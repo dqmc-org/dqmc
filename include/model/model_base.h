@@ -50,6 +50,12 @@ using MultTransExpKMethod = void(GreensFunc&);
 // ------------------------------------- Abstract base class Model::ModelBase
 // ------------------------------------------
 class ModelBase {
+ public:
+  // Member function pointer types
+  using MultExpKMemberPtr = void (ModelBase::*)(GreensFunc&) const;
+  using MultInvExpKMemberPtr = void (ModelBase::*)(GreensFunc&) const;
+  using MultTransExpKMemberPtr = void (ModelBase::*)(GreensFunc&) const;
+
  protected:
   // size of the space-time lattices
   int m_space_size{};
@@ -89,13 +95,16 @@ class ModelBase {
   Matrix m_trans_expV_mat{};
 
   // function pointers for multiplying exponent of K matrix to a dense matrix
-  // these cound be redirected to any checkerboard methods
-  // to get accelerated by checkerboard breakups
-  std::function<MultExpKMethod> m_mult_expK_from_left{};
-  std::function<MultExpKMethod> m_mult_expK_from_right{};
-  std::function<MultInvExpKMethod> m_mult_inv_expK_from_left{};
-  std::function<MultInvExpKMethod> m_mult_inv_expK_from_right{};
-  std::function<MultTransExpKMethod> m_mult_trans_expK_from_left{};
+  // these can be redirected to checkerboard methods for acceleration
+  MultExpKMemberPtr m_mult_expK_from_left_ptr;
+  MultExpKMemberPtr m_mult_expK_from_right_ptr;
+  MultInvExpKMemberPtr m_mult_inv_expK_from_left_ptr;
+  MultInvExpKMemberPtr m_mult_inv_expK_from_right_ptr;
+  MultTransExpKMemberPtr m_mult_trans_expK_from_left_ptr;
+
+  // checkerboard state
+  const CheckerBoardBase* m_checkerboard_ptr{nullptr};
+  bool m_use_checkerboard{false};
 
   // other model parameters should be defined in the derived Model classes.
 
@@ -154,6 +163,27 @@ class ModelBase {
   virtual void update_greens_function(Walker& walker, TimeIndex time_index,
                                       SpaceIndex space_index) = 0;
 
+  // ------------------------------------------ Function pointer interface
+  // methods
+  // -----------------------------------------------
+
+  // public interface methods that use function pointers
+  void call_mult_expK_from_left(GreensFunc& green) const {
+    (this->*m_mult_expK_from_left_ptr)(green);
+  }
+  void call_mult_expK_from_right(GreensFunc& green) const {
+    (this->*m_mult_expK_from_right_ptr)(green);
+  }
+  void call_mult_inv_expK_from_left(GreensFunc& green) const {
+    (this->*m_mult_inv_expK_from_left_ptr)(green);
+  }
+  void call_mult_inv_expK_from_right(GreensFunc& green) const {
+    (this->*m_mult_inv_expK_from_right_ptr)(green);
+  }
+  void call_mult_trans_expK_from_left(GreensFunc& green) const {
+    (this->*m_mult_trans_expK_from_left_ptr)(green);
+  }
+
   // ------------------------------------------ Warpping methods
   // -----------------------------------------------
 
@@ -176,12 +206,19 @@ class ModelBase {
  private:
   // naive implementation of multplying exponent of K matrices to the greens
   // function note that these member function should not be explicitly called
-  // using std::function member instead.
+  // using function pointers instead.
   void mult_expK_from_left(GreensFunc& green) const;
   void mult_expK_from_right(GreensFunc& green) const;
   void mult_inv_expK_from_left(GreensFunc& green) const;
   void mult_inv_expK_from_right(GreensFunc& green) const;
   void mult_trans_expK_from_left(GreensFunc& green) const;
+
+  // checkerboard wrapper methods
+  void mult_expK_from_left_cb(GreensFunc& green) const;
+  void mult_expK_from_right_cb(GreensFunc& green) const;
+  void mult_inv_expK_from_left_cb(GreensFunc& green) const;
+  void mult_inv_expK_from_right_cb(GreensFunc& green) const;
+  void mult_trans_expK_from_left_cb(GreensFunc& green) const;
 };
 
 }  // namespace Model

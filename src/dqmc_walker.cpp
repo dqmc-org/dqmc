@@ -1,9 +1,10 @@
 #include "dqmc_walker.h"
 
+#include <random>
+
 #include "lattice/lattice_base.h"
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
-#include <random>
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
 
@@ -137,7 +138,8 @@ void DqmcWalker::initial_config_sign() {
  *  perform a in-place update of the green's functions.
  *  Record the updated green's function at the life-end of this function.
  */
-void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t, std::default_random_engine& rng) {
+void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t,
+                                   std::default_random_engine& rng) {
   assert(this->m_current_time_slice == t);
   assert(t >= 0 && t <= this->m_time_size);
 
@@ -146,7 +148,8 @@ void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t, std::default_r
     // obtain the ratio of flipping the bosonic field at (i,l)
     const auto update_ratio = model.get_update_ratio(*this, eff_t, i);
 
-    if (std::bernoulli_distribution(std::min(1.0, std::abs(update_ratio)))(rng)) {
+    if (std::bernoulli_distribution(std::min(1.0, std::abs(update_ratio)))(
+            rng)) {
       // if accepted
       // update the greens functions
       model.update_greens_function(*this, eff_t, i);
@@ -200,7 +203,8 @@ void DqmcWalker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
  *  For t = 1,2...,ts , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void DqmcWalker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& rng) {
+void DqmcWalker::sweep_from_0_to_beta(ModelBase& model,
+                                      std::default_random_engine& rng) {
   this->m_current_time_slice++;
 
   const int stack_length =
@@ -296,7 +300,8 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engi
  *  For l = ts,ts-1,...,1 , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void DqmcWalker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& rng) {
+void DqmcWalker::sweep_from_beta_to_0(ModelBase& model,
+                                      std::default_random_engine& rng) {
   this->m_current_time_slice--;
 
   const int stack_length =

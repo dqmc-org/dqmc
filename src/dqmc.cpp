@@ -107,7 +107,8 @@ void Dqmc::thermalize(DqmcWalker& walker, ModelBase& model,
 }
 
 void Dqmc::measure(DqmcWalker& walker, ModelBase& model, LatticeBase& lattice,
-                   MeasureHandler& meas_handler, std::default_random_engine& rng) {
+                   MeasureHandler& meas_handler,
+                   std::default_random_engine& rng) {
   if (meas_handler.isEqualTime() || meas_handler.isDynamic()) {
     // create progress bar
     progresscpp::ProgressBar progressbar(

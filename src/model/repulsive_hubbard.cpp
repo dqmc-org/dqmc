@@ -1,11 +1,11 @@
 #include "model/repulsive_hubbard.h"
 
 #include <Eigen/Core>
+#include <random>
 #include <unsupported/Eigen/MatrixFunctions>
 
 #include "dqmc_walker.h"
 #include "lattice/lattice_base.h"
-#include <random>
 
 namespace Model {
 
@@ -75,7 +75,8 @@ void RepulsiveHubbard::initial(const LatticeBase& lattice,
   this->initial_KV_matrices(lattice, walker);
 }
 
-void RepulsiveHubbard::set_bosonic_fields_to_random(std::default_random_engine& rng) {
+void RepulsiveHubbard::set_bosonic_fields_to_random(
+    std::default_random_engine& rng) {
   // set configurations of the bosonic fields to random
   const auto time_size = this->m_bosonic_field.rows();
   const auto space_size = this->m_bosonic_field.cols();
@@ -84,8 +85,7 @@ void RepulsiveHubbard::set_bosonic_fields_to_random(std::default_random_engine& 
   for (auto t = 0; t < time_size; ++t) {
     for (auto i = 0; i < space_size; ++i) {
       // for Z2 bosonic field, simply set 1.0 or -1.0
-      this->m_bosonic_field(t, i) =
-          bernoulli_dist(rng) ? +1.0 : -1.0;
+      this->m_bosonic_field(t, i) = bernoulli_dist(rng) ? +1.0 : -1.0;
     }
   }
 }
@@ -178,7 +178,7 @@ void RepulsiveHubbard::mult_B_from_left(GreensFunc& green, TimeIndex time_index,
   // the time slice labeled by 0 actually corresponds to slice tau = beta
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  this->m_mult_expK_from_left(green);
+  this->call_mult_expK_from_left(green);
   for (auto i = 0; i < this->m_space_size; ++i) {
     green.row(i) *=
         exp(+spin * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
@@ -203,7 +203,7 @@ void RepulsiveHubbard::mult_B_from_right(GreensFunc& green,
     green.col(i) *=
         exp(+spin * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
   }
-  this->m_mult_expK_from_right(green);
+  this->call_mult_expK_from_right(green);
 }
 
 void RepulsiveHubbard::mult_invB_from_left(GreensFunc& green,
@@ -224,7 +224,7 @@ void RepulsiveHubbard::mult_invB_from_left(GreensFunc& green,
     green.row(i) *=
         exp(-spin * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
   }
-  this->m_mult_inv_expK_from_left(green);
+  this->call_mult_inv_expK_from_left(green);
 }
 
 void RepulsiveHubbard::mult_invB_from_right(GreensFunc& green,
@@ -241,7 +241,7 @@ void RepulsiveHubbard::mult_invB_from_right(GreensFunc& green,
 
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  this->m_mult_inv_expK_from_right(green);
+  this->call_mult_inv_expK_from_right(green);
   for (auto i = 0; i < this->m_space_size; ++i) {
     green.col(i) *=
         exp(-spin * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
@@ -266,7 +266,7 @@ void RepulsiveHubbard::mult_transB_from_left(GreensFunc& green,
     green.row(i) *=
         exp(+spin * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
   }
-  this->m_mult_trans_expK_from_left(green);
+  this->call_mult_trans_expK_from_left(green);
 }
 
 }  // namespace Model

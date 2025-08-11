@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <memory>
+#include <random>
 #include <string>
 
 #include "checkerboard/checkerboard_base.h"
@@ -19,7 +20,6 @@
 #include "lattice/lattice_base.h"
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
-#include <random>
 #include "svd_stack.h"
 #include "utils/mpi.hpp"
 
@@ -189,8 +189,10 @@ int main(int argc, char* argv[]) {
 
   // the dqmc simulation start
   QuantumMonteCarlo::Dqmc::timer_begin();
-  QuantumMonteCarlo::Dqmc::thermalize(*walker, *model, *lattice, *meas_handler, rng);
-  QuantumMonteCarlo::Dqmc::measure(*walker, *model, *lattice, *meas_handler, rng);
+  QuantumMonteCarlo::Dqmc::thermalize(*walker, *model, *lattice, *meas_handler,
+                                      rng);
+  QuantumMonteCarlo::Dqmc::measure(*walker, *model, *lattice, *meas_handler,
+                                   rng);
 
   // gather observable objects from other processes
   Utils::MPI::mpi_gather(world, *meas_handler);
