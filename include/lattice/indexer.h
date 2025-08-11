@@ -1,26 +1,22 @@
 #ifndef LATTICE_INDEXER_H
 #define LATTICE_INDEXER_H
 
-#include <stdexcept>
 #include <vector>
 
 class Indexer {
  public:
   Indexer() = default;
 
-  Indexer(std::vector<int> dimensions) : m_dimensions(std::move(dimensions)) {}
+  Indexer(std::vector<int> dimensions)
+      : m_dimensions(std::move(dimensions)),
+        m_total_size(compute_total_size()) {}
 
   [[nodiscard]] int to_orbital(const std::vector<int>& coordinates) const {
-    if (coordinates.size() != m_dimensions.size()) {
-      throw std::out_of_range("Invalid number of coordinates");
-    }
-
+    assert(coordinates.size() == m_dimensions.size());
     int orbital = 0;
     int multiplier = 1;
     for (int i = 0; i < m_dimensions.size(); ++i) {
-      if (coordinates[i] >= m_dimensions[i]) {
-        throw std::out_of_range("Coordinates out of bounds");
-      }
+      assert(coordinates[i] < m_dimensions[i]);
       orbital += coordinates[i] * multiplier;
       multiplier *= m_dimensions[i];
     }
@@ -28,10 +24,7 @@ class Indexer {
   }
 
   [[nodiscard]] std::vector<int> from_orbital(int orbital) const {
-    if (orbital >= total_size()) {
-      throw std::out_of_range("Orbital index out of bounds");
-    }
-
+    assert(orbital < size());
     std::vector<int> coordinates(m_dimensions.size());
     for (int i = 0; i < m_dimensions.size(); ++i) {
       coordinates[i] = orbital % m_dimensions[i];
@@ -43,23 +36,22 @@ class Indexer {
   const std::vector<int>& dimensions() const { return m_dimensions; }
 
   int dimension(int i) const {
-    if (i >= m_dimensions.size()) {
-      throw std::out_of_range("Dimension is out of bounds");
-    }
+    assert(i < m_dimensions.size());
     return m_dimensions[i];
   }
 
-  int size() const { return total_size(); }
+  int size() const { return m_total_size; }
 
  private:
   std::vector<int> m_dimensions;
+  int m_total_size{};
 
-  int total_size() const {
-    int size = 1;
+  int compute_total_size() {
+    m_total_size = 1;
     for (int dim : m_dimensions) {
-      size *= dim;
+      m_total_size *= dim;
     }
-    return size;
+    return m_total_size;
   }
 };
 #endif  // LATTICE_INDEXER_H
