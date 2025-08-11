@@ -41,11 +41,7 @@ const LatticeDouble LatticeBase::FourierFactor(
 const VectorInt LatticeBase::Index2Site(const LatticeInt site_index) const {
   assert(site_index >= 0 && site_index < this->m_space_size);
   const auto coordinates = this->m_site_indexer.from_orbital(site_index);
-  VectorInt result(coordinates.size());
-  for (int i = 0; i < coordinates.size(); ++i) {
-    result(i) = coordinates[i];
-  }
-  return result;
+  return Eigen::Map<const VectorInt>(coordinates.data(), coordinates.size());
 }
 
 const LatticeInt LatticeBase::Index2Site(const LatticeInt site_index,
