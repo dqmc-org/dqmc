@@ -37,11 +37,26 @@ void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {
       side_length_vec[0] * side_length_vec[1] * side_length_vec[2];
 }
 
-void Cubic::initial_site_indexer() {
-  // Initialize indexer with 3D dimensions for cubic lattice
-  std::vector<int> dimensions = {this->m_side_length, this->m_side_length,
-                                 this->m_side_length};
-  this->m_site_indexer = Indexer(dimensions);
+int Cubic::site_to_index(int x, int y, int z) const {
+  return x + this->m_side_length * (y + this->m_side_length * z);
+}
+
+std::array<int, 3> Cubic::index_to_site(int index) const {
+  int x = index % this->m_side_length;
+  int y = (index / this->m_side_length) % this->m_side_length;
+  int z = index / (this->m_side_length * this->m_side_length);
+  return {x, y, z};
+}
+
+void Cubic::initial_index2site_table() {
+  this->m_index2site_table.resize(this->m_space_size, this->m_space_dim);
+  for (auto index = 0; index < this->m_space_size; ++index) {
+    // map the site index to the site vector (x,y,z)
+    auto [i, j, k] = index_to_site(index);
+    this->m_index2site_table(index, 0) = i;
+    this->m_index2site_table(index, 1) = j;
+    this->m_index2site_table(index, 2) = k;
+  }
 }
 
 void Cubic::initial_index2momentum_table() {
@@ -82,40 +97,40 @@ void Cubic::initial_index2momentum_table() {
 
 void Cubic::initial_nearest_neighbour_table() {
   // the coordination number for 3d cubic lattice is 6
-  // correspondense between the table index and the direction of displacement :
-  // 0: (x+1, y, z)    1: (x, y+1, z)    2: (x, y, z+1)
-  // 3: (x-1, y, z)    4: (x, y-1, z)    5: (x, y, z-1)
+  // correspondense between the table index and the direction of displacement
+  // : 0: (x+1, y, z)    1: (x, y+1, z)    2: (x, y, z+1) 3: (x-1, y, z)    4:
+  // (x, y-1, z)    5: (x, y, z-1)
   this->m_nearest_neighbour_table.resize(this->m_space_size,
                                          this->m_coordination_number);
   int L = this->m_side_length;
   for (int i = 0; i < L; ++i) {
     for (int j = 0; j < L; ++j) {
       for (int k = 0; k < L; ++k) {
-        int site_index = this->m_site_indexer.to_orbital({i, j, k});
+        int site_index = this->site_to_index(i, j, k);
 
         // Direction 0: (x+1, y, z)
         this->m_nearest_neighbour_table(site_index, 0) =
-            this->m_site_indexer.to_orbital({(i + 1) % L, j, k});
+            this->site_to_index((i + 1) % L, j, k);
 
         // Direction 1: (x, y+1, z)
         this->m_nearest_neighbour_table(site_index, 1) =
-            this->m_site_indexer.to_orbital({i, (j + 1) % L, k});
+            this->site_to_index(i, (j + 1) % L, k);
 
         // Direction 2: (x, y, z+1)
         this->m_nearest_neighbour_table(site_index, 2) =
-            this->m_site_indexer.to_orbital({i, j, (k + 1) % L});
+            this->site_to_index(i, j, (k + 1) % L);
 
         // Direction 3: (x-1, y, z)
         this->m_nearest_neighbour_table(site_index, 3) =
-            this->m_site_indexer.to_orbital({(i - 1 + L) % L, j, k});
+            this->site_to_index((i - 1 + L) % L, j, k);
 
         // Direction 4: (x, y-1, z)
         this->m_nearest_neighbour_table(site_index, 4) =
-            this->m_site_indexer.to_orbital({i, (j - 1 + L) % L, k});
+            this->site_to_index(i, (j - 1 + L) % L, k);
 
         // Direction 5: (x, y, z-1)
         this->m_nearest_neighbour_table(site_index, 5) =
-            this->m_site_indexer.to_orbital({i, j, (k - 1 + L) % L});
+            this->site_to_index(i, j, (k - 1 + L) % L);
       }
     }
   }
@@ -123,25 +138,15 @@ void Cubic::initial_nearest_neighbour_table() {
 
 void Cubic::initial_displacement_table() {
   this->m_displacement_table.resize(this->m_space_size, this->m_space_size);
-  int L = this->m_side_length;
   for (auto i = 0; i < this->m_space_size; ++i) {
-    const auto coords_i = this->m_site_indexer.from_orbital(i);
-    const auto xi = coords_i[0];
-    const auto yi = coords_i[1];
-    const auto zi = coords_i[2];
-
+    auto [xi, yi, zi] = index_to_site(i);
     for (auto j = 0; j < this->m_space_size; ++j) {
-      const auto coords_j = this->m_site_indexer.from_orbital(j);
-      const auto xj = coords_j[0];
-      const auto yj = coords_j[1];
-      const auto zj = coords_j[2];
-
+      auto [xj, yj, zj] = index_to_site(j);
       // displacement pointing from site i to site j
-      const auto dx = (xj - xi + L) % L;
-      const auto dy = (yj - yi + L) % L;
-      const auto dz = (zj - zi + L) % L;
-      this->m_displacement_table(i, j) =
-          this->m_site_indexer.to_orbital({dx, dy, dz});
+      const auto dx = (xj - xi + this->m_side_length) % this->m_side_length;
+      const auto dy = (yj - yi + this->m_side_length) % this->m_side_length;
+      const auto dz = (zj - zi + this->m_side_length) % this->m_side_length;
+      this->m_displacement_table(i, j) = this->site_to_index(dx, dy, dz);
     }
   }
 }
@@ -197,15 +202,16 @@ void Cubic::initial_symmetry_points() {
 void Cubic::initial_fourier_factor_table() {
   // Re( exp(-ikx) ) for lattice site x and momentum k
   this->m_fourier_factor_table.resize(this->m_space_size, this->m_num_k_stars);
-  for (auto x_index = 0; x_index < this->m_space_size; ++x_index) {
-    for (auto k_index = 0; k_index < this->m_num_k_stars; ++k_index) {
-      // this defines the inner product of a site vector x and a momemtum vector
+  for (auto i = 0; i < this->m_space_size; ++i) {
+    for (auto k = 0; k < this->m_num_k_stars; ++k) {
+      // this defines the inner product of a site vector x and a momemtum
+      // vector
       // k
-      const auto site_coords = this->m_site_indexer.from_orbital(x_index);
-      this->m_fourier_factor_table(x_index, k_index) =
-          cos((-site_coords[0] * this->m_index2momentum_table(k_index, 0) -
-               site_coords[1] * this->m_index2momentum_table(k_index, 1) -
-               site_coords[2] * this->m_index2momentum_table(k_index, 2)));
+      auto [xi, yi, zi] = index_to_site(i);
+      this->m_fourier_factor_table(i, k) =
+          cos((-xi * this->m_index2momentum_table(k, 0) -
+               yi * this->m_index2momentum_table(k, 1) -
+               zi * this->m_index2momentum_table(k, 2)));
     }
   }
 }
@@ -230,7 +236,7 @@ void Cubic::initial_hopping_matrix() {
 void Cubic::initial() {
   // avoid multiple initialization
   if (!this->m_initial_status) {
-    this->initial_site_indexer();
+    this->initial_index2site_table();
     this->initial_index2momentum_table();
 
     this->initial_nearest_neighbour_table();

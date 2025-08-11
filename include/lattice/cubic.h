@@ -7,6 +7,8 @@
  *  derived from the base class Lattice::LatticeBase.
  */
 
+#include <array>
+
 #include "lattice/lattice_base.h"
 
 namespace Lattice {
@@ -50,7 +52,7 @@ class Cubic : public LatticeBase {
 
  private:
   // private initialization functions
-  void initial_site_indexer();
+  void initial_index2site_table();
   void initial_index2momentum_table();
 
   void initial_nearest_neighbour_table();
@@ -59,6 +61,9 @@ class Cubic : public LatticeBase {
   void initial_fourier_factor_table();
 
   void initial_hopping_matrix();
+
+  int site_to_index(int x, int y, int z) const;
+  std::array<int, 3> index_to_site(int index) const;
 };
 
 }  // namespace Lattice

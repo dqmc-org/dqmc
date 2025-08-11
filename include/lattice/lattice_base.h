@@ -10,8 +10,6 @@
 
 #include <Eigen/Core>
 
-#include "lattice/indexer.h"
-
 namespace Lattice {
 
 using LatticeBool = bool;
@@ -46,8 +44,9 @@ class LatticeBase {
   // todo: next nearest neighbours
   // MatrixInt m_next_nearest_neighbour_table{};
 
-  // Indexer for mapping between site indices and coordinates
-  Indexer m_site_indexer{};
+  // Matrix structure for storing the map from site index to the site vector
+  // with the shape of SpaceSize * SpaceDim
+  MatrixInt m_index2site_table{};
 
   // table of the displacement between any two sites i and j, pointing from i to
   // j the displacement is represented by a site index due to the periodic
@@ -107,7 +106,7 @@ class LatticeBase {
 
   virtual void initial() = 0;
   virtual void initial_hopping_matrix() = 0;
-  virtual void initial_site_indexer() = 0;
+  virtual void initial_index2site_table() = 0;
   virtual void initial_nearest_neighbour_table() = 0;
   virtual void initial_displacement_table() = 0;
   virtual void initial_index2momentum_table() = 0;
