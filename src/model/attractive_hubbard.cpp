@@ -5,7 +5,7 @@
 
 #include "dqmc_walker.h"
 #include "lattice/lattice_base.h"
-#include "random.h"
+#include <random>
 
 namespace Model {
 
@@ -75,7 +75,7 @@ void AttractiveHubbard::initial(const LatticeBase& lattice,
   this->initial_KV_matrices(lattice, walker);
 }
 
-void AttractiveHubbard::set_bosonic_fields_to_random() {
+void AttractiveHubbard::set_bosonic_fields_to_random(std::default_random_engine& rng) {
   // set configurations of the bosonic fields to random
   const auto time_size = this->m_bosonic_field.rows();
   const auto space_size = this->m_bosonic_field.cols();
@@ -85,7 +85,7 @@ void AttractiveHubbard::set_bosonic_fields_to_random() {
     for (auto i = 0; i < space_size; ++i) {
       // for Z2 bosonic field, simply set 1.0 or -1.0
       this->m_bosonic_field(t, i) =
-          bernoulli_dist(Utils::Random::Engine) ? +1.0 : -1.0;
+          bernoulli_dist(rng) ? +1.0 : -1.0;
     }
   }
 }

@@ -19,7 +19,7 @@
 #include "lattice/lattice_base.h"
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
-#include "random.h"
+#include <random>
 #include "svd_stack.h"
 #include "utils/mpi.hpp"
 
@@ -113,9 +113,9 @@ int main(int argc, char* argv[]) {
   // ------------------------------------------------------------------------------------------------
 
   // set up random seeds for different processes
-  // Utils::Random::set_seed(std::time(nullptr) + rank);
-  // // fixed random seed for debug
-  Utils::Random::set_seed(42);
+  // std::default_random_engine rng(std::time(nullptr) + rank);
+  // fixed random seed for debug
+  std::default_random_engine rng(42);
 
   // -----------------------------------  Initializations
   // ------------------------------------------
@@ -146,7 +146,7 @@ int main(int argc, char* argv[]) {
   if (fields_file.empty()) {
     // randomly initialize the bosonic fields if there are no input field
     // configs
-    model->set_bosonic_fields_to_random();
+    model->set_bosonic_fields_to_random(rng);
     if (rank == master) {
       std::cout << ">> Configurations of the bosonic fields set to random.\n"
                 << std::endl;
@@ -189,8 +189,8 @@ int main(int argc, char* argv[]) {
 
   // the dqmc simulation start
   QuantumMonteCarlo::Dqmc::timer_begin();
-  QuantumMonteCarlo::Dqmc::thermalize(*walker, *model, *lattice, *meas_handler);
-  QuantumMonteCarlo::Dqmc::measure(*walker, *model, *lattice, *meas_handler);
+  QuantumMonteCarlo::Dqmc::thermalize(*walker, *model, *lattice, *meas_handler, rng);
+  QuantumMonteCarlo::Dqmc::measure(*walker, *model, *lattice, *meas_handler, rng);
 
   // gather observable objects from other processes
   Utils::MPI::mpi_gather(world, *meas_handler);

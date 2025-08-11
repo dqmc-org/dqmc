@@ -8,6 +8,7 @@
 
 #include <Eigen/Core>
 #include <memory>
+#include <random>
 #include <vector>
 
 #include "svd_stack.h"
@@ -182,10 +183,10 @@ class DqmcWalker {
   // --------------------------------------
 
   // sweep forwards from time slice 0 to beta
-  void sweep_from_0_to_beta(ModelBase& model);
+  void sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& rng);
 
   // sweep backwards from time slice beta to 0
-  void sweep_from_beta_to_0(ModelBase& model);
+  void sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& rng);
 
   // sweep backwards from beta to 0 especially to compute dynamic greens
   // functions, without the updates of bosonic fields
@@ -193,7 +194,8 @@ class DqmcWalker {
 
  private:
   // update the bosonic fields at time slice t using Metropolis algorithm
-  void metropolis_update(ModelBase& model, TimeIndex t);
+  void metropolis_update(ModelBase& model, TimeIndex t,
+                         std::default_random_engine& rng);
 
   // wrap the equal-time greens functions from time slice t to t+1
   void wrap_from_0_to_beta(const ModelBase& model, TimeIndex t);

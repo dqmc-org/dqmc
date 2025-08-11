@@ -52,27 +52,29 @@ const double Dqmc::timer() {
 
 void Dqmc::sweep_forth_and_back(DqmcWalker& walker, ModelBase& model,
                                 LatticeBase& lattice,
-                                MeasureHandler& meas_handler) {
+                                MeasureHandler& meas_handler,
+                                std::default_random_engine& rng) {
   // sweep forth from 0 to beta
   if (meas_handler.isDynamic()) {
     walker.sweep_for_dynamic_greens(model);
     meas_handler.dynamic_measure(walker, model, lattice);
   } else {
-    walker.sweep_from_0_to_beta(model);
+    walker.sweep_from_0_to_beta(model, rng);
     if (meas_handler.isEqualTime()) {
       meas_handler.equaltime_measure(walker, model, lattice);
     }
   }
 
   // sweep back from beta to 0
-  walker.sweep_from_beta_to_0(model);
+  walker.sweep_from_beta_to_0(model, rng);
   if (meas_handler.isEqualTime()) {
     meas_handler.equaltime_measure(walker, model, lattice);
   }
 }
 
 void Dqmc::thermalize(DqmcWalker& walker, ModelBase& model,
-                      LatticeBase& lattice, MeasureHandler& meas_handler) {
+                      LatticeBase& lattice, MeasureHandler& meas_handler,
+                      std::default_random_engine& rng) {
   if (meas_handler.isWarmUp()) {
     // create progress bar
     progresscpp::ProgressBar progressbar(
@@ -85,8 +87,8 @@ void Dqmc::thermalize(DqmcWalker& walker, ModelBase& model,
     // warm-up sweeps
     for (auto sweep = 1; sweep <= meas_handler.WarmUpSweeps() / 2; ++sweep) {
       // sweep forth and back without measuring
-      walker.sweep_from_0_to_beta(model);
-      walker.sweep_from_beta_to_0(model);
+      walker.sweep_from_0_to_beta(model, rng);
+      walker.sweep_from_beta_to_0(model, rng);
 
       // record the tick
       ++progressbar;
@@ -105,7 +107,7 @@ void Dqmc::thermalize(DqmcWalker& walker, ModelBase& model,
 }
 
 void Dqmc::measure(DqmcWalker& walker, ModelBase& model, LatticeBase& lattice,
-                   MeasureHandler& meas_handler) {
+                   MeasureHandler& meas_handler, std::default_random_engine& rng) {
   if (meas_handler.isEqualTime() || meas_handler.isDynamic()) {
     // create progress bar
     progresscpp::ProgressBar progressbar(
@@ -117,7 +119,7 @@ void Dqmc::measure(DqmcWalker& walker, ModelBase& model, LatticeBase& lattice,
     for (auto bin = 0; bin < meas_handler.BinsNum(); ++bin) {
       for (auto sweep = 1; sweep <= meas_handler.BinsSize() / 2; ++sweep) {
         // update and measure
-        Dqmc::sweep_forth_and_back(walker, model, lattice, meas_handler);
+        Dqmc::sweep_forth_and_back(walker, model, lattice, meas_handler, rng);
 
         // record the tick
         ++progressbar;
@@ -135,8 +137,8 @@ void Dqmc::measure(DqmcWalker& walker, ModelBase& model, LatticeBase& lattice,
       // avoid correlations between adjoining bins
       for (auto sweep = 0; sweep < meas_handler.SweepsBetweenBins() / 2;
            ++sweep) {
-        walker.sweep_from_0_to_beta(model);
-        walker.sweep_from_beta_to_0(model);
+        walker.sweep_from_0_to_beta(model, rng);
+        walker.sweep_from_beta_to_0(model, rng);
       }
     }
 

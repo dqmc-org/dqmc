@@ -3,7 +3,7 @@
 #include "lattice/lattice_base.h"
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
-#include "random.h"
+#include <random>
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
 
@@ -137,7 +137,7 @@ void DqmcWalker::initial_config_sign() {
  *  perform a in-place update of the green's functions.
  *  Record the updated green's function at the life-end of this function.
  */
-void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t) {
+void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t, std::default_random_engine& rng) {
   assert(this->m_current_time_slice == t);
   assert(t >= 0 && t <= this->m_time_size);
 
@@ -146,8 +146,7 @@ void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t) {
     // obtain the ratio of flipping the bosonic field at (i,l)
     const auto update_ratio = model.get_update_ratio(*this, eff_t, i);
 
-    if (std::bernoulli_distribution(std::min(1.0, std::abs(update_ratio)))(
-            Utils::Random::Engine)) {
+    if (std::bernoulli_distribution(std::min(1.0, std::abs(update_ratio)))(rng)) {
       // if accepted
       // update the greens functions
       model.update_greens_function(*this, eff_t, i);
@@ -201,7 +200,7 @@ void DqmcWalker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
  *  For t = 1,2...,ts , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
+void DqmcWalker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& rng) {
   this->m_current_time_slice++;
 
   const int stack_length =
@@ -224,7 +223,7 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
     this->wrap_from_0_to_beta(model, t - 1);
 
     // update auxiliary fields and record the updated greens functions
-    this->metropolis_update(model, t);
+    this->metropolis_update(model, t, rng);
     if (this->m_is_equaltime) {
       this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
       this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
@@ -297,7 +296,7 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model) {
  *  For l = ts,ts-1,...,1 , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
+void DqmcWalker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& rng) {
   this->m_current_time_slice--;
 
   const int stack_length =
@@ -356,7 +355,7 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model) {
     }
 
     // update auxiliary fields and record the updated greens functions
-    this->metropolis_update(model, t);
+    this->metropolis_update(model, t, rng);
     if (this->m_is_equaltime) {
       this->m_vec_green_tt_up[t - 1] = this->m_green_tt_up;
       this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;

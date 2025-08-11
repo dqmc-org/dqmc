@@ -10,6 +10,7 @@
 #include <Eigen/Core>
 #include <functional>
 #include <memory>
+#include <random>
 
 // forward declaration
 namespace QuantumMonteCarlo {
@@ -121,7 +122,8 @@ class ModelBase {
                                    const Walker& walker) = 0;
 
   // randomize the bosonic fields, which is model-dependent
-  virtual void set_bosonic_fields_to_random() = 0;
+  virtual void set_bosonic_fields_to_random(
+      std::default_random_engine& rng) = 0;
 
   // ------------------------------------------ Linking methods
   // ------------------------------------------------

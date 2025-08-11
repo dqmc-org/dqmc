@@ -12,6 +12,7 @@
  */
 
 #include <chrono>
+#include <random>
 
 namespace Model {
 class ModelBase;
@@ -64,11 +65,13 @@ class Dqmc {
 
   // thermalization of the field configurations
   static void thermalize(DqmcWalker& walker, ModelBase& model,
-                         LatticeBase& lattice, MeasureHandler& meas_handler);
+                         LatticeBase& lattice, MeasureHandler& meas_handler,
+                         std::default_random_engine& rng);
 
   // Monte Carlo updates and measurments
   static void measure(DqmcWalker& walker, ModelBase& model,
-                      LatticeBase& lattice, MeasureHandler& meas_handler);
+                      LatticeBase& lattice, MeasureHandler& meas_handler,
+                      std::default_random_engine& rng);
 
   // analyse the measured data
   static void analyse(MeasureHandler& meas_handler);
@@ -88,7 +91,8 @@ class Dqmc {
   // do the measurements if needed
   static void sweep_forth_and_back(DqmcWalker& walker, ModelBase& model,
                                    LatticeBase& lattice,
-                                   MeasureHandler& meas_handler);
+                                   MeasureHandler& meas_handler,
+                                   std::default_random_engine& rng);
 };
 
 }  // namespace QuantumMonteCarlo

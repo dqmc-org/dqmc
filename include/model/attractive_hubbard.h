@@ -66,7 +66,7 @@ class AttractiveHubbard : public ModelBase {
   virtual void initial_params(const LatticeBase& lattice, const Walker& walker);
   virtual void initial_KV_matrices(const LatticeBase& lattice,
                                    const Walker& walker);
-  void set_bosonic_fields_to_random();
+  void set_bosonic_fields_to_random(std::default_random_engine& rng);
 
   // ------------------------------------- Monte Carlo updates
   // ------------------------------------------

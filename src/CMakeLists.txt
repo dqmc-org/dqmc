@@ -6,7 +6,6 @@ add_library(
   lattice/honeycomb.cpp
   lattice/lattice_base.cpp
   svd_stack.cpp
-  random.cpp
   checkerboard/cubic.cpp
   checkerboard/square.cpp
   dqmc_initializer.cpp
