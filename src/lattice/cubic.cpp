@@ -123,25 +123,25 @@ void Cubic::initial_nearest_neighbour_table() {
 
 void Cubic::initial_displacement_table() {
   this->m_displacement_table.resize(this->m_space_size, this->m_space_size);
+  int L = this->m_side_length;
   for (auto i = 0; i < this->m_space_size; ++i) {
-    const auto xi = i % this->m_side_length;
-    const auto yi =
-        (i % (this->m_side_length * this->m_side_length)) / this->m_side_length;
-    const auto zi = i / (this->m_side_length * this->m_side_length);
+    const auto coords_i = this->m_site_indexer.from_orbital(i);
+    const auto xi = coords_i[0];
+    const auto yi = coords_i[1];
+    const auto zi = coords_i[2];
 
     for (auto j = 0; j < this->m_space_size; ++j) {
-      const auto xj = j % this->m_side_length;
-      const auto yj = (j % (this->m_side_length * this->m_side_length)) /
-                      this->m_side_length;
-      const auto zj = j / (this->m_side_length * this->m_side_length);
+      const auto coords_j = this->m_site_indexer.from_orbital(j);
+      const auto xj = coords_j[0];
+      const auto yj = coords_j[1];
+      const auto zj = coords_j[2];
 
       // displacement pointing from site i to site j
-      const auto dx = (xj - xi + this->m_side_length) % this->m_side_length;
-      const auto dy = (yj - yi + this->m_side_length) % this->m_side_length;
-      const auto dz = (zj - zi + this->m_side_length) % this->m_side_length;
+      const auto dx = (xj - xi + L) % L;
+      const auto dy = (yj - yi + L) % L;
+      const auto dz = (zj - zi + L) % L;
       this->m_displacement_table(i, j) =
-          dx + dy * this->m_side_length +
-          dz * this->m_side_length * this->m_side_length;
+          this->m_site_indexer.to_orbital({dx, dy, dz});
     }
   }
 }
