@@ -72,20 +72,28 @@ void Square::initial_nearest_neighbour_table() {
   // 2: (x-1, y)    3: (x, y-1)
   this->m_nearest_neighbour_table.resize(this->m_space_size,
                                          this->m_coordination_number);
-  for (int index = 0; index < this->m_space_size; ++index) {
-    const auto x = index % this->m_side_length;
-    const auto y = index / this->m_side_length;
+  int L = this->m_side_length;
+  for (int i = 0; i < L; ++i) {
+    for (int j = 0; j < L; ++j) {
+      int site_index = this->m_site_indexer.to_orbital({i, j});
 
-    this->m_nearest_neighbour_table(index, 0) =
-        ((x + 1) % this->m_side_length) + this->m_side_length * y;
-    this->m_nearest_neighbour_table(index, 2) =
-        ((x - 1 + this->m_side_length) % this->m_side_length) +
-        this->m_side_length * y;
-    this->m_nearest_neighbour_table(index, 1) =
-        x + this->m_side_length * ((y + 1) % this->m_side_length);
-    this->m_nearest_neighbour_table(index, 3) =
-        x + this->m_side_length *
-                ((y - 1 + this->m_side_length) % this->m_side_length);
+      // Direction 0: (x+1, y)
+      this->m_nearest_neighbour_table(site_index, 0) =
+          this->m_site_indexer.to_orbital({(i + 1) % L, j});
+
+      // Direction 1: (x, y+1)
+      this->m_nearest_neighbour_table(site_index, 1) =
+          this->m_site_indexer.to_orbital({i, (j + 1) % L});
+
+      // Direction 2: (x-1, y)
+      this->m_nearest_neighbour_table(site_index, 2) =
+          this->m_site_indexer.to_orbital({(i - 1 + L) % L, j});
+
+      // Direction 3: (x, y-1)
+      this->m_nearest_neighbour_table(site_index, 3) =
+          this->m_site_indexer.to_orbital(
+              {i, (j - 1 + L) % this->m_side_length});
+    }
   }
 }
 
