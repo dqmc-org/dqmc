@@ -40,14 +40,20 @@ const LatticeDouble LatticeBase::FourierFactor(
 
 const VectorInt LatticeBase::Index2Site(const LatticeInt site_index) const {
   assert(site_index >= 0 && site_index < this->m_space_size);
-  return this->m_index2site_table.row(site_index);
+  const auto coordinates = this->m_site_indexer.from_orbital(site_index);
+  VectorInt result(coordinates.size());
+  for (int i = 0; i < coordinates.size(); ++i) {
+    result(i) = coordinates[i];
+  }
+  return result;
 }
 
 const LatticeInt LatticeBase::Index2Site(const LatticeInt site_index,
                                          const LatticeInt axis) const {
   assert(site_index >= 0 && site_index < this->m_space_size);
   assert(axis >= 0 && axis < this->m_space_dim);
-  return this->m_index2site_table(site_index, axis);
+  const auto coordinates = this->m_site_indexer.from_orbital(site_index);
+  return coordinates[axis];
 }
 
 const VectorDouble LatticeBase::Index2Momentum(

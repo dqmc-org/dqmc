@@ -37,17 +37,11 @@ void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {
       side_length_vec[0] * side_length_vec[1] * side_length_vec[2];
 }
 
-void Cubic::initial_index2site_table() {
-  this->m_index2site_table.resize(this->m_space_size, this->m_space_dim);
-  for (auto index = 0; index < this->m_space_size; ++index) {
-    // map the site index to the site vector (x,y,z)
-    this->m_index2site_table(index, 0) = index % this->m_side_length;
-    this->m_index2site_table(index, 1) =
-        (index % (this->m_side_length * this->m_side_length)) /
-        this->m_side_length;
-    this->m_index2site_table(index, 2) =
-        index / (this->m_side_length * this->m_side_length);
-  }
+void Cubic::initial_site_indexer() {
+  // Initialize indexer with 3D dimensions for cubic lattice
+  std::vector<int> dimensions = {this->m_side_length, this->m_side_length,
+                                 this->m_side_length};
+  this->m_site_indexer = Indexer(dimensions);
 }
 
 void Cubic::initial_index2momentum_table() {
@@ -204,13 +198,11 @@ void Cubic::initial_fourier_factor_table() {
     for (auto k_index = 0; k_index < this->m_num_k_stars; ++k_index) {
       // this defines the inner product of a site vector x and a momemtum vector
       // k
+      const auto site_coords = this->m_site_indexer.from_orbital(x_index);
       this->m_fourier_factor_table(x_index, k_index) =
-          cos((-this->m_index2site_table(x_index, 0) *
-                   this->m_index2momentum_table(k_index, 0) -
-               this->m_index2site_table(x_index, 1) *
-                   this->m_index2momentum_table(k_index, 1) -
-               this->m_index2site_table(x_index, 2) *
-                   this->m_index2momentum_table(k_index, 2)));
+          cos((-site_coords[0] * this->m_index2momentum_table(k_index, 0) -
+               site_coords[1] * this->m_index2momentum_table(k_index, 1) -
+               site_coords[2] * this->m_index2momentum_table(k_index, 2)));
     }
   }
 }
@@ -235,7 +227,7 @@ void Cubic::initial_hopping_matrix() {
 void Cubic::initial() {
   // avoid multiple initialization
   if (!this->m_initial_status) {
-    this->initial_index2site_table();
+    this->initial_site_indexer();
     this->initial_index2momentum_table();
 
     this->initial_nearest_neighbour_table();

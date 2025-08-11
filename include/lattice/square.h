@@ -46,7 +46,7 @@ class Square : public LatticeBase {
 
  private:
   // private initialization functions
-  void initial_index2site_table();
+  void initial_site_indexer();
   void initial_index2momentum_table();
 
   void initial_nearest_neighbour_table();

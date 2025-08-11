@@ -32,13 +32,10 @@ void Square::set_lattice_params(const LatticeIntVec& side_length_vec) {
   this->m_space_size = side_length_vec[0] * side_length_vec[1];
 }
 
-void Square::initial_index2site_table() {
-  this->m_index2site_table.resize(this->m_space_size, this->m_space_dim);
-  for (auto index = 0; index < this->m_space_size; ++index) {
-    // map the site index to the site vector (x,y)
-    this->m_index2site_table(index, 0) = index % this->m_side_length;
-    this->m_index2site_table(index, 1) = index / this->m_side_length;
-  }
+void Square::initial_site_indexer() {
+  // Initialize indexer with 2D dimensions for square lattice
+  std::vector<int> dimensions = {this->m_side_length, this->m_side_length};
+  this->m_site_indexer = Indexer(dimensions);
 }
 
 void Square::initial_index2momentum_table() {
@@ -157,11 +154,10 @@ void Square::initial_fourier_factor_table() {
     for (auto k_index = 0; k_index < this->m_num_k_stars; ++k_index) {
       // this defines the inner product of a site vector x and a momemtum vector
       // k
+      const auto site_coords = this->m_site_indexer.from_orbital(x_index);
       this->m_fourier_factor_table(x_index, k_index) =
-          cos((-this->m_index2site_table(x_index, 0) *
-                   this->m_index2momentum_table(k_index, 0) -
-               this->m_index2site_table(x_index, 1) *
-                   this->m_index2momentum_table(k_index, 1)));
+          cos((-site_coords[0] * this->m_index2momentum_table(k_index, 0) -
+               site_coords[1] * this->m_index2momentum_table(k_index, 1)));
     }
   }
 }
@@ -183,7 +179,7 @@ void Square::initial_hopping_matrix() {
 void Square::initial() {
   // avoid multiple initialization
   if (!this->m_initial_status) {
-    this->initial_index2site_table();
+    this->initial_site_indexer();
     this->initial_index2momentum_table();
 
     this->initial_nearest_neighbour_table();
