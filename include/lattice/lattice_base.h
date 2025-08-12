@@ -113,4 +113,3 @@ class LatticeBase {
   virtual void initial_fourier_factor_table() = 0;
 };
 }  // namespace Lattice
-

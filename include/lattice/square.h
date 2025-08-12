@@ -60,4 +60,3 @@ class Square : public LatticeBase {
   std::array<int, 2> index_to_site(int index) const;
 };
 }  // namespace Lattice
-
