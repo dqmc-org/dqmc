@@ -16,6 +16,7 @@ add_library(
   model/model_base.cpp
   model/attractive_hubbard.cpp
   model/repulsive_hubbard.cpp
+  io.cpp
 )
 
 target_include_directories(
