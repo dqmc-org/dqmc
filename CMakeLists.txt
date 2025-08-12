@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(BLAS REQUIRED)
 find_package(Eigen3 3.4.0 REQUIRED)
-find_package(Boost 1.71.0 COMPONENTS program_options serialization REQUIRED)
+find_package(Boost 1.83.0 COMPONENTS program_options REQUIRED)
 
 add_subdirectory(src)
 
