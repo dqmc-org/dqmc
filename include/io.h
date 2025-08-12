@@ -6,8 +6,8 @@
  */
 
 #include <boost/algorithm/string.hpp>
-#include <boost/format.hpp>
 #include <boost/lexical_cast.hpp>
+#include <format>
 #include <fstream>
 #include <string>
 
@@ -98,10 +98,19 @@ void IO::output_init_info(StreamType& ostream, int world_size,
     exit(1);
   } else {
     // output formats
-    boost::format fmt_param_str("%| 30s|%| 7s|%| 24s|\n");
-    boost::format fmt_param_int("%| 30s|%| 7s|%| 24d|\n");
-    boost::format fmt_param_double("%| 30s|%| 7s|%| 24.3f|\n");
-    const std::string_view joiner = "->";
+    auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
+                            const std::string& value) {
+      return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
+    };
+    auto fmt_param_int = [](const std::string& desc, const std::string& joiner,
+                            int value) {
+      return std::format("{:>30s}{:>7s}{:>24d}\n", desc, joiner, value);
+    };
+    auto fmt_param_double = [](const std::string& desc,
+                               const std::string& joiner, double value) {
+      return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
+    };
+    std::string joiner = "->";
     auto bool2str = [](bool b) {
       if (b)
         return "True";
@@ -119,12 +128,12 @@ void IO::output_init_info(StreamType& ostream, int world_size,
             dynamic_cast<const Model::RepulsiveHubbard*>(&model);
         repulsive_hubbard != nullptr) {
       ostream << "   Model: Repulsive Hubbard\n"
-              << fmt_param_double % "Hopping constant \'t\'" % joiner %
-                     repulsive_hubbard->HoppingT()
-              << fmt_param_double % "Onsite interaction \'U\'" % joiner %
-                     repulsive_hubbard->OnSiteU()
-              << fmt_param_double % "Checimcal potential \'mu\'" % joiner %
-                     repulsive_hubbard->ChemicalPotential()
+              << fmt_param_double("Hopping constant 't'", joiner,
+                                  repulsive_hubbard->HoppingT())
+              << fmt_param_double("Onsite interaction 'U'", joiner,
+                                  repulsive_hubbard->OnSiteU())
+              << fmt_param_double("Checimcal potential 'mu'", joiner,
+                                  repulsive_hubbard->ChemicalPotential())
               << std::endl;
     }
 
@@ -134,12 +143,12 @@ void IO::output_init_info(StreamType& ostream, int world_size,
                  dynamic_cast<const Model::AttractiveHubbard*>(&model);
              attractive_hubbard != nullptr) {
       ostream << "   Model: Attractive Hubbard\n"
-              << fmt_param_double % "Hopping constant \'t\'" % joiner %
-                     attractive_hubbard->HoppingT()
-              << fmt_param_double % "Onsite interaction \'U\'" % joiner %
-                     attractive_hubbard->OnSiteU()
-              << fmt_param_double % "Checimcal potential \'mu\'" % joiner %
-                     attractive_hubbard->ChemicalPotential()
+              << fmt_param_double("Hopping constant 't'", joiner,
+                                  attractive_hubbard->HoppingT())
+              << fmt_param_double("Onsite interaction 'U'", joiner,
+                                  attractive_hubbard->OnSiteU())
+              << fmt_param_double("Checimcal potential 'mu'", joiner,
+                                  attractive_hubbard->ChemicalPotential())
               << std::endl;
     }
 
@@ -159,8 +168,12 @@ void IO::output_init_info(StreamType& ostream, int world_size,
     if (const auto square_lattice =
             dynamic_cast<const Lattice::Square*>(&lattice);
         square_lattice != nullptr) {
-      boost::format fmt_cell("%d * %d");
-      boost::format fmt_momentum("(%.2f, %.2f) pi");
+      auto fmt_cell = [](int side) {
+        return std::format("{} * {}", side, side);
+      };
+      auto fmt_momentum = [](double px, double py) {
+        return std::format("({:.2f}, {:.2f}) pi", px, py);
+      };
       const int side_length = square_lattice->SideLength();
       const double px =
           (square_lattice->Index2Momentum(meas_handler.Momentum(), 0) / M_PI);
@@ -168,10 +181,8 @@ void IO::output_init_info(StreamType& ostream, int world_size,
           (square_lattice->Index2Momentum(meas_handler.Momentum(), 1) / M_PI);
 
       ostream << "   Lattice: Square lattice\n"
-              << fmt_param_str % "Size of cell" % joiner %
-                     (fmt_cell % side_length % side_length)
-              << fmt_param_str % "Momentum point" % joiner %
-                     (fmt_momentum % px % py)
+              << fmt_param_str("Size of cell", joiner, fmt_cell(side_length))
+              << fmt_param_str("Momentum point", joiner, fmt_momentum(px, py))
               << std::flush;
     }
 
@@ -180,8 +191,12 @@ void IO::output_init_info(StreamType& ostream, int world_size,
     else if (const auto cubic_lattice =
                  dynamic_cast<const Lattice::Cubic*>(&lattice);
              cubic_lattice != nullptr) {
-      boost::format fmt_cell("%d * %d * %d");
-      boost::format fmt_momentum("(%.2f, %.2f, %.2f) pi");
+      auto fmt_cell = [](int side) {
+        return std::format("{} * {} * {}", side, side, side);
+      };
+      auto fmt_momentum = [](double px, double py, double pz) {
+        return std::format("({:.2f}, {:.2f}, {:.2f}) pi", px, py, pz);
+      };
       const int side_length = cubic_lattice->SideLength();
       const double px =
           (cubic_lattice->Index2Momentum(meas_handler.Momentum(), 0) / M_PI);
@@ -191,10 +206,9 @@ void IO::output_init_info(StreamType& ostream, int world_size,
           (cubic_lattice->Index2Momentum(meas_handler.Momentum(), 2) / M_PI);
 
       ostream << "   Lattice: Cubic lattice\n"
-              << fmt_param_str % "Size of cell" % joiner %
-                     (fmt_cell % side_length % side_length % side_length)
-              << fmt_param_str % "Momentum point" % joiner %
-                     (fmt_momentum % px % py % pz)
+              << fmt_param_str("Size of cell", joiner, fmt_cell(side_length))
+              << fmt_param_str("Momentum point", joiner,
+                               fmt_momentum(px, py, pz))
               << std::flush;
     }
 
@@ -214,43 +228,41 @@ void IO::output_init_info(StreamType& ostream, int world_size,
     // -------------------------------------------------------------------------------------------
     //                              Output CheckerBoard information
     // -------------------------------------------------------------------------------------------
-    ostream << fmt_param_str % "Checkerboard breakups" % joiner %
-                   bool2str((bool)checkerboard)
+    ostream << fmt_param_str("Checkerboard breakups", joiner,
+                             bool2str((bool)checkerboard))
             << std::endl;
 
     // -------------------------------------------------------------------------------------------
     //                               Output MonteCarlo Params
     // -------------------------------------------------------------------------------------------
     ostream << "   MonteCarlo Params:\n"
-            << fmt_param_double % "Inverse temperature" % joiner % walker.Beta()
-            << fmt_param_int % "Imaginary-time length" % joiner %
-                   walker.TimeSize()
-            << fmt_param_double % "Imaginary-time interval" % joiner %
-                   walker.TimeInterval()
-            << fmt_param_int % "Stabilization pace" % joiner %
-                   walker.StabilizationPace()
+            << fmt_param_double("Inverse temperature", joiner, walker.Beta())
+            << fmt_param_int("Imaginary-time length", joiner, walker.TimeSize())
+            << fmt_param_double("Imaginary-time interval", joiner,
+                                walker.TimeInterval())
+            << fmt_param_int("Stabilization pace", joiner,
+                             walker.StabilizationPace())
             << std::endl;
 
     // -------------------------------------------------------------------------------------------
     //                                Output Measuring Params
     // -------------------------------------------------------------------------------------------
     ostream << "   Measuring Params:\n"
-            << fmt_param_str % "Warm up" % joiner %
-                   bool2str(meas_handler.isWarmUp())
-            << fmt_param_str % "Equal-time measure" % joiner %
-                   bool2str(meas_handler.isEqualTime())
-            << fmt_param_str % "Dynamical measure" % joiner %
-                   bool2str(meas_handler.isDynamic())
+            << fmt_param_str("Warm up", joiner,
+                             bool2str(meas_handler.isWarmUp()))
+            << fmt_param_str("Equal-time measure", joiner,
+                             bool2str(meas_handler.isEqualTime()))
+            << fmt_param_str("Dynamical measure", joiner,
+                             bool2str(meas_handler.isDynamic()))
             << std::endl;
 
-    ostream << fmt_param_int % "Sweeps for warmup" % joiner %
-                   meas_handler.WarmUpSweeps()
-            << fmt_param_int % "Number of bins" % joiner %
-                   (meas_handler.BinsNum() * world_size)
-            << fmt_param_int % "Sweeps per bin" % joiner %
-                   meas_handler.BinsSize()
-            << fmt_param_int % "Sweeps between bins" % joiner %
-                   meas_handler.SweepsBetweenBins()
+    ostream << fmt_param_int("Sweeps for warmup", joiner,
+                             meas_handler.WarmUpSweeps())
+            << fmt_param_int("Number of bins", joiner,
+                             (meas_handler.BinsNum() * world_size))
+            << fmt_param_int("Sweeps per bin", joiner, meas_handler.BinsSize())
+            << fmt_param_int("Sweeps between bins", joiner,
+                             meas_handler.SweepsBetweenBins())
             << std::endl;
   }
 }
@@ -275,29 +287,27 @@ void IO::output_ending_info(StreamType& ostream, const Walker& walker) {
     // output the time cost of simulation
     if (day) {
       ostream
-          << boost::format(
-                 "\n>> The simulation finished in %d d %d h %d m %.2f s.\n") %
-                 day % hour % minute % sec
+          << std::format(
+                 "\n>> The simulation finished in {} d {} h {} m {:.2f} s.\n",
+                 day, hour, minute, sec)
           << std::endl;
     } else if (hour) {
-      ostream << boost::format(
-                     "\n>> The simulation finished in %d h %d m %.2f s.\n") %
-                     hour % minute % sec
+      ostream << std::format(
+                     "\n>> The simulation finished in {} h {} m {:.2f} s.\n",
+                     hour, minute, sec)
               << std::endl;
     } else if (minute) {
-      ostream << boost::format(
-                     "\n>> The simulation finished in %d m %.2f s.\n") %
-                     minute % sec
+      ostream << std::format("\n>> The simulation finished in {} m {:.2f} s.\n",
+                             minute, sec)
               << std::endl;
     } else {
-      ostream << boost::format("\n>> The simulation finished in %.2f s.\n") %
-                     sec
+      ostream << std::format("\n>> The simulation finished in {:.2f} s.\n", sec)
               << std::endl;
     }
 
     // output wrapping errors of the evaluations of Green's functions
-    ostream << boost::format(">> Maximum of the wrapping error: %.5e\n") %
-                   walker.WrapError()
+    ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n",
+                           walker.WrapError())
             << std::endl;
   }
 }
@@ -315,10 +325,15 @@ void IO::output_observable(StreamType& ostream,
     if constexpr (std::is_same_v<StreamType, std::ostream>) {
       // for scalar observables
       if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
-        boost::format fmt_scalar_obs("%| 30s|%| 7s|%| 20.12f|  pm  %.12f");
+        auto fmt_scalar_obs = [](const std::string& desc,
+                                 const std::string& joiner, double mean,
+                                 double error) {
+          return std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}", desc,
+                             joiner, mean, error);
+        };
         const std::string joiner = "->";
-        ostream << fmt_scalar_obs % obs.description() % joiner %
-                       obs.mean_value() % obs.error_bar()
+        ostream << fmt_scalar_obs(obs.description(), joiner, obs.mean_value(),
+                                  obs.error_bar())
                 << std::endl;
       }
 
@@ -347,26 +362,35 @@ void IO::output_observable(StreamType& ostream,
       if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
         // for specfic scalar observable, output the mean value, error bar and
         // relative error in order.
-        boost::format fmt_scalar_obs("%| 20.10f|%| 20.10f|%| 20.10f|");
-        ostream << fmt_scalar_obs % obs.mean_value() % obs.error_bar() %
-                       (obs.error_bar() / obs.mean_value())
+        auto fmt_scalar_obs = [](double mean, double error, double rel_error) {
+          return std::format("{:>20.10f}{:>20.10f}{:>20.10f}", mean, error,
+                             rel_error);
+        };
+        ostream << fmt_scalar_obs(obs.mean_value(), obs.error_bar(),
+                                  (obs.error_bar() / obs.mean_value()))
                 << std::endl;
       }
 
       // for vector observables
       else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
         // output vector observable
-        boost::format fmt_size_info("%| 20d|");
-        boost::format fmt_vector_obs("%| 20d|%| 20.10f|%| 20.10f|%| 20.10f|");
+        auto fmt_size_info = [](int size) {
+          return std::format("{:>20d}", size);
+        };
+        auto fmt_vector_obs = [](int i, double mean, double error,
+                                 double rel_error) {
+          return std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i, mean,
+                             error, rel_error);
+        };
 
         const int size = obs.mean_value().size();
         const auto relative_error =
             (obs.error_bar().array() / obs.mean_value().array()).matrix();
-        ostream << fmt_size_info % size << std::endl;
+        ostream << fmt_size_info(size) << std::endl;
         for (auto i = 0; i < size; ++i) {
           // output the mean value, error bar and relative error in order.
-          ostream << fmt_vector_obs % i % obs.mean_value()(i) %
-                         obs.error_bar()(i) % relative_error(i)
+          ostream << fmt_vector_obs(i, obs.mean_value()(i), obs.error_bar()(i),
+                                    relative_error(i))
                   << std::endl;
         }
       }
@@ -374,20 +398,26 @@ void IO::output_observable(StreamType& ostream,
       // for matrix observables
       else if constexpr (std::is_same_v<ObsType, Observable::MatrixType>) {
         // output matrix observable
-        boost::format fmt_size_info("%| 20d|%| 20d|");
-        boost::format fmt_matrix_obs(
-            "%| 20d|%| 20d|%| 20.10f|%| 20.10f|%| 20.10f|");
+        auto fmt_size_info = [](int row, int col) {
+          return std::format("{:>20d}{:>20d}", row, col);
+        };
+        auto fmt_matrix_obs = [](int i, int j, double mean, double error,
+                                 double rel_error) {
+          return std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i,
+                             j, mean, error, rel_error);
+        };
 
         const int row = obs.mean_value().rows();
         const int col = obs.mean_value().cols();
         const auto relative_error =
             (obs.error_bar().array() / obs.mean_value().array()).matrix();
-        ostream << fmt_size_info % row % col << std::endl;
+        ostream << fmt_size_info(row, col) << std::endl;
         for (auto i = 0; i < row; ++i) {
           for (auto j = 0; j < col; ++j) {
             // output the mean value, error bar and relative error in order.
-            ostream << fmt_matrix_obs % i % j % obs.mean_value()(i, j) %
-                           obs.error_bar()(i, j) % relative_error(i, j)
+            ostream << fmt_matrix_obs(i, j, obs.mean_value()(i, j),
+                                      obs.error_bar()(i, j),
+                                      relative_error(i, j))
                     << std::endl;
           }
         }
@@ -422,29 +452,36 @@ void IO::output_observable_in_bins(StreamType& ostream,
     // for scalar observables
     if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
       // output bin data of scalar observable
-      boost::format fmt_size_info("%| 20d|");
-      boost::format fmt_scalar_obs("%| 20d|%| 20.10f|");
+      auto fmt_size_info = [](int bins) {
+        return std::format("{:>20d}", bins);
+      };
+      auto fmt_scalar_obs = [](int bin, double value) {
+        return std::format("{:>20d}{:>20.10f}", bin, value);
+      };
 
       const int number_of_bins = obs.bin_num();
-      ostream << fmt_size_info % number_of_bins << std::endl;
+      ostream << fmt_size_info(number_of_bins) << std::endl;
       for (auto bin = 0; bin < number_of_bins; ++bin) {
-        ostream << fmt_scalar_obs % bin % obs.bin_data(bin) << std::endl;
+        ostream << fmt_scalar_obs(bin, obs.bin_data(bin)) << std::endl;
       }
     }
 
     // for vector observables
     else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
       // output bin data of vector observable
-      boost::format fmt_size_info("%| 20d|%| 20d|");
-      boost::format fmt_vector_obs("%| 20d|%| 20d|%| 20.10f|");
+      auto fmt_size_info = [](int bins, int size) {
+        return std::format("{:>20d}{:>20d}", bins, size);
+      };
+      auto fmt_vector_obs = [](int bin, int i, double value) {
+        return std::format("{:>20d}{:>20d}{:>20.10f}", bin, i, value);
+      };
 
       const int number_of_bins = obs.bin_num();
       const int size = obs.mean_value().size();
-      ostream << fmt_size_info % number_of_bins % size << std::endl;
+      ostream << fmt_size_info(number_of_bins, size) << std::endl;
       for (auto bin = 0; bin < number_of_bins; ++bin) {
         for (auto i = 0; i < size; ++i) {
-          ostream << fmt_vector_obs % bin % i % obs.bin_data(bin)(i)
-                  << std::endl;
+          ostream << fmt_vector_obs(bin, i, obs.bin_data(bin)(i)) << std::endl;
         }
       }
     }
@@ -452,17 +489,21 @@ void IO::output_observable_in_bins(StreamType& ostream,
     // for matrix observables
     else if constexpr (std::is_same_v<ObsType, Observable::MatrixType>) {
       // output bin data of matrix observable
-      boost::format fmt_size_info("%| 20d|%| 20d|%| 20d|");
-      boost::format fmt_matrix_obs("%| 20d|%| 20d|%| 20d|%| 20.10f|");
+      auto fmt_size_info = [](int bins, int row, int col) {
+        return std::format("{:>20d}{:>20d}{:>20d}", bins, row, col);
+      };
+      auto fmt_matrix_obs = [](int bin, int i, int j, double value) {
+        return std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}", bin, i, j, value);
+      };
 
       const int number_of_bins = obs.bin_num();
       const int row = obs.mean_value().rows();
       const int col = obs.mean_value().cols();
-      ostream << fmt_size_info % number_of_bins % row % col << std::endl;
+      ostream << fmt_size_info(number_of_bins, row, col) << std::endl;
       for (auto bin = 0; bin < number_of_bins; ++bin) {
         for (auto i = 0; i < row; ++i) {
           for (auto j = 0; j < col; ++j) {
-            ostream << fmt_matrix_obs % bin % i % j % obs.bin_data(bin)(i, j)
+            ostream << fmt_matrix_obs(bin, i, j, obs.bin_data(bin)(i, j))
                     << std::endl;
           }
         }
@@ -487,15 +528,17 @@ void IO::output_k_stars(StreamType& ostream, const LatticeBase& lattice) {
     exit(1);
   } else {
     // output k stars list
-    boost::format fmt_info("%| 20d|");
-    boost::format fmt_kstars("%| 20.10f|");
-    ostream << fmt_info % lattice.kStarsNum() << std::endl;
+    auto fmt_info = [](int value) { return std::format("{:>20d}", value); };
+    auto fmt_kstars = [](double value) {
+      return std::format("{:>20.10f}", value);
+    };
+    ostream << fmt_info(lattice.kStarsNum()) << std::endl;
     // loop for inequivalent momentum points
     for (auto i = 0; i < lattice.kStarsNum(); ++i) {
-      ostream << fmt_info % i;
+      ostream << fmt_info(i);
       // loop for axises of the reciprocal lattice
       for (auto axis = 0; axis < lattice.SpaceDim(); ++axis) {
-        ostream << fmt_kstars % lattice.Index2Momentum(i, axis);
+        ostream << fmt_kstars(lattice.Index2Momentum(i, axis));
       }
       ostream << std::endl;
     }
@@ -512,13 +555,18 @@ void IO::output_imaginary_time_grids(StreamType& ostream,
     exit(1);
   } else {
     // output the imaginary-time grids
-    boost::format fmt_tgrids_info("%| 20d|%| 20.5f|%| 20.5f|");
-    boost::format fmt_tgrids("%| 20d|%| 20.10f|");
-    ostream << fmt_tgrids_info % walker.TimeSize() % walker.Beta() %
-                   walker.TimeInterval()
+    auto fmt_tgrids_info = [](int time_size, double beta, double interval) {
+      return std::format("{:>20d}{:>20.5f}{:>20.5f}", time_size, beta,
+                         interval);
+    };
+    auto fmt_tgrids = [](int t, double time_val) {
+      return std::format("{:>20d}{:>20.10f}", t, time_val);
+    };
+    ostream << fmt_tgrids_info(walker.TimeSize(), walker.Beta(),
+                               walker.TimeInterval())
             << std::endl;
     for (auto t = 0; t < walker.TimeSize(); ++t) {
-      ostream << fmt_tgrids % t % (t * walker.TimeInterval()) << std::endl;
+      ostream << fmt_tgrids(t, (t * walker.TimeInterval())) << std::endl;
     }
   }
 }
@@ -541,16 +589,19 @@ void IO::output_bosonic_fields(StreamType& ostream, const ModelBase& model) {
         repulsive_hubbard != nullptr) {
       // output current configuration of auxiliary bosonic fields
       // for repulsive hubbard model, they are ising-like.
-      boost::format fmt_fields_info("%| 20d|%| 20d|");
-      boost::format fmt_fields("%| 20d|%| 20d|%| 20.1f|");
+      auto fmt_fields_info = [](int time_size, int space_size) {
+        return std::format("{:>20d}{:>20d}", time_size, space_size);
+      };
+      auto fmt_fields = [](int t, int i, double field) {
+        return std::format("{:>20d}{:>20d}{:>20.1f}", t, i, field);
+      };
       const int time_size = repulsive_hubbard->m_bosonic_field.rows();
       const int space_size = repulsive_hubbard->m_bosonic_field.cols();
 
-      ostream << fmt_fields_info % time_size % space_size << std::endl;
+      ostream << fmt_fields_info(time_size, space_size) << std::endl;
       for (auto t = 0; t < time_size; ++t) {
         for (auto i = 0; i < space_size; ++i) {
-          ostream << fmt_fields % t % i %
-                         repulsive_hubbard->m_bosonic_field(t, i)
+          ostream << fmt_fields(t, i, repulsive_hubbard->m_bosonic_field(t, i))
                   << std::endl;
         }
       }
@@ -563,16 +614,19 @@ void IO::output_bosonic_fields(StreamType& ostream, const ModelBase& model) {
              attractive_hubbard != nullptr) {
       // output current configuration of auxiliary bosonic fields
       // for attractive hubbard model, they are ising-like.
-      boost::format fmt_fields_info("%| 20d|%| 20d|");
-      boost::format fmt_fields("%| 20d|%| 20d|%| 20.1f|");
+      auto fmt_fields_info = [](int time_size, int space_size) {
+        return std::format("{:>20d}{:>20d}", time_size, space_size);
+      };
+      auto fmt_fields = [](int t, int i, double field) {
+        return std::format("{:>20d}{:>20d}{:>20.1f}", t, i, field);
+      };
       const int time_size = attractive_hubbard->m_bosonic_field.rows();
       const int space_size = attractive_hubbard->m_bosonic_field.cols();
 
-      ostream << fmt_fields_info % time_size % space_size << std::endl;
+      ostream << fmt_fields_info(time_size, space_size) << std::endl;
       for (auto t = 0; t < time_size; ++t) {
         for (auto i = 0; i < space_size; ++i) {
-          ostream << fmt_fields % t % i %
-                         attractive_hubbard->m_bosonic_field(t, i)
+          ostream << fmt_fields(t, i, attractive_hubbard->m_bosonic_field(t, i))
                   << std::endl;
         }
       }
