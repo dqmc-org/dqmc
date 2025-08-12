@@ -92,54 +92,24 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
                           const MeasureHandler& meas_handler,
                           const CheckerBoardBasePtr& checkerboard) {
   if (!ostream) {
-    std::cerr << "DQMC::IO::output_init_info(): "
-              << "the ostream failed to work, please check the input."
-              << std::endl;
-    exit(1);
-  } else {
-    // output formats
-    auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
-                            const std::string& value) {
-      return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
-    };
-    auto fmt_param_int = [](const std::string& desc, const std::string& joiner,
-                            int value) {
-      return std::format("{:>30s}{:>7s}{:>24d}\n", desc, joiner, value);
-    };
-    auto fmt_param_double = [](const std::string& desc,
-                               const std::string& joiner, double value) {
-      return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
-    };
-    std::string joiner = "->";
-    auto bool2str = [](bool b) { return b ? "True" : "False"; };
-
-    // -------------------------------------------------------------------------------------------
-    //                                 Output model information
-    // -------------------------------------------------------------------------------------------
-    model.output_model_info(ostream);
-
-    // -------------------------------------------------------------------------------------------
-    //                                Output lattice information
-    // -------------------------------------------------------------------------------------------
-    lattice.output_lattice_info(ostream, meas_handler.Momentum());
-
-    // -------------------------------------------------------------------------------------------
-    //                              Output CheckerBoard information
-    // -------------------------------------------------------------------------------------------
-    ostream << fmt_param_str("Checkerboard breakups", joiner,
-                             bool2str((bool)checkerboard))
-            << std::endl;
-
-    // -------------------------------------------------------------------------------------------
-    //                               Output MonteCarlo Params
-    // -------------------------------------------------------------------------------------------
-    walker.output_montecarlo_info(ostream);
-
-    // -------------------------------------------------------------------------------------------
-    //                                Output Measuring Params
-    // -------------------------------------------------------------------------------------------
-    meas_handler.output_measuring_info(ostream, world_size);
+    throw std::runtime_error(
+        "DQMC::IO::output_init_info(): output stream is not valid.");
   }
+
+  auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
+                          const std::string& value) {
+    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
+  };
+
+  model.output_model_info(ostream);
+  lattice.output_lattice_info(ostream, meas_handler.Momentum());
+
+  ostream << fmt_param_str("Checkerboard breakups", "->",
+                           checkerboard ? "True" : "False")
+          << std::endl;
+
+  walker.output_montecarlo_info(ostream);
+  meas_handler.output_measuring_info(ostream, world_size);
 }
 
 template <typename StreamType>
