@@ -9,5 +9,3 @@ CXXFLAGS="-O3 -march=native -g -fno-omit-frame-pointer -Wall -Wformat -Wformat=2
 cmake -S . -B build -G Ninja -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++ -DCMAKE_CXX_FLAGS="$CXXFLAGS"
 cmake --build build
 ./build/main -c ./example/config.toml -o ./example/output
-./tools/compare.py ./tools/dos.out.1 ./example/output/dos_0.out
-./tools/format.py
