@@ -74,18 +74,32 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ---------------------------------------  Interfaces
   // -----------------------------------------------
 
-  const bool isWarmUp() const;
-  const bool isEqualTime() const;
-  const bool isDynamic() const;
+  bool isWarmUp() const { return this->m_is_warmup; }
+  bool isEqualTime() const { return this->m_is_equaltime; }
+  bool isDynamic() const { return this->m_is_dynamic; }
 
-  const int WarmUpSweeps() const;
-  const int SweepsBetweenBins() const;
-  const int BinsNum() const;
-  const int BinsSize() const;
+  int WarmUpSweeps() const { return this->m_sweeps_warmup; }
 
-  const MomentumIndex& Momentum() const;
-  const MomentumIndex& MomentumList(const int i) const;
-  const MomentumIndexList& MomentumList() const;
+  int SweepsBetweenBins() const {
+  return this->m_sweeps_between_bins;
+}
+
+  int BinsNum() const { return this->m_bin_num; }
+  int BinsSize() const { return this->m_bin_size; }
+
+  const MomentumIndex& Momentum() const {
+    return this->m_momentum;
+  }
+
+  const MomentumIndexList& MomentumList() const {
+    return this->m_momentum_list;
+  }
+
+  const MomentumIndex& MomentumList(const int i) const {
+    // assert(i >= 0 && i < (int)this->m_momentum_list.size());
+  return this->m_momentum_list[i];
+  }
+
 
   // the following interfaces have been implemented
   // in the base class Observable::ObservableHandler.
