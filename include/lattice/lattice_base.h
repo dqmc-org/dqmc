@@ -111,5 +111,9 @@ class LatticeBase {
   virtual void initial_index2momentum_table() = 0;
   virtual void initial_symmetry_points() = 0;
   virtual void initial_fourier_factor_table() = 0;
+
+  // Output lattice information - self-documenting interface
+  virtual void output_lattice_info(std::ostream& ostream,
+                                   int momentum_index) const = 0;
 };
 }  // namespace Lattice

@@ -121,69 +121,7 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
     // -------------------------------------------------------------------------------------------
     //                                Output lattice information
     // -------------------------------------------------------------------------------------------
-    // output the momentum points by the way
-
-    // ---------------------------------  2d Square lattice
-    // -------------------------------------
-    if (const auto square_lattice =
-            dynamic_cast<const Lattice::Square*>(&lattice);
-        square_lattice != nullptr) {
-      auto fmt_cell = [](int side) {
-        return std::format("{} * {}", side, side);
-      };
-      auto fmt_momentum = [](double px, double py) {
-        return std::format("({:.2f}, {:.2f}) pi", px, py);
-      };
-      const int side_length = square_lattice->SideLength();
-      const double px =
-          (square_lattice->Index2Momentum(meas_handler.Momentum(), 0) / M_PI);
-      const double py =
-          (square_lattice->Index2Momentum(meas_handler.Momentum(), 1) / M_PI);
-
-      ostream << "   Lattice: Square lattice\n"
-              << fmt_param_str("Size of cell", joiner, fmt_cell(side_length))
-              << fmt_param_str("Momentum point", joiner, fmt_momentum(px, py))
-              << std::flush;
-    }
-
-    // ----------------------------------  3d Cubic lattice
-    // -------------------------------------
-    else if (const auto cubic_lattice =
-                 dynamic_cast<const Lattice::Cubic*>(&lattice);
-             cubic_lattice != nullptr) {
-      auto fmt_cell = [](int side) {
-        return std::format("{} * {} * {}", side, side, side);
-      };
-      auto fmt_momentum = [](double px, double py, double pz) {
-        return std::format("({:.2f}, {:.2f}, {:.2f}) pi", px, py, pz);
-      };
-      const int side_length = cubic_lattice->SideLength();
-      const double px =
-          (cubic_lattice->Index2Momentum(meas_handler.Momentum(), 0) / M_PI);
-      const double py =
-          (cubic_lattice->Index2Momentum(meas_handler.Momentum(), 1) / M_PI);
-      const double pz =
-          (cubic_lattice->Index2Momentum(meas_handler.Momentum(), 2) / M_PI);
-
-      ostream << "   Lattice: Cubic lattice\n"
-              << fmt_param_str("Size of cell", joiner, fmt_cell(side_length))
-              << fmt_param_str("Momentum point", joiner,
-                               fmt_momentum(px, py, pz))
-              << std::flush;
-    }
-
-    // // --------------------------------  2d Honeycomb lattice
-    // ----------------------------------- else if ( const auto
-    // honeycomb_lattice = dynamic_cast<const Lattice::Honeycomb*>(&lattice);
-    //     honeycomb_lattice != nullptr ) {
-    //     // todo
-    // }
-
-    else {
-      std::cerr << "DQMC::IO::output_init_info(): " << "undefined lattice type."
-                << std::endl;
-      exit(1);
-    }
+    lattice.output_lattice_info(ostream, meas_handler.Momentum());
 
     // -------------------------------------------------------------------------------------------
     //                              Output CheckerBoard information

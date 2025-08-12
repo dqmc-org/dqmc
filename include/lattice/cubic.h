@@ -48,6 +48,10 @@ class Cubic : public LatticeBase {
   const LatticeIntVec& SLineIndex() const;
   const LatticeIntVec& TLineIndex() const;
 
+  // Output lattice information
+  void output_lattice_info(std::ostream& ostream,
+                           int momentum_index) const override;
+
  private:
   // private initialization functions
   void initial_index2site_table();

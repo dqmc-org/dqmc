@@ -1,5 +1,7 @@
 #include "lattice/square.h"
 
+#include <format>
+
 namespace Lattice {
 
 // high symmetry points in the reciprocal lattice
@@ -17,6 +19,29 @@ const LatticeIntVec& Square::SigmaLineIndex() const {
 }
 const LatticeIntVec& Square::Gamma2X2M2GammaLoopIndex() const {
   return this->m_gamma2x2m2gamma_loop_index;
+}
+
+void Square::output_lattice_info(std::ostream& ostream,
+                                 int momentum_index) const {
+  auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
+                          const std::string& value) {
+    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
+  };
+  std::string joiner = "->";
+
+  auto fmt_cell = [](int side) { return std::format("{} * {}", side, side); };
+  auto fmt_momentum = [](double px, double py) {
+    return std::format("({:.2f}, {:.2f}) pi", px, py);
+  };
+
+  const double px = (this->Index2Momentum(momentum_index, 0) / M_PI);
+  const double py = (this->Index2Momentum(momentum_index, 1) / M_PI);
+
+  ostream << "   Lattice: Square lattice\n"
+          << fmt_param_str("Size of cell", joiner,
+                           fmt_cell(this->m_side_length))
+          << fmt_param_str("Momentum point", joiner, fmt_momentum(px, py))
+          << std::flush;
 }
 
 void Square::set_lattice_params(const LatticeIntVec& side_length_vec) {
