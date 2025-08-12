@@ -70,4 +70,26 @@ const LatticeInt LatticeBase::Displacement(const LatticeInt site1_index,
   return this->m_displacement_table(site1_index, site2_index);
 }
 
+void LatticeBase::output_k_points(std::ostream& ostream) const {
+  if (!ostream) {
+    throw std::runtime_error(
+        "LatticeBase::output_k_points(): "
+        "the ostream failed to work, please check the input.");
+  }
+  // output k stars list
+  auto fmt_info = [](int value) { return std::format("{:>20d}", value); };
+  auto fmt_kstars = [](double value) {
+    return std::format("{:>20.10f}", value);
+  };
+  ostream << fmt_info(kStarsNum()) << std::endl;
+  // loop for inequivalent momentum points
+  for (auto i = 0; i < kStarsNum(); ++i) {
+    ostream << fmt_info(i);
+    // loop for axes of the reciprocal lattice
+    for (auto axis = 0; axis < SpaceDim(); ++axis) {
+      ostream << fmt_kstars(Index2Momentum(i, axis));
+    }
+    ostream << std::endl;
+  }
+}
 }  // namespace Lattice

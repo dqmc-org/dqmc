@@ -293,28 +293,7 @@ void IO::output_observable_in_bins(StreamType& ostream,
 
 template <typename StreamType>
 void IO::output_k_stars(StreamType& ostream, const LatticeBase& lattice) {
-  if (!ostream) {
-    std::cerr << "DQMC::IO::output_k_stars(): "
-              << "the ostream failed to work, please check the input."
-              << std::endl;
-    exit(1);
-  } else {
-    // output k stars list
-    auto fmt_info = [](int value) { return std::format("{:>20d}", value); };
-    auto fmt_kstars = [](double value) {
-      return std::format("{:>20.10f}", value);
-    };
-    ostream << fmt_info(lattice.kStarsNum()) << std::endl;
-    // loop for inequivalent momentum points
-    for (auto i = 0; i < lattice.kStarsNum(); ++i) {
-      ostream << fmt_info(i);
-      // loop for axises of the reciprocal lattice
-      for (auto axis = 0; axis < lattice.SpaceDim(); ++axis) {
-        ostream << fmt_kstars(lattice.Index2Momentum(i, axis));
-      }
-      ostream << std::endl;
-    }
-  }
+  lattice.output_k_points(ostream);
 }
 
 template <typename StreamType>

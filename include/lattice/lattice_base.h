@@ -7,6 +7,8 @@
  */
 
 #include <Eigen/Core>
+#include <format>
+#include <iostream>
 
 namespace Lattice {
 
@@ -115,5 +117,9 @@ class LatticeBase {
   // Output lattice information - self-documenting interface
   virtual void output_lattice_info(std::ostream& ostream,
                                    int momentum_index) const = 0;
+
+  // Output list of inequivalent momentum points (k stars)
+  void output_k_points(std::ostream& ostream) const;
 };
+
 }  // namespace Lattice
