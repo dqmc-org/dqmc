@@ -124,6 +124,9 @@ class ModelBase {
   // output model information to stream with consistent formatting
   virtual void output_model_info(std::ostream& ostream) const = 0;
 
+  // output auxiliary field configuration to stream
+  virtual void output_configuration(std::ostream& ostream) const = 0;
+
   // ----------------------------------------- Initializations
   // -------------------------------------------------
 

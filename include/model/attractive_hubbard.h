@@ -54,6 +54,9 @@ class AttractiveHubbard : public ModelBase {
   // output model information to stream with consistent formatting
   void output_model_info(std::ostream& ostream) const override;
 
+  // output auxiliary field configuration to stream
+  void output_configuration(std::ostream& ostream) const override;
+
   // ----------------------------------- Set up model parameters
   // ----------------------------------------
 

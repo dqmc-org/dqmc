@@ -39,6 +39,24 @@ void RepulsiveHubbard::output_model_info(std::ostream& ostream) const {
           << std::endl;
 }
 
+void RepulsiveHubbard::output_configuration(std::ostream& ostream) const {
+  auto fmt_fields_info = [](int time_size, int space_size) {
+    return std::format("{:>20d}{:>20d}", time_size, space_size);
+  };
+  auto fmt_fields = [](int t, int i, double field) {
+    return std::format("{:>20d}{:>20d}{:>20.1f}", t, i, field);
+  };
+  const int time_size = this->m_bosonic_field.rows();
+  const int space_size = this->m_bosonic_field.cols();
+
+  ostream << fmt_fields_info(time_size, space_size) << std::endl;
+  for (auto t = 0; t < time_size; ++t) {
+    for (auto i = 0; i < space_size; ++i) {
+      ostream << fmt_fields(t, i, this->m_bosonic_field(t, i)) << std::endl;
+    }
+  }
+}
+
 void RepulsiveHubbard::set_model_params(RealScalar hopping_t,
                                         RealScalar onsite_u,
                                         RealScalar chemical_potential) {

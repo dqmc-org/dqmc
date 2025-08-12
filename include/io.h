@@ -71,8 +71,7 @@ class IO {
 
   // output the current configuration the bosonic fields,
   // depending on specific model type
-  template <typename StreamType>
-  static void output_bosonic_fields(StreamType& ostream,
+  static void output_bosonic_fields(std::ostream& ostream,
                                     const ModelBase& model);
 
   // read the configuration of the bosonic fields from input file
@@ -340,76 +339,6 @@ void IO::output_imaginary_time_grids(StreamType& ostream,
             << std::endl;
     for (auto t = 0; t < walker.TimeSize(); ++t) {
       ostream << fmt_tgrids(t, (t * walker.TimeInterval())) << std::endl;
-    }
-  }
-}
-
-template <typename StreamType>
-void IO::output_bosonic_fields(StreamType& ostream, const ModelBase& model) {
-  if (!ostream) {
-    std::cerr << "DQMC::IO::output_bosonic_fields(): "
-              << "the ostream failed to work, please check the input."
-              << std::endl;
-    exit(1);
-  } else {
-    // note that the IO class should be a friend class of any derived model
-    // class to get access to the bosonic fields member
-
-    // ---------------------------------  Repulsive Hubbard model
-    // ------------------------------------
-    if (const auto repulsive_hubbard =
-            dynamic_cast<const Model::RepulsiveHubbard*>(&model);
-        repulsive_hubbard != nullptr) {
-      // output current configuration of auxiliary bosonic fields
-      // for repulsive hubbard model, they are ising-like.
-      auto fmt_fields_info = [](int time_size, int space_size) {
-        return std::format("{:>20d}{:>20d}", time_size, space_size);
-      };
-      auto fmt_fields = [](int t, int i, double field) {
-        return std::format("{:>20d}{:>20d}{:>20.1f}", t, i, field);
-      };
-      const int time_size = repulsive_hubbard->m_bosonic_field.rows();
-      const int space_size = repulsive_hubbard->m_bosonic_field.cols();
-
-      ostream << fmt_fields_info(time_size, space_size) << std::endl;
-      for (auto t = 0; t < time_size; ++t) {
-        for (auto i = 0; i < space_size; ++i) {
-          ostream << fmt_fields(t, i, repulsive_hubbard->m_bosonic_field(t, i))
-                  << std::endl;
-        }
-      }
-    }
-
-    // ---------------------------------  Attractive Hubbard model
-    // -----------------------------------
-    else if (const auto attractive_hubbard =
-                 dynamic_cast<const Model::AttractiveHubbard*>(&model);
-             attractive_hubbard != nullptr) {
-      // output current configuration of auxiliary bosonic fields
-      // for attractive hubbard model, they are ising-like.
-      auto fmt_fields_info = [](int time_size, int space_size) {
-        return std::format("{:>20d}{:>20d}", time_size, space_size);
-      };
-      auto fmt_fields = [](int t, int i, double field) {
-        return std::format("{:>20d}{:>20d}{:>20.1f}", t, i, field);
-      };
-      const int time_size = attractive_hubbard->m_bosonic_field.rows();
-      const int space_size = attractive_hubbard->m_bosonic_field.cols();
-
-      ostream << fmt_fields_info(time_size, space_size) << std::endl;
-      for (auto t = 0; t < time_size; ++t) {
-        for (auto i = 0; i < space_size; ++i) {
-          ostream << fmt_fields(t, i, attractive_hubbard->m_bosonic_field(t, i))
-                  << std::endl;
-        }
-      }
-    }
-
-    // other model types, raising errors
-    else {
-      std::cerr << "DQMC::IO::output_bosonic_fields(): "
-                << "undefined model type." << std::endl;
-      exit(1);
     }
   }
 }

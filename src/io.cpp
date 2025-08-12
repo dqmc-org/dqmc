@@ -159,4 +159,13 @@ void IO::read_bosonic_fields_from_file(const std::string& filename,
     exit(1);
   }
 }
+
+void IO::output_bosonic_fields(std::ostream& ostream, const ModelBase& model) {
+  if (!ostream) {
+    throw std::runtime_error(
+        "DQMC::IO::output_bosonic_fields(): output stream is not valid.");
+  }
+  model.output_configuration(ostream);
+}
+
 }  // namespace DQMC
