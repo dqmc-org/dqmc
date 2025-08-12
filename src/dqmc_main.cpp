@@ -11,13 +11,13 @@
 
 #include "checkerboard/checkerboard_base.h"
 #include "dqmc.h"
-#include "dqmc_initializer.h"
-#include "dqmc_io.h"
-#include "dqmc_walker.h"
+#include "initializer.h"
+#include "io.h"
 #include "lattice/lattice_base.h"
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
 #include "svd_stack.h"
+#include "walker.h"
 
 // the main program
 int main(int argc, char* argv[]) {

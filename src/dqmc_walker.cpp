@@ -1,5 +1,3 @@
-#include "dqmc_walker.h"
-
 #include <random>
 
 #include "lattice/lattice_base.h"
@@ -7,6 +5,7 @@
 #include "model/model_base.h"
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
+#include "walker.h"
 
 namespace DQMC {
 

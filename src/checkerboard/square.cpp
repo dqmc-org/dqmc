@@ -2,9 +2,9 @@
 
 #include <unsupported/Eigen/MatrixFunctions>
 
-#include "dqmc_walker.h"
 #include "lattice/square.h"
 #include "model/model_base.h"
+#include "walker.h"
 
 namespace CheckerBoard {
 

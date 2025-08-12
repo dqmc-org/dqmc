@@ -15,7 +15,6 @@
 
 #include "checkerboard/checkerboard_base.h"
 #include "dqmc.h"
-#include "dqmc_walker.h"
 #include "lattice/cubic.h"
 #include "lattice/honeycomb.h"
 #include "lattice/lattice_base.h"
@@ -25,6 +24,7 @@
 #include "model/attractive_hubbard.h"
 #include "model/model_base.h"
 #include "model/repulsive_hubbard.h"
+#include "walker.h"
 
 namespace DQMC {
 

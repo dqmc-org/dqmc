@@ -1,10 +1,10 @@
 #include "dqmc.h"
 
-#include "dqmc_walker.h"
 #include "lattice/lattice_base.h"
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
 #include "utils/progressbar.hpp"
+#include "walker.h"
 
 namespace DQMC {
 

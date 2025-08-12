@@ -1,8 +1,8 @@
 #include "measure/measure_handler.h"
 
-#include "dqmc_walker.h"
 #include "lattice/lattice_base.h"
 #include "model/model_base.h"
+#include "walker.h"
 
 namespace Measure {
 

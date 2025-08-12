@@ -1,11 +1,9 @@
-#include "dqmc_initializer.h"
-
 #include <iostream>
 
 #include "checkerboard/checkerboard_base.h"
 #include "checkerboard/cubic.h"
 #include "checkerboard/square.h"
-#include "dqmc_walker.h"
+#include "initializer.h"
 #include "lattice/cubic.h"
 #include "lattice/honeycomb.h"
 #include "lattice/lattice_base.h"
@@ -16,6 +14,7 @@
 #include "model/repulsive_hubbard.h"
 #include "svd_stack.h"
 #include "utils/toml.hpp"
+#include "walker.h"
 
 namespace DQMC {
 

@@ -4,8 +4,8 @@
 #include <random>
 #include <unsupported/Eigen/MatrixFunctions>
 
-#include "dqmc_walker.h"
 #include "lattice/lattice_base.h"
+#include "walker.h"
 
 namespace Model {
 
