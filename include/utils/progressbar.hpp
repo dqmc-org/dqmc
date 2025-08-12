@@ -2,8 +2,8 @@
 #define UTILS_PROGRESSBAR_HPP
 #pragma once
 
-#include <boost/format.hpp>
 #include <chrono>
+#include <format>
 #include <iostream>
 
 namespace progresscpp {
@@ -52,8 +52,8 @@ class ProgressBar {
         std::cout << incomplete_char;
     }
 
-    std::cout << boost::format("] %d%% %.3fs\r") % int(progress * 100.0) %
-                     (float(time_elapsed) / 1000.0);
+    std::cout << std::format("] {}% {:.3f}s\r", int(progress * 100.0),
+                             float(time_elapsed) / 1000.0);
     std::cout.flush();
   }
 
