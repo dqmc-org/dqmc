@@ -148,6 +148,9 @@ class Walker {
   // output MonteCarlo parameters information
   void output_montecarlo_info(std::ostream& ostream) const;
 
+  // output imaginary-time grids
+  void output_imaginary_time_grids(std::ostream& ostream) const;
+
   friend class Initializer;
 
   // ------------------------------- Setup of parameters

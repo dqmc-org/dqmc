@@ -554,4 +554,20 @@ void Walker::output_montecarlo_info(std::ostream& ostream) const {
           << std::endl;
 }
 
+void Walker::output_imaginary_time_grids(std::ostream& ostream) const {
+  // output the imaginary-time grids
+  auto fmt_tgrids_info = [](int time_size, double beta, double interval) {
+    return std::format("{:>20d}{:>20.5f}{:>20.5f}", time_size, beta, interval);
+  };
+  auto fmt_tgrids = [](int t, double time_val) {
+    return std::format("{:>20d}{:>20.10f}", t, time_val);
+  };
+  ostream << fmt_tgrids_info(this->TimeSize(), this->Beta(),
+                             this->TimeInterval())
+          << std::endl;
+  for (auto t = 0; t < this->TimeSize(); ++t) {
+    ostream << fmt_tgrids(t, (t * this->TimeInterval())) << std::endl;
+  }
+}
+
 }  // namespace DQMC

@@ -71,11 +71,6 @@ const LatticeInt LatticeBase::Displacement(const LatticeInt site1_index,
 }
 
 void LatticeBase::output_k_points(std::ostream& ostream) const {
-  if (!ostream) {
-    throw std::runtime_error(
-        "LatticeBase::output_k_points(): "
-        "the ostream failed to work, please check the input.");
-  }
   // output k stars list
   auto fmt_info = [](int value) { return std::format("{:>20d}", value); };
   auto fmt_kstars = [](double value) {

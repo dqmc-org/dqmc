@@ -321,8 +321,8 @@ void AttractiveHubbard::read_auxiliary_field_from_stream(std::istream& infile) {
       (space_size != this->m_bosonic_field.cols())) {
     throw std::runtime_error(
         "AttractiveHubbard::read_auxiliary_field_from_stream(): "
-        "inconsistency between model settings and input configs (time or "
-        "space size).");
+        "inconsistency between model settings and input configs "
+        "(time or space size).");
   }
 
   int time_point, space_point;

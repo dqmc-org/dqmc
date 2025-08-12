@@ -61,12 +61,10 @@ class IO {
       StreamType& ostream, const Observable::Observable<ObsType>& obs);
 
   // output list of inequivalent momentum points ( k stars )
-  template <typename StreamType>
-  static void output_k_stars(StreamType& ostream, const LatticeBase& lattice);
+  static void output_k_stars(std::ostream& ostream, const LatticeBase& lattice);
 
   // output imgainary-time grids
-  template <typename StreamType>
-  static void output_imaginary_time_grids(StreamType& ostream,
+  static void output_imaginary_time_grids(std::ostream& ostream,
                                           const Walker& walker);
 
   // output the current configuration the bosonic fields,
@@ -287,37 +285,6 @@ void IO::output_observable_in_bins(StreamType& ostream,
       std::cerr << "DQMC::IO::output_observable_in_bins(): "
                 << "undefined observable type." << std::endl;
       exit(1);
-    }
-  }
-}
-
-template <typename StreamType>
-void IO::output_k_stars(StreamType& ostream, const LatticeBase& lattice) {
-  lattice.output_k_points(ostream);
-}
-
-template <typename StreamType>
-void IO::output_imaginary_time_grids(StreamType& ostream,
-                                     const Walker& walker) {
-  if (!ostream) {
-    std::cerr << "DQMC::IO::output_imaginary_time_grids(): "
-              << "the ostream failed to work, please check the input."
-              << std::endl;
-    exit(1);
-  } else {
-    // output the imaginary-time grids
-    auto fmt_tgrids_info = [](int time_size, double beta, double interval) {
-      return std::format("{:>20d}{:>20.5f}{:>20.5f}", time_size, beta,
-                         interval);
-    };
-    auto fmt_tgrids = [](int t, double time_val) {
-      return std::format("{:>20d}{:>20.10f}", t, time_val);
-    };
-    ostream << fmt_tgrids_info(walker.TimeSize(), walker.Beta(),
-                               walker.TimeInterval())
-            << std::endl;
-    for (auto t = 0; t < walker.TimeSize(); ++t) {
-      ostream << fmt_tgrids(t, (t * walker.TimeInterval())) << std::endl;
     }
   }
 }
