@@ -16,7 +16,6 @@ Currently, simulations of the fermionic Hubbard model with both attractive and r
 * `gcc/g++` `( version >= 7.1, support C++17 standard )` and `cmake` `( version >= 3.21 )` installed.
 * `Boost C++ libraries` `( version >= 1.71 )` installed.
 * `Eigen library` `( version >= 3.4.0 )` providing a user-friendly matrix interfaces.
-* `Message Passing Interface (MPI)` for large scales of distributed parallel accelerations. Both `OpenMPI` and `Intel MPI` have been tested and work well.
 
 ### Building ###
 
@@ -72,8 +71,7 @@ To be accomplished
 1. **Core DQMC modules independent of specific models and lattices.** The well-designed DQMC sweeping process is tested stable and of high computational efficiency.
 2. **Modularly designed and highly extensible.** To simulate other models on different lattices, one should simply write their own Model and Lattice class, which should be derived from corresponding base classes, and implement the virtual interfaces and methods in a correct way. 
 3. Support equal-time and dynamical measurements of various physical observables, and **adding measurements of user-defined observables is straightforward.**
-4. **Distributed parallel acceleration using MPI.**  
-5. Support checkerboard break-ups with efficient linear algebra ( for bipartite lattices only ).
+4. Support checkerboard break-ups with efficient linear algebra ( for bipartite lattices only ).
 
 
 ## References ##

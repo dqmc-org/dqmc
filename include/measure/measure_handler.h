@@ -18,9 +18,6 @@ class LatticeBase;
 namespace DQMC {
 class Walker;
 }
-namespace Utils {
-class MPI;
-}
 
 namespace Measure {
 
@@ -123,10 +120,5 @@ class MeasureHandler : public Observable::ObservableHandler {
 
   // output measuring parameters in a self-documenting format
   void output_measuring_info(std::ostream& ostream, int world_size) const;
-
-  // ---------------------------------  Friend class Utils::MPI
-  // --------------------------------------- for collecting measuring data among
-  // a set of MPI processes
-  friend Utils::MPI;
 };
 }  // namespace Measure
