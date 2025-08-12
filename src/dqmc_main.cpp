@@ -1,12 +1,12 @@
-#include <boost/date_time/gregorian/gregorian.hpp>
-#include <boost/date_time/local_time/local_time.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/format.hpp>
 #include <boost/program_options.hpp>
+#include <chrono>
+#include <format>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <random>
+#include <sstream>
 #include <string>
 
 #include "checkerboard/checkerboard_base.h"
@@ -70,8 +70,8 @@ int main(int argc, char* argv[]) {
   if (access(out_path.c_str(), 0) != 0) {
     const std::string command = "mkdir -p " + out_path;
     if (system(command.c_str()) != 0) {
-      std::cerr << boost::format("main(): fail to creat folder at %s .\n") %
-                       out_path
+      std::cerr << std::format("main(): fail to creat folder at {} .\n",
+                               out_path)
                 << std::endl;
       exit(1);
     }
@@ -80,14 +80,18 @@ int main(int argc, char* argv[]) {
   // ------------------------------------------------------------------------------------------------
   //                                Output current date and time
   // ------------------------------------------------------------------------------------------------
-  const auto current_time = boost::posix_time::second_clock::local_time();
-  std::cout << boost::format(">> Current time: %s\n") % current_time
+  const auto current_time = std::chrono::system_clock::now();
+  const auto time_t = std::chrono::system_clock::to_time_t(current_time);
+  const auto local_time = std::localtime(&time_t);
+  std::ostringstream time_stream;
+  time_stream << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
+  std::cout << std::format(">> Current time: {}\n", time_stream.str())
             << std::endl;
 
   // ------------------------------------------------------------------------------------------------
   //                                Output run information
   // ------------------------------------------------------------------------------------------------
-  std::cout << boost::format(">> Starting DQMC run with ID: %d\n") % run_id
+  std::cout << std::format(">> Starting DQMC run with ID: {}\n", run_id)
             << std::endl;
 
   // ------------------------------------------------------------------------------------------------
