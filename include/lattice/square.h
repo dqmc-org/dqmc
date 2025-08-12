@@ -1,5 +1,3 @@
-#ifndef LATTICE_SQUARE_H
-#define LATTICE_SQUARE_H
 #pragma once
 
 /**
@@ -61,7 +59,5 @@ class Square : public LatticeBase {
   int site_to_index(int x, int y) const;
   std::array<int, 2> index_to_site(int index) const;
 };
-
 }  // namespace Lattice
 
-#endif  // LATTICE_SQUARE_H

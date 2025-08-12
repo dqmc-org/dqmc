@@ -1,5 +1,3 @@
-#ifndef DQMC_IO_H
-#define DQMC_IO_H
 #pragma once
 
 /**
@@ -693,7 +691,4 @@ void IO::read_bosonic_fields_from_file(const std::string& filename,
     exit(1);
   }
 }
-
 }  // namespace DQMC
-
-#endif  // DQMC_IO_H

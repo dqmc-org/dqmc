@@ -1,5 +1,3 @@
-#ifndef MODEL_BASE_H
-#define MODEL_BASE_H
 #pragma once
 
 /**
@@ -221,7 +219,4 @@ class ModelBase {
   void mult_inv_expK_from_right_cb(GreensFunc& green) const;
   void mult_trans_expK_from_left_cb(GreensFunc& green) const;
 };
-
 }  // namespace Model
-
-#endif  // MODEL_BASE_H

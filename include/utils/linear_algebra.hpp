@@ -1,5 +1,3 @@
-#ifndef UTILS_LINEAR_ALGEBRA_HPP
-#define UTILS_LINEAR_ALGEBRA_HPP
 #pragma once
 
 /**
@@ -113,7 +111,4 @@ class LinearAlgebra {
     t = solver.eigenvectors();
   }
 };
-
 }  // namespace Utils
-
-#endif  // UTILS_LINEAR_ALGEBRA_HPP

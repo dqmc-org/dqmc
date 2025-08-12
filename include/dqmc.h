@@ -1,5 +1,3 @@
-#ifndef DQMC_H
-#define DQMC_H
 #pragma once
 
 /**
@@ -94,7 +92,4 @@ class Dqmc {
                                    MeasureHandler& meas_handler,
                                    std::default_random_engine& rng);
 };
-
 }  // namespace DQMC
-
-#endif  // DQMC_H

@@ -1,5 +1,3 @@
-#ifndef LATTICE_CUBIC_H
-#define LATTICE_CUBIC_H
 #pragma once
 
 /**
@@ -65,7 +63,4 @@ class Cubic : public LatticeBase {
   int site_to_index(int x, int y, int z) const;
   std::array<int, 3> index_to_site(int index) const;
 };
-
 }  // namespace Lattice
-
-#endif  // LATTICE_CUBIC_H

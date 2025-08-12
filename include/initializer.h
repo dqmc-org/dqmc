@@ -1,5 +1,3 @@
-#ifndef DQMC_INITIALIZER_H
-#define DQMC_INITIALIZER_H
 #pragma once
 
 /**
@@ -73,7 +71,4 @@ class Initializer {
   static void initial_dqmc(ModelBase& model, LatticeBase& lattice,
                            Walker& walker, MeasureHandler& meas_handler);
 };
-
 }  // namespace DQMC
-
-#endif  // DQMC_INITIALIZER_H

@@ -1,5 +1,3 @@
-#ifndef CHECKERBOARD_BASE_H
-#define CHECKERBOARD_BASE_H
 #pragma once
 
 /**
@@ -51,7 +49,4 @@ class CheckerBoardBase {
   virtual void mult_inv_expK_from_right(Matrix &matrix) const = 0;
   virtual void mult_trans_expK_from_left(Matrix &matrix) const = 0;
 };
-
 }  // namespace CheckerBoard
-
-#endif  // CHECKERBOARD_BASE_H

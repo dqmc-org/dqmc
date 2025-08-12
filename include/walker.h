@@ -1,5 +1,4 @@
-#ifndef DQMC_WALKER_H
-#define DQMC_WALKER_H
+#pragma once
 
 /**
  *  This header file defines the crucial class DQMC::Walker
@@ -203,7 +202,4 @@ class Walker {
   // wrap the equal-time greens functions from time slice t to t-1
   void wrap_from_beta_to_0(const ModelBase& model, TimeIndex t);
 };
-
 }  // namespace DQMC
-
-#endif  // DQMC_WALKER_H

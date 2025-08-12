@@ -1,5 +1,3 @@
-#ifndef OBSERABLE_HANDLER_H
-#define OBSERABLE_HANDLER_H
 #pragma once
 
 /**
@@ -97,7 +95,4 @@ const ObsType ObservableHandler::find(const ObsName& obs_name) {
   }
   return ObsType();
 }
-
 }  // namespace Observable
-
-#endif  // OBSERVABLE_HANDLER_H

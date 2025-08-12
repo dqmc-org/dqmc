@@ -1,5 +1,3 @@
-#ifndef UTILS_NUMERICAL_STABLE_HPP
-#define UTILS_NUMERICAL_STABLE_HPP
 #pragma once
 
 /**
@@ -338,7 +336,4 @@ class NumericalStable {
     mult_v_d_u(Xtmp, drmin, ur.transpose(), g0t);
   }
 };
-
 }  // namespace Utils
-
-#endif  // UTILS_NUMERICAL_STABLE_HPP

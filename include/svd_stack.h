@@ -1,5 +1,4 @@
-#ifndef UTILS_SVD_STACK_H
-#define UTILS_SVD_STACK_H
+#pragma once
 
 /*
  * SVD-based numerical stabilization for matrix chain multiplication
@@ -112,7 +111,4 @@ class SvdStack {
   // Pop: remove the most recently added matrix from the product
   void pop();
 };
-
 }  // namespace Utils
-
-#endif  // UTILS_SVD_STACK_H

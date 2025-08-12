@@ -1,5 +1,3 @@
-#ifndef ATTRACTIVE_HUBBARD_H
-#define ATTRACTIVE_HUBBARD_H
 #pragma once
 
 /**
@@ -91,7 +89,4 @@ class AttractiveHubbard : public ModelBase {
   virtual void mult_transB_from_left(GreensFunc& green, TimeIndex time_index,
                                      Spin spin) const;
 };
-
 }  // namespace Model
-
-#endif  // ATTRACTIVE_HUBBARD_H

@@ -1,5 +1,3 @@
-#ifndef OBSERABLE_H
-#define OBSERABLE_H
 #pragma once
 
 /**
@@ -224,7 +222,4 @@ class Observable : public ObservableBase {
 using ScalarObs = Observable<ScalarType>;
 using VectorObs = Observable<VectorType>;
 using MatrixObs = Observable<MatrixType>;
-
 }  // namespace Observable
-
-#endif  // OBSERVABLE_H

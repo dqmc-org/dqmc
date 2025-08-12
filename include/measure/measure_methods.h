@@ -1,5 +1,3 @@
-#ifndef MEASURE_METHODS_H
-#define MEASURE_METHODS_H
 #pragma once
 
 /**
@@ -142,7 +140,4 @@ class Methods {
       const MeasureHandler& meas_handler, const Walker& walker,
       const ModelBase& model, const LatticeBase& lattice);
 };
-
 }  // namespace Measure
-
-#endif  // MEASURE_METHODS_H

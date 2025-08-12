@@ -1,5 +1,3 @@
-#ifndef MEASURE_HANDLER_H
-#define MEASURE_HANDLER_H
 #pragma once
 
 /**
@@ -128,7 +126,4 @@ class MeasureHandler : public Observable::ObservableHandler {
   // a set of MPI processes
   friend Utils::MPI;
 };
-
 }  // namespace Measure
-
-#endif  // MEASURE_HANDLER_H

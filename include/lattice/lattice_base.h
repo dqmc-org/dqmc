@@ -1,5 +1,3 @@
-#ifndef LATTICE_BASE_H
-#define LATTICE_BASE_H
 #pragma once
 
 /**
@@ -114,7 +112,5 @@ class LatticeBase {
   virtual void initial_symmetry_points() = 0;
   virtual void initial_fourier_factor_table() = 0;
 };
-
 }  // namespace Lattice
 
-#endif  // LATTICE_BASE_H

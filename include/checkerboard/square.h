@@ -1,5 +1,3 @@
-#ifndef CHECKERBOARD_SQUARE_H
-#define CHECKERBOARD_SQUARE_H
 #pragma once
 
 /**
@@ -51,7 +49,4 @@ class Square : public CheckerBoardBase {
   void mult_inv_expK_plaquette_from_right(Matrix &matrix,
                                           const Site &site) const;
 };
-
 }  // namespace CheckerBoard
-
-#endif  // CHECKERBOARD_SQUARE_H

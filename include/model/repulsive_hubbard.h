@@ -1,5 +1,3 @@
-#ifndef REPULSIVE_HUBBARD_H
-#define REPULSIVE_HUBBARD_H
 #pragma once
 
 /**
@@ -91,7 +89,4 @@ class RepulsiveHubbard : public ModelBase {
   virtual void mult_transB_from_left(GreensFunc& green, TimeIndex time_index,
                                      Spin spin) const;
 };
-
 }  // namespace Model
-
-#endif  // REPULSIVE_HUBBARD_H
