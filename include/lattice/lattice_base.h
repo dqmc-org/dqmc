@@ -67,6 +67,7 @@ class LatticeBase {
 
  public:
   LatticeBase() = default;
+  virtual ~LatticeBase() = default;
 
   // ---------------------------- Set up lattice parameters
   // ------------------------------ read lattice params from a vector of side

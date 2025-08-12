@@ -110,6 +110,7 @@ class ModelBase {
 
  public:
   ModelBase() = default;
+  virtual ~ModelBase() = default;
 
   // ------------------------------------------ Setup interfaces
   // -----------------------------------------------

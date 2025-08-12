@@ -35,6 +35,9 @@ using DqmcWalker = QuantumMonteCarlo::DqmcWalker;
 // CheckerBoard::CheckerBoardBase -----------------------------
 class CheckerBoardBase {
  public:
+  CheckerBoardBase() = default;
+  virtual ~CheckerBoardBase() = default;
+
   // initialize from lattice, model and dqmcWalker
   virtual void set_checkerboard_params(const LatticeBase &lattice,
                                        const ModelBase &model,
