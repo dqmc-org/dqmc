@@ -138,23 +138,7 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
     // -------------------------------------------------------------------------------------------
     //                                Output Measuring Params
     // -------------------------------------------------------------------------------------------
-    ostream << "   Measuring Params:\n"
-            << fmt_param_str("Warm up", joiner,
-                             bool2str(meas_handler.isWarmUp()))
-            << fmt_param_str("Equal-time measure", joiner,
-                             bool2str(meas_handler.isEqualTime()))
-            << fmt_param_str("Dynamical measure", joiner,
-                             bool2str(meas_handler.isDynamic()))
-            << std::endl;
-
-    ostream << fmt_param_int("Sweeps for warmup", joiner,
-                             meas_handler.WarmUpSweeps())
-            << fmt_param_int("Number of bins", joiner,
-                             (meas_handler.BinsNum() * world_size))
-            << fmt_param_int("Sweeps per bin", joiner, meas_handler.BinsSize())
-            << fmt_param_int("Sweeps between bins", joiner,
-                             meas_handler.SweepsBetweenBins())
-            << std::endl;
+    meas_handler.output_measuring_info(ostream, world_size);
   }
 }
 

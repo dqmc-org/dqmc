@@ -1,5 +1,7 @@
 #include "measure/measure_handler.h"
 
+#include <format>
+
 #include "lattice/lattice_base.h"
 #include "model/model_base.h"
 #include "walker.h"
@@ -295,6 +297,36 @@ void MeasureHandler::clear_temporary() {
       matrix_obs->clear_temporary();
     }
   }
+}
+
+void MeasureHandler::output_measuring_info(std::ostream& ostream,
+                                           int world_size) const {
+  auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
+                          const std::string& value) {
+    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
+  };
+  auto fmt_param_int = [](const std::string& desc, const std::string& joiner,
+                          int value) {
+    return std::format("{:>30s}{:>7s}{:>24d}\n", desc, joiner, value);
+  };
+  std::string joiner = "->";
+  auto bool2str = [](bool b) { return b ? "True" : "False"; };
+
+  ostream << "   Measuring Params:\n"
+          << fmt_param_str("Warm up", joiner, bool2str(this->isWarmUp()))
+          << fmt_param_str("Equal-time measure", joiner,
+                           bool2str(this->isEqualTime()))
+          << fmt_param_str("Dynamical measure", joiner,
+                           bool2str(this->isDynamic()))
+          << std::endl;
+
+  ostream << fmt_param_int("Sweeps for warmup", joiner, this->WarmUpSweeps())
+          << fmt_param_int("Number of bins", joiner,
+                           (this->BinsNum() * world_size))
+          << fmt_param_int("Sweeps per bin", joiner, this->BinsSize())
+          << fmt_param_int("Sweeps between bins", joiner,
+                           this->SweepsBetweenBins())
+          << std::endl;
 }
 
 }  // namespace Measure
