@@ -31,10 +31,10 @@ class Cubic : public LatticeBase {
   Cubic() = default;
 
   // set up lattice parameters
-  void set_lattice_params(const LatticeIntVec& side_length_vec);
+  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
 
   // initializations
-  void initial();
+  void initial() override;
 
   // interfaces for high symmetry momentum points
   const LatticeInt GammaPointIndex() const;
@@ -54,15 +54,15 @@ class Cubic : public LatticeBase {
 
  private:
   // private initialization functions
-  void initial_index2site_table();
-  void initial_index2momentum_table();
+  void initial_index2site_table() override;
+  void initial_index2momentum_table() override;
 
-  void initial_nearest_neighbour_table();
-  void initial_displacement_table();
-  void initial_symmetry_points();
-  void initial_fourier_factor_table();
+  void initial_nearest_neighbour_table() override;
+  void initial_displacement_table() override;
+  void initial_symmetry_points() override;
+  void initial_fourier_factor_table() override;
 
-  void initial_hopping_matrix();
+  void initial_hopping_matrix() override;
 
   int site_to_index(int x, int y, int z) const;
   std::array<int, 3> index_to_site(int index) const;

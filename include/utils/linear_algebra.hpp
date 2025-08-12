@@ -13,6 +13,7 @@
 #include <Eigen/Eigenvalues>
 #include <Eigen/SVD>
 #include <iostream>
+#include <stdexcept>
 
 #include "lapacke.h"
 
@@ -45,39 +46,42 @@ class LinearAlgebra {
 
     // matrix size
     int matrix_layout = LAPACK_ROW_MAJOR;
-    lapack_int info, lda = row, ldu = row, ldvt = col;
+    lapack_int info{};
+    lapack_int lda = row, ldu = row, ldvt = col;
 
     // local arrays
-    double tmp_s[ldu * ldu], tmp_u[ldu * row], tmp_vt[ldvt * col];
-    double mat_in[lda * col];
-    double super_mat[ldu * lda];
+    std::vector<double> tmp_s(ldu * ldu);
+    std::vector<double> tmp_u(ldu * row);
+    std::vector<double> tmp_vt(ldvt * col);
+    std::vector<double> mat_in(lda * col);
+    std::vector<double> super_mat(ldu * lda);
 
     // convert eigen matrix to c-style array
     Eigen::Map<
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
-        &mat_in[0], lda, col) = mat;
+        mat_in.data(), lda, col) = mat;
 
     // compute SVD
-    info = LAPACKE_dgesvd(matrix_layout, 'A', 'A', row, col, mat_in, lda, tmp_s,
-                          tmp_u, ldu, tmp_vt, ldvt, super_mat);
+    info = LAPACKE_dgesvd(matrix_layout, 'A', 'A', row, col, mat_in.data(), lda,
+                          tmp_s.data(), tmp_u.data(), ldu, tmp_vt.data(), ldvt,
+                          super_mat.data());
 
     // check for convergence
     if (info > 0) {
-      std::cerr << "Utils::LinearAlgebra::mkl_lapack_dgesvd(): "
-                << "the algorithm computing SVD failed to converge."
-                << std::endl;
-      exit(1);
+      throw std::runtime_error(
+          "Utils::LinearAlgebra::mkl_lapack_dgesvd(): "
+          "computing SVD failed to converge.");
     }
 
     // convert the results into Eigen style
     u = Eigen::Map<
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
-        tmp_u, col, col);
+        tmp_u.data(), col, col);
     s = Eigen::Map<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>(
-        tmp_s, 1, col);
+        tmp_s.data(), 1, col);
     v = Eigen::Map<
         Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>(
-        tmp_vt, row, row);
+        tmp_vt.data(), row, row);
   }
 
   /**
@@ -102,9 +106,9 @@ class LinearAlgebra {
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
 
     if (solver.info() != Eigen::Success) {
-      std::cerr << "Utils::LinearAlgebra::dsyev(): "
-                << "the algorithm failed to compute eigenvalues." << std::endl;
-      exit(1);
+      throw std::runtime_error(
+          "Utils::LinearAlgebra::dsyev(): "
+          "failed to compute eigenvalues.");
     }
 
     s = solver.eigenvalues();

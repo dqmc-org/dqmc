@@ -47,9 +47,9 @@ class AttractiveHubbard : public ModelBase {
   // ------------------------------------------ Interfaces
   // ----------------------------------------------
 
-  const RealScalar HoppingT() const;
+  const RealScalar HoppingT() const override;
   const RealScalar OnSiteU() const;
-  const RealScalar ChemicalPotential() const;
+  const RealScalar ChemicalPotential() const override;
 
   // output model information to stream with consistent formatting
   void output_model_info(std::ostream& ostream) const override;
@@ -64,38 +64,41 @@ class AttractiveHubbard : public ModelBase {
   // ----------------------------------------
 
   void set_model_params(RealScalar hopping_t, RealScalar onsite_u,
-                        RealScalar chemical_potential);
+                        RealScalar chemical_potential) override;
 
   // ------------------------------------- Initializations
   // ----------------------------------------------
 
-  virtual void initial(const LatticeBase& lattice, const Walker& walker);
-  virtual void initial_params(const LatticeBase& lattice, const Walker& walker);
+  virtual void initial(const LatticeBase& lattice,
+                       const Walker& walker) override;
+  virtual void initial_params(const LatticeBase& lattice,
+                              const Walker& walker) override;
   virtual void initial_KV_matrices(const LatticeBase& lattice,
-                                   const Walker& walker);
-  void set_bosonic_fields_to_random(std::default_random_engine& rng);
+                                   const Walker& walker) override;
+  void set_bosonic_fields_to_random(std::default_random_engine& rng) override;
 
   // ------------------------------------- Monte Carlo updates
   // ------------------------------------------
 
-  void update_bosonic_field(TimeIndex time_index, SpaceIndex space_index);
+  void update_bosonic_field(TimeIndex time_index,
+                            SpaceIndex space_index) override;
   void update_greens_function(Walker& walker, TimeIndex time_index,
-                              SpaceIndex space_index);
+                              SpaceIndex space_index) override;
   const double get_update_ratio(Walker& walker, TimeIndex time_index,
-                                SpaceIndex space_index) const;
+                                SpaceIndex space_index) const override;
 
   // -------------------------------------- Warpping methods
   // --------------------------------------------
 
   virtual void mult_B_from_left(GreensFunc& green, TimeIndex time_index,
-                                Spin spin) const;
+                                Spin spin) const override;
   virtual void mult_B_from_right(GreensFunc& green, TimeIndex time_index,
-                                 Spin spin) const;
+                                 Spin spin) const override;
   virtual void mult_invB_from_left(GreensFunc& green, TimeIndex time_index,
-                                   Spin spin) const;
+                                   Spin spin) const override;
   virtual void mult_invB_from_right(GreensFunc& green, TimeIndex time_index,
-                                    Spin spin) const;
+                                    Spin spin) const override;
   virtual void mult_transB_from_left(GreensFunc& green, TimeIndex time_index,
-                                     Spin spin) const;
+                                     Spin spin) const override;
 };
 }  // namespace Model
