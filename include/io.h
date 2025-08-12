@@ -38,8 +38,7 @@ class IO {
   // output the information of dqmc initialization,
   // including initialization status and simulation parameters.
   // the behavior of this function depends on specific model and lattice types.
-  template <typename StreamType>
-  static void output_init_info(StreamType& ostream, int world_size,
+  static void output_init_info(std::ostream& ostream, int world_size,
                                const ModelBase& model,
                                const LatticeBase& lattice, const Walker& walker,
                                const MeasureHandler& meas_handler,
@@ -85,8 +84,7 @@ class IO {
 //                                Implementation of template functions
 // -------------------------------------------------------------------------------------------------------
 
-template <typename StreamType>
-void IO::output_init_info(StreamType& ostream, int world_size,
+void IO::output_init_info(std::ostream& ostream, int world_size,
                           const ModelBase& model, const LatticeBase& lattice,
                           const Walker& walker,
                           const MeasureHandler& meas_handler,
@@ -111,52 +109,12 @@ void IO::output_init_info(StreamType& ostream, int world_size,
       return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
     };
     std::string joiner = "->";
-    auto bool2str = [](bool b) {
-      if (b)
-        return "True";
-      else
-        return "False";
-    };
+    auto bool2str = [](bool b) { return b ? "True" : "False"; };
 
     // -------------------------------------------------------------------------------------------
     //                                 Output model information
     // -------------------------------------------------------------------------------------------
-
-    // ------------------------------  Repulsive Hubbard model
-    // ----------------------------------
-    if (const auto repulsive_hubbard =
-            dynamic_cast<const Model::RepulsiveHubbard*>(&model);
-        repulsive_hubbard != nullptr) {
-      ostream << "   Model: Repulsive Hubbard\n"
-              << fmt_param_double("Hopping constant 't'", joiner,
-                                  repulsive_hubbard->HoppingT())
-              << fmt_param_double("Onsite interaction 'U'", joiner,
-                                  repulsive_hubbard->OnSiteU())
-              << fmt_param_double("Checimcal potential 'mu'", joiner,
-                                  repulsive_hubbard->ChemicalPotential())
-              << std::endl;
-    }
-
-    // ------------------------------  Attractive Hubbard model
-    // ---------------------------------
-    else if (const auto attractive_hubbard =
-                 dynamic_cast<const Model::AttractiveHubbard*>(&model);
-             attractive_hubbard != nullptr) {
-      ostream << "   Model: Attractive Hubbard\n"
-              << fmt_param_double("Hopping constant 't'", joiner,
-                                  attractive_hubbard->HoppingT())
-              << fmt_param_double("Onsite interaction 'U'", joiner,
-                                  attractive_hubbard->OnSiteU())
-              << fmt_param_double("Checimcal potential 'mu'", joiner,
-                                  attractive_hubbard->ChemicalPotential())
-              << std::endl;
-    }
-
-    else {
-      std::cerr << "DQMC::IO::output_init_info(): " << "undefined model type."
-                << std::endl;
-      exit(1);
-    }
+    model.output_model_info(ostream, fmt_param_double, joiner);
 
     // -------------------------------------------------------------------------------------------
     //                                Output lattice information

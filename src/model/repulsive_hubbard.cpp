@@ -23,6 +23,19 @@ const RealScalar RepulsiveHubbard::ChemicalPotential() const {
 
 const RealScalar RepulsiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
+void RepulsiveHubbard::output_model_info(
+    std::ostream& ostream,
+    const std::function<std::string(const std::string&, const std::string&,
+                                    double)>& fmt_param_double,
+    const std::string& joiner) const {
+  ostream << "   Model: Repulsive Hubbard\n"
+          << fmt_param_double("Hopping constant 't'", joiner, HoppingT())
+          << fmt_param_double("Onsite interaction 'U'", joiner, OnSiteU())
+          << fmt_param_double("Checimcal potential 'mu'", joiner,
+                              ChemicalPotential())
+          << std::endl;
+}
+
 void RepulsiveHubbard::set_model_params(RealScalar hopping_t,
                                         RealScalar onsite_u,
                                         RealScalar chemical_potential) {

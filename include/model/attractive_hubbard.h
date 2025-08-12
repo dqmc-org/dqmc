@@ -51,6 +51,13 @@ class AttractiveHubbard : public ModelBase {
   const RealScalar OnSiteU() const;
   const RealScalar ChemicalPotential() const;
 
+  // output model information to stream with consistent formatting
+  void output_model_info(
+      std::ostream& ostream,
+      const std::function<std::string(const std::string&, const std::string&,
+                                      double)>& fmt_param_double,
+      const std::string& joiner) const override;
+
   // ----------------------------------- Set up model parameters
   // ----------------------------------------
 

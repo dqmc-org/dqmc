@@ -7,8 +7,10 @@
 
 #include <Eigen/Core>
 #include <functional>
+#include <iostream>
 #include <memory>
 #include <random>
+#include <string>
 
 // forward declaration
 namespace DQMC {
@@ -118,6 +120,13 @@ class ModelBase {
 
   virtual const RealScalar HoppingT() const = 0;
   virtual const RealScalar ChemicalPotential() const = 0;
+
+  // output model information to stream with consistent formatting
+  virtual void output_model_info(
+      std::ostream& ostream,
+      const std::function<std::string(const std::string&, const std::string&,
+                                      double)>& fmt_param_double,
+      const std::string& joiner) const = 0;
 
   // ----------------------------------------- Initializations
   // -------------------------------------------------
