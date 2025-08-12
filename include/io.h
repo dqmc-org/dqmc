@@ -133,14 +133,7 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
     // -------------------------------------------------------------------------------------------
     //                               Output MonteCarlo Params
     // -------------------------------------------------------------------------------------------
-    ostream << "   MonteCarlo Params:\n"
-            << fmt_param_double("Inverse temperature", joiner, walker.Beta())
-            << fmt_param_int("Imaginary-time length", joiner, walker.TimeSize())
-            << fmt_param_double("Imaginary-time interval", joiner,
-                                walker.TimeInterval())
-            << fmt_param_int("Stabilization pace", joiner,
-                             walker.StabilizationPace())
-            << std::endl;
+    walker.output_montecarlo_info(ostream);
 
     // -------------------------------------------------------------------------------------------
     //                                Output Measuring Params

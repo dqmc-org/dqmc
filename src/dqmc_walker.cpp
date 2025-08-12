@@ -1,3 +1,4 @@
+#include <format>
 #include <random>
 
 #include "lattice/lattice_base.h"
@@ -530,6 +531,27 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
       this->m_current_time_slice++;
     }
   }
+}
+
+void Walker::output_montecarlo_info(std::ostream& ostream) const {
+  auto fmt_param_double = [](const std::string& desc, const std::string& joiner,
+                             double value) {
+    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
+  };
+  auto fmt_param_int = [](const std::string& desc, const std::string& joiner,
+                          int value) {
+    return std::format("{:>30s}{:>7s}{:>24d}\n", desc, joiner, value);
+  };
+  std::string joiner = "->";
+
+  ostream << "   MonteCarlo Params:\n"
+          << fmt_param_double("Inverse temperature", joiner, this->Beta())
+          << fmt_param_int("Imaginary-time length", joiner, this->TimeSize())
+          << fmt_param_double("Imaginary-time interval", joiner,
+                              this->TimeInterval())
+          << fmt_param_int("Stabilization pace", joiner,
+                           this->StabilizationPace())
+          << std::endl;
 }
 
 }  // namespace DQMC

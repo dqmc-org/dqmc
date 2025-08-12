@@ -145,6 +145,9 @@ class Walker {
   }
   const RealScalarVec& vecConfigSign() const { return this->m_vec_config_sign; }
 
+  // output MonteCarlo parameters information
+  void output_montecarlo_info(std::ostream& ostream) const;
+
   friend class Initializer;
 
   // ------------------------------- Setup of parameters
