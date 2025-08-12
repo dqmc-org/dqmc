@@ -50,7 +50,8 @@ class Dqmc {
 
   // return the duration time of the dqmc process, e.g thermalization or
   // measurements
-  static const double timer();
+  static double timer();
+  static std::chrono::milliseconds timer_as_duration();
 
   // start the timer
   static void timer_begin();

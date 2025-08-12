@@ -38,11 +38,18 @@ void Dqmc::set_refresh_rate(unsigned int refresh_rate) {
 void Dqmc::timer_begin() {
   Dqmc::m_begin_time = std::chrono::steady_clock::now();
 }
+
 void Dqmc::timer_end() { Dqmc::m_end_time = std::chrono::steady_clock::now(); }
-const double Dqmc::timer() {
+
+double Dqmc::timer() {
   return std::chrono::duration_cast<std::chrono::milliseconds>(
              Dqmc::m_end_time - Dqmc::m_begin_time)
       .count();
+}
+
+std::chrono::milliseconds Dqmc::timer_as_duration() {
+  return std::chrono::duration_cast<std::chrono::milliseconds>(
+      Dqmc::m_end_time - Dqmc::m_begin_time);
 }
 
 // -----------------------------------  Crucial static member functions

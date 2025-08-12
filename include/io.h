@@ -7,8 +7,10 @@
 
 #include <boost/algorithm/string.hpp>
 #include <boost/lexical_cast.hpp>
+#include <chrono>
 #include <format>
 #include <fstream>
+#include <stdexcept>
 #include <string>
 
 #include "checkerboard/checkerboard_base.h"
@@ -228,46 +230,27 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
 template <typename StreamType>
 void IO::output_ending_info(StreamType& ostream, const Walker& walker) {
   if (!ostream) {
-    std::cerr << "DQMC::IO::output_ending_info(): "
-              << "the ostream failed to work, please check the input."
-              << std::endl;
-    exit(1);
-  } else {
-    // parse the duration
-    const int day = std::floor((double)Dqmc::timer() / 86400000);
-    const int hour =
-        std::floor(((double)Dqmc::timer() / 1000 - day * 86400) / 3600);
-    const int minute = std::floor(
-        ((double)Dqmc::timer() / 1000 - day * 86400 - hour * 3600) / 60);
-    const double sec =
-        (double)Dqmc::timer() / 1000 - 86400 * day - 3600 * hour - 60 * minute;
-
-    // output the time cost of simulation
-    if (day) {
-      ostream
-          << std::format(
-                 "\n>> The simulation finished in {} d {} h {} m {:.2f} s.\n",
-                 day, hour, minute, sec)
-          << std::endl;
-    } else if (hour) {
-      ostream << std::format(
-                     "\n>> The simulation finished in {} h {} m {:.2f} s.\n",
-                     hour, minute, sec)
-              << std::endl;
-    } else if (minute) {
-      ostream << std::format("\n>> The simulation finished in {} m {:.2f} s.\n",
-                             minute, sec)
-              << std::endl;
-    } else {
-      ostream << std::format("\n>> The simulation finished in {:.2f} s.\n", sec)
-              << std::endl;
-    }
-
-    // output wrapping errors of the evaluations of Green's functions
-    ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n",
-                           walker.WrapError())
-            << std::endl;
+    throw std::runtime_error(
+        "DQMC::IO::output_ending_info(): output stream is not valid.");
   }
+
+  const auto total_duration = Dqmc::timer_as_duration();
+
+  const auto d = std::chrono::duration_cast<std::chrono::days>(total_duration);
+  const auto h = std::chrono::duration_cast<std::chrono::hours>(
+      total_duration % std::chrono::days(1));
+  const auto m = std::chrono::duration_cast<std::chrono::minutes>(
+      total_duration % std::chrono::hours(1));
+
+  const std::chrono::duration<double> fractional_seconds =
+      total_duration % std::chrono::minutes(1);
+
+  ostream << std::format(
+      "\n>> The simulation finished in {}d {}h {}m {:.2f}s.\n", d.count(),
+      h.count(), m.count(), fractional_seconds.count());
+
+  ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n",
+                         walker.WrapError());
 }
 
 template <typename StreamType, typename ObsType>
