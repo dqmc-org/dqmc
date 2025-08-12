@@ -8,26 +8,26 @@
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
 // alias conventions
 using Matrix = Eigen::MatrixXd;
 using NumericalStable = Utils::NumericalStable;
 
-void DqmcWalker::set_physical_params(RealScalar beta, int time_size) {
+void Walker::set_physical_params(RealScalar beta, int time_size) {
   assert(beta > 0.0);
   this->m_beta = beta;
   this->m_time_size = time_size;
   this->m_time_interval = beta / time_size;
 }
 
-void DqmcWalker::set_stabilization_pace(int stabilization_pace) {
+void Walker::set_stabilization_pace(int stabilization_pace) {
   assert(stabilization_pace > 0);
   this->m_stabilization_pace = stabilization_pace;
 }
 
-void DqmcWalker::initial(const LatticeBase& lattice,
-                         const MeasureHandler& meas_handler) {
+void Walker::initial(const LatticeBase& lattice,
+                     const MeasureHandler& meas_handler) {
   this->m_space_size = lattice.SpaceSize();
   this->m_current_time_slice = 0;
   this->m_wrap_error = 0.0;
@@ -36,7 +36,7 @@ void DqmcWalker::initial(const LatticeBase& lattice,
   this->m_is_dynamic = meas_handler.isDynamic();
 }
 
-void DqmcWalker::allocate_svd_stacks() {
+void Walker::allocate_svd_stacks() {
   // allocate memory for SvdStack classes
   this->m_svd_stack_left_up = SvdStack(this->m_space_size, this->m_time_size);
   this->m_svd_stack_left_dn = SvdStack(this->m_space_size, this->m_time_size);
@@ -44,7 +44,7 @@ void DqmcWalker::allocate_svd_stacks() {
   this->m_svd_stack_right_dn = SvdStack(this->m_space_size, this->m_time_size);
 }
 
-void DqmcWalker::allocate_greens_functions() {
+void Walker::allocate_greens_functions() {
   // allocate memory for greens functions
   this->m_green_tt_up = GreensFunc(this->m_space_size, this->m_space_size);
   this->m_green_tt_dn = GreensFunc(this->m_space_size, this->m_space_size);
@@ -73,8 +73,8 @@ void DqmcWalker::allocate_greens_functions() {
   }
 }
 
-void DqmcWalker::initial_svd_stacks(const LatticeBase& lattice,
-                                    const ModelBase& model) {
+void Walker::initial_svd_stacks(const LatticeBase& lattice,
+                                const ModelBase& model) {
   // initialize udv stacks for sweep use
   // sweep process will start from 0 to beta, so we initialize svd_stack_right
   // here. stabilize the process every stabilization_pace steps
@@ -102,7 +102,7 @@ void DqmcWalker::initial_svd_stacks(const LatticeBase& lattice,
   }
 }
 
-void DqmcWalker::initial_greens_functions() {
+void Walker::initial_greens_functions() {
   // allocate memory
   this->allocate_greens_functions();
 
@@ -117,7 +117,7 @@ void DqmcWalker::initial_greens_functions() {
                                             this->m_green_tt_dn);
 }
 
-void DqmcWalker::initial_config_sign() {
+void Walker::initial_config_sign() {
   // allocate memory for config sign vector
   // if equal-time measurements are to be performed
   if (this->m_is_equaltime) {
@@ -138,8 +138,8 @@ void DqmcWalker::initial_config_sign() {
  *  perform a in-place update of the green's functions.
  *  Record the updated green's function at the life-end of this function.
  */
-void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t,
-                                   std::default_random_engine& rng) {
+void Walker::metropolis_update(ModelBase& model, TimeIndex t,
+                               std::default_random_engine& rng) {
   assert(this->m_current_time_slice == t);
   assert(t >= 0 && t <= this->m_time_size);
 
@@ -171,7 +171,7 @@ void DqmcWalker::metropolis_update(ModelBase& model, TimeIndex t,
  *  for both spin-1/2 states.
  *  The greens functions are changed in place.
  */
-void DqmcWalker::wrap_from_0_to_beta(const ModelBase& model, TimeIndex t) {
+void Walker::wrap_from_0_to_beta(const ModelBase& model, TimeIndex t) {
   assert(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == this->m_time_size) ? 1 : t + 1;
@@ -188,7 +188,7 @@ void DqmcWalker::wrap_from_0_to_beta(const ModelBase& model, TimeIndex t) {
  *  for both spin-1/2 states.
  *  The greens functions are changed in place.
  */
-void DqmcWalker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
+void Walker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
   assert(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == 0) ? this->m_time_size : t;
@@ -203,8 +203,8 @@ void DqmcWalker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
  *  For t = 1,2...,ts , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void DqmcWalker::sweep_from_0_to_beta(ModelBase& model,
-                                      std::default_random_engine& rng) {
+void Walker::sweep_from_0_to_beta(ModelBase& model,
+                                  std::default_random_engine& rng) {
   this->m_current_time_slice++;
 
   const int stack_length =
@@ -300,8 +300,8 @@ void DqmcWalker::sweep_from_0_to_beta(ModelBase& model,
  *  For l = ts,ts-1,...,1 , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void DqmcWalker::sweep_from_beta_to_0(ModelBase& model,
-                                      std::default_random_engine& rng) {
+void Walker::sweep_from_beta_to_0(ModelBase& model,
+                                  std::default_random_engine& rng) {
   this->m_current_time_slice--;
 
   const int stack_length =
@@ -403,7 +403,7 @@ void DqmcWalker::sweep_from_beta_to_0(ModelBase& model,
  * functions are also re-calculated according to the current auxiliary field
  * configurations, which are stored in m_vec_green_tt_up(dn).
  */
-void DqmcWalker::sweep_for_dynamic_greens(ModelBase& model) {
+void Walker::sweep_for_dynamic_greens(ModelBase& model) {
   if (this->m_is_dynamic) {
     this->m_current_time_slice++;
     const int stack_length =
@@ -533,4 +533,4 @@ void DqmcWalker::sweep_for_dynamic_greens(ModelBase& model) {
   }
 }
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC

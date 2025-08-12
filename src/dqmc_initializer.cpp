@@ -17,14 +17,13 @@
 #include "svd_stack.h"
 #include "utils/toml.hpp"
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
-void DqmcInitializer::parse_toml_config(std::string_view toml_config,
-                                        int world_size, ModelBasePtr& model,
-                                        LatticeBasePtr& lattice,
-                                        DqmcWalkerPtr& walker,
-                                        MeasureHandlerPtr& meas_handler,
-                                        CheckerBoardBasePtr& checkerboard) {
+void Initializer::parse_toml_config(std::string_view toml_config,
+                                    int world_size, ModelBasePtr& model,
+                                    LatticeBasePtr& lattice, WalkerPtr& walker,
+                                    MeasureHandlerPtr& meas_handler,
+                                    CheckerBoardBasePtr& checkerboard) {
   // parse the configuration file
   auto config = toml::parse_file(toml_config);
 
@@ -69,7 +68,7 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
   }
 
   else {
-    std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+    std::cerr << "DQMC::Initializer::parse_toml_config(): "
               << "undefined model type \'" << model_type
               << "\', please check the config." << std::endl;
     exit(1);
@@ -93,17 +92,16 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
       lattice_size.reserve(lattice_arr->size());
       for (auto&& el : *lattice_arr) {
         if (el.value_or(0) < 1) {
-          std::cerr
-              << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
-              << "the input cell of 2d square lattice should be a vector "
-                 "containing two positive intergers, "
-              << "please check the config." << std::endl;
+          std::cerr << "DQMC::Initializer::parse_toml_config(): "
+                    << "the input cell of 2d square lattice should be a vector "
+                       "containing two positive intergers, "
+                    << "please check the config." << std::endl;
           exit(1);
         }
         lattice_size.emplace_back(el.value_or(0));
       }
     } else {
-      std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+      std::cerr << "DQMC::Initializer::parse_toml_config(): "
                 << "the input cell of 2d square lattice should be a vector "
                    "containing two positive intergers, "
                 << "please check the config." << std::endl;
@@ -134,17 +132,16 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
       lattice_size.reserve(lattice_arr->size());
       for (auto&& el : *lattice_arr) {
         if (el.value_or(0) < 1) {
-          std::cerr
-              << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
-              << "the input cell of 3d cubic lattice should be a vector "
-                 "containing three positive intergers, "
-              << "please check the config." << std::endl;
+          std::cerr << "DQMC::Initializer::parse_toml_config(): "
+                    << "the input cell of 3d cubic lattice should be a vector "
+                       "containing three positive intergers, "
+                    << "please check the config." << std::endl;
           exit(1);
         }
         lattice_size.emplace_back(el.value_or(0));
       }
     } else {
-      std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+      std::cerr << "DQMC::Initializer::parse_toml_config(): "
                 << "the input cell of 3d cubic lattice should be a vector "
                    "containing three positive intergers, "
                 << "please check the config." << std::endl;
@@ -171,7 +168,7 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
   }
 
   else {
-    std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+    std::cerr << "DQMC::Initializer::parse_toml_config(): "
               << "undefined lattice type \'" << lattice_type
               << "\', please check the config." << std::endl;
     exit(1);
@@ -192,7 +189,7 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
     if (lattice_type == "Square") {
       checkerboard = std::make_unique<CheckerBoard::Square>();
     } else {
-      std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+      std::cerr << "DQMC::Initializer::parse_toml_config(): "
                 << "the checkerboard method is currently only implemented for "
                    "2d square lattice, "
                 << "please check the config." << std::endl;
@@ -201,7 +198,7 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
   }
 
   // --------------------------------------------------------------------------------------------------
-  //                                   Parse the DqmcWalker module
+  //                                   Parse the Walker module
   // --------------------------------------------------------------------------------------------------
   const double beta = config["MonteCarlo"]["beta"].value_or(4.0);
   const double time_size = config["MonteCarlo"]["time_size"].value_or(80);
@@ -212,7 +209,7 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
   if (walker) {
     walker.reset();
   }
-  walker = std::make_unique<DqmcWalker>();
+  walker = std::make_unique<Walker>();
   walker->set_physical_params(beta, time_size);
   walker->set_stabilization_pace(stabilization_pace);
 
@@ -234,7 +231,7 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
       observables.emplace_back(el.value_or(""));
     }
   } else {
-    std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+    std::cerr << "DQMC::Initializer::parse_toml_config(): "
               << "undefined observables, please check the config." << std::endl;
     exit(1);
   }
@@ -295,11 +292,10 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
         } else if (momentum == "XPoint") {
           meas_handler->set_measured_momentum(square_lattice->XPointIndex());
         } else {
-          std::cerr
-              << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
-              << "undefined momentum \'" << momentum
-              << "\' for 2d square lattice, " << "please check the config."
-              << std::endl;
+          std::cerr << "DQMC::Initializer::parse_toml_config(): "
+                    << "undefined momentum \'" << momentum
+                    << "\' for 2d square lattice, "
+                    << "please check the config." << std::endl;
           exit(1);
         }
 
@@ -319,15 +315,14 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
           meas_handler->set_measured_momentum_list(
               square_lattice->Gamma2X2M2GammaLoopIndex());
         } else {
-          std::cerr
-              << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
-              << "undefined momentum list \'" << momentum_list
-              << "\' for 2d square lattice, " << "please check the config."
-              << std::endl;
+          std::cerr << "DQMC::Initializer::parse_toml_config(): "
+                    << "undefined momentum list \'" << momentum_list
+                    << "\' for 2d square lattice, "
+                    << "please check the config." << std::endl;
           exit(1);
         }
       } else {
-        std::cerr << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+        std::cerr << "DQMC::Initializer::parse_toml_config(): "
                   << "fail to convert \'Lattice::LatticeBase\' to "
                      "\'Lattice::Square\'."
                   << std::endl;
@@ -350,11 +345,10 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
         } else if (momentum == "RPoint") {
           meas_handler->set_measured_momentum(cubic_lattice->RPointIndex());
         } else {
-          std::cerr
-              << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
-              << "undefined momentum \'" << momentum
-              << "\' for 3d cubic lattice, " << "please check the config."
-              << std::endl;
+          std::cerr << "DQMC::Initializer::parse_toml_config(): "
+                    << "undefined momentum \'" << momentum
+                    << "\' for 3d cubic lattice, " << "please check the config."
+                    << std::endl;
           exit(1);
         }
 
@@ -377,16 +371,15 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
         } else if (momentum_list == "TLine") {
           meas_handler->set_measured_momentum_list(cubic_lattice->TLineIndex());
         } else {
-          std::cerr
-              << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
-              << "undefined momentum list \'" << momentum_list
-              << "\' for 3d cubic lattice, " << "please check the config."
-              << std::endl;
+          std::cerr << "DQMC::Initializer::parse_toml_config(): "
+                    << "undefined momentum list \'" << momentum_list
+                    << "\' for 3d cubic lattice, " << "please check the config."
+                    << std::endl;
           exit(1);
         }
       } else {
         std::cerr
-            << "QuantumMonteCarlo::DqmcInitializer::parse_toml_config(): "
+            << "DQMC::Initializer::parse_toml_config(): "
             << "fail to convert \'Lattice::LatticeBase\' to \'Lattice::Cubic\'."
             << std::endl;
         exit(1);
@@ -401,9 +394,9 @@ void DqmcInitializer::parse_toml_config(std::string_view toml_config,
   }
 }
 
-void DqmcInitializer::initial_modules(ModelBase& model, LatticeBase& lattice,
-                                      DqmcWalker& walker,
-                                      MeasureHandler& meas_handler) {
+void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice,
+                                  Walker& walker,
+                                  MeasureHandler& meas_handler) {
   // make sure that the module objects have been created,
   // and the parameters are setup correctly in advance.
   // notice that the orders of initializations below are important.
@@ -425,10 +418,9 @@ void DqmcInitializer::initial_modules(ModelBase& model, LatticeBase& lattice,
   model.link();
 }
 
-void DqmcInitializer::initial_modules(ModelBase& model, LatticeBase& lattice,
-                                      DqmcWalker& walker,
-                                      MeasureHandler& meas_handler,
-                                      CheckerBoardBase& checkerboard) {
+void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice,
+                                  Walker& walker, MeasureHandler& meas_handler,
+                                  CheckerBoardBase& checkerboard) {
   // make sure that the module objects have been created,
   // and the parameters are setup correctly in advance.
   // notice that the orders of initializations below are important.
@@ -453,9 +445,8 @@ void DqmcInitializer::initial_modules(ModelBase& model, LatticeBase& lattice,
   model.link(checkerboard);
 }
 
-void DqmcInitializer::initial_dqmc(ModelBase& model, LatticeBase& lattice,
-                                   DqmcWalker& walker,
-                                   MeasureHandler& meas_handler) {
+void Initializer::initial_dqmc(ModelBase& model, LatticeBase& lattice,
+                               Walker& walker, MeasureHandler& meas_handler) {
   // this subroutine should be called after the initial
   // configuration of the bosonic fields have been determined,
   // either randomly initialized or read from a input config file.
@@ -466,4 +457,4 @@ void DqmcInitializer::initial_dqmc(ModelBase& model, LatticeBase& lattice,
   walker.initial_config_sign();
 }
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC

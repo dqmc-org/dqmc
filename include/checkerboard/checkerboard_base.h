@@ -17,8 +17,8 @@ class ModelBase;
 namespace Lattice {
 class LatticeBase;
 }
-namespace QuantumMonteCarlo {
-class DqmcWalker;
+namespace DQMC {
+class Walker;
 }
 
 namespace CheckerBoard {
@@ -29,7 +29,7 @@ using RealScalar = double;
 
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
-using DqmcWalker = QuantumMonteCarlo::DqmcWalker;
+using Walker = DQMC::Walker;
 
 // ------------------------- Pure virtual base class
 // CheckerBoard::CheckerBoardBase -----------------------------
@@ -41,7 +41,7 @@ class CheckerBoardBase {
   // initialize from lattice, model and dqmcWalker
   virtual void set_checkerboard_params(const LatticeBase &lattice,
                                        const ModelBase &model,
-                                       const DqmcWalker &walker) = 0;
+                                       const Walker &walker) = 0;
   virtual void initial() = 0;
 
   // multiply the exponent of hopping matrix K using checkerboard breakups

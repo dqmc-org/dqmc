@@ -10,7 +10,7 @@ namespace CheckerBoard {
 
 void Square::set_checkerboard_params(const LatticeBase &lattice,
                                      const ModelBase &model,
-                                     const DqmcWalker &walker) {
+                                     const Walker &walker) {
   // make sure that the lattice class is of type Lattice::Square
   assert(dynamic_cast<const Lattice::Square *>(&lattice) != nullptr);
   assert(lattice.SpaceSize() >= 2);

@@ -6,7 +6,7 @@
 #include "model/model_base.h"
 #include "utils/progressbar.hpp"
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
 // definitions of the static members
 bool Dqmc::m_show_progress_bar{true};
@@ -50,7 +50,7 @@ const double Dqmc::timer() {
 // ---------------------------------  For organizing the dqmc simulations
 // ------------------------------------
 
-void Dqmc::sweep_forth_and_back(DqmcWalker& walker, ModelBase& model,
+void Dqmc::sweep_forth_and_back(Walker& walker, ModelBase& model,
                                 LatticeBase& lattice,
                                 MeasureHandler& meas_handler,
                                 std::default_random_engine& rng) {
@@ -72,8 +72,8 @@ void Dqmc::sweep_forth_and_back(DqmcWalker& walker, ModelBase& model,
   }
 }
 
-void Dqmc::thermalize(DqmcWalker& walker, ModelBase& model,
-                      LatticeBase& lattice, MeasureHandler& meas_handler,
+void Dqmc::thermalize(Walker& walker, ModelBase& model, LatticeBase& lattice,
+                      MeasureHandler& meas_handler,
                       std::default_random_engine& rng) {
   if (meas_handler.isWarmUp()) {
     // create progress bar
@@ -106,7 +106,7 @@ void Dqmc::thermalize(DqmcWalker& walker, ModelBase& model,
   }
 }
 
-void Dqmc::measure(DqmcWalker& walker, ModelBase& model, LatticeBase& lattice,
+void Dqmc::measure(Walker& walker, ModelBase& model, LatticeBase& lattice,
                    MeasureHandler& meas_handler,
                    std::default_random_engine& rng) {
   if (meas_handler.isEqualTime() || meas_handler.isDynamic()) {
@@ -156,4 +156,4 @@ void Dqmc::analyse(MeasureHandler& meas_handler) {
   meas_handler.analyse_stats();
 }
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC

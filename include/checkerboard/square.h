@@ -30,8 +30,7 @@ class Square : public CheckerBoardBase {
  public:
   // set up parameters
   void set_checkerboard_params(const LatticeBase &lattice,
-                               const ModelBase &model,
-                               const DqmcWalker &walker);
+                               const ModelBase &model, const Walker &walker);
 
   // initialization
   void initial();

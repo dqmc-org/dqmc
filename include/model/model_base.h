@@ -13,8 +13,8 @@
 #include <random>
 
 // forward declaration
-namespace QuantumMonteCarlo {
-class DqmcWalker;
+namespace DQMC {
+class Walker;
 }
 
 namespace Lattice {
@@ -33,7 +33,7 @@ using TimeIndex = int;
 using Spin = int;
 using RealScalar = double;
 
-using Walker = QuantumMonteCarlo::DqmcWalker;
+using Walker = DQMC::Walker;
 using LatticeBase = Lattice::LatticeBase;
 using CheckerBoardBase = CheckerBoard::CheckerBoardBase;
 using Matrix = Eigen::MatrixXd;
@@ -124,7 +124,7 @@ class ModelBase {
   // ----------------------------------------- Initializations
   // -------------------------------------------------
 
-  // initialize the model class for specific lattice and DqmcWalker
+  // initialize the model class for specific lattice and Walker
   virtual void initial(const LatticeBase& lattice, const Walker& walker) = 0;
   virtual void initial_params(const LatticeBase& lattice,
                               const Walker& walker) = 0;

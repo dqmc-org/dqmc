@@ -4,7 +4,7 @@
 
 /**
  *  This header file defines the dqmc initializer class
- * QuantumMonteCarlo::DqmcInitializer, which contains static member functions to
+ * DQMC::Initializer, which contains static member functions to
  * initialize the dqmc modules altogether.
  */
 
@@ -25,10 +25,10 @@ namespace CheckerBoard {
 class CheckerBoardBase;
 }
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
 // forward declaration
-class DqmcWalker;
+class Walker;
 
 using LatticeBase = Lattice::LatticeBase;
 using ModelBase = Model::ModelBase;
@@ -39,41 +39,41 @@ using LatticeBasePtr = std::unique_ptr<Lattice::LatticeBase>;
 using ModelBasePtr = std::unique_ptr<Model::ModelBase>;
 using CheckerBoardBasePtr = std::unique_ptr<CheckerBoard::CheckerBoardBase>;
 using MeasureHandlerPtr = std::unique_ptr<Measure::MeasureHandler>;
-using DqmcWalkerPtr = std::unique_ptr<DqmcWalker>;
+using WalkerPtr = std::unique_ptr<Walker>;
 
 using MomentumIndex = int;
 using MomentumIndexList = std::vector<int>;
 
-// ----------------------- Interface class QuantumMonteCarlo::DqmcInitializer
+// ----------------------- Interface class DQMC::Initializer
 // ------------------------
-class DqmcInitializer {
+class Initializer {
  public:
   // parse parmameters from the toml configuration file
   // create modules and setup module parameters according to the input
   // configurations
   static void parse_toml_config(std::string_view toml_config, int world_size,
                                 ModelBasePtr& model, LatticeBasePtr& lattice,
-                                DqmcWalkerPtr& walker,
+                                WalkerPtr& walker,
                                 MeasureHandlerPtr& meas_handler,
                                 CheckerBoardBasePtr& checkerboard);
 
-  // initialize modules including Lattice, Model, DqmcWalker and MeasureHandler
+  // initialize modules including Lattice, Model, Walker and MeasureHandler
   // without checkerboard breakups.
   static void initial_modules(ModelBase& model, LatticeBase& lattice,
-                              DqmcWalker& walker, MeasureHandler& meas_handler);
+                              Walker& walker, MeasureHandler& meas_handler);
 
-  // initialize modules including Lattice, Model, DqmcWalker and MeasureHandler
+  // initialize modules including Lattice, Model, Walker and MeasureHandler
   // with checkerboard breakups.
   static void initial_modules(ModelBase& model, LatticeBase& lattice,
-                              DqmcWalker& walker, MeasureHandler& meas_handler,
+                              Walker& walker, MeasureHandler& meas_handler,
                               CheckerBoardBase& checkerboard);
 
   // prepare for the dqmc simulation,
   // especially initializing the greens functions and SVD stacks
   static void initial_dqmc(ModelBase& model, LatticeBase& lattice,
-                           DqmcWalker& walker, MeasureHandler& meas_handler);
+                           Walker& walker, MeasureHandler& meas_handler);
 };
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC
 
 #endif  // DQMC_INITIALIZER_H

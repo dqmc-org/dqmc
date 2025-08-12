@@ -3,12 +3,12 @@
 #pragma once
 
 /**
- *  This header file defines QuantumMonteCarlo::Dqmc class for the organizations
+ *  This header file defines DQMC::Dqmc class for the organizations
  * of the dqmc program. Top-level designs for the dqmc simulation, e.g.
  * thermalization, measurements and data analysis, are implemented as static
  * member functions of this Dqmc class. Some other useful tools, such as timer
  * and progress bar, are also provided under the namespace
- * QuantumMonteCarlo::Dqmc .
+ * DQMC::Dqmc .
  */
 
 #include <chrono>
@@ -24,16 +24,16 @@ namespace Measure {
 class MeasureHandler;
 }
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
 // forward declaration
-class DqmcWalker;
+class Walker;
 
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
 using MeasureHandler = Measure::MeasureHandler;
 
-// -------------------------------- Pure interface class QuantumMonteCarlo::Dqmc
+// -------------------------------- Pure interface class DQMC::Dqmc
 // --------------------------------
 class Dqmc {
  public:
@@ -64,13 +64,13 @@ class Dqmc {
   // -------------------------------------
 
   // thermalization of the field configurations
-  static void thermalize(DqmcWalker& walker, ModelBase& model,
-                         LatticeBase& lattice, MeasureHandler& meas_handler,
+  static void thermalize(Walker& walker, ModelBase& model, LatticeBase& lattice,
+                         MeasureHandler& meas_handler,
                          std::default_random_engine& rng);
 
   // Monte Carlo updates and measurments
-  static void measure(DqmcWalker& walker, ModelBase& model,
-                      LatticeBase& lattice, MeasureHandler& meas_handler,
+  static void measure(Walker& walker, ModelBase& model, LatticeBase& lattice,
+                      MeasureHandler& meas_handler,
                       std::default_random_engine& rng);
 
   // analyse the measured data
@@ -89,12 +89,12 @@ class Dqmc {
   // sweep and update the field configurations
   // from 0 to beta and back from beta to 0
   // do the measurements if needed
-  static void sweep_forth_and_back(DqmcWalker& walker, ModelBase& model,
+  static void sweep_forth_and_back(Walker& walker, ModelBase& model,
                                    LatticeBase& lattice,
                                    MeasureHandler& meas_handler,
                                    std::default_random_engine& rng);
 };
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC
 
 #endif  // DQMC_H

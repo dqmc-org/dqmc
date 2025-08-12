@@ -17,8 +17,8 @@ class ModelBase;
 namespace Lattice {
 class LatticeBase;
 }
-namespace QuantumMonteCarlo {
-class DqmcWalker;
+namespace DQMC {
+class Walker;
 }
 
 namespace Measure {
@@ -28,7 +28,7 @@ class MeasureHandler;
 
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
-using DqmcWalker = QuantumMonteCarlo::DqmcWalker;
+using Walker = DQMC::Walker;
 using ScalarObs = Observable::ScalarObs;
 using VectorObs = Observable::VectorObs;
 using MatrixObs = Observable::MatrixObs;
@@ -40,7 +40,7 @@ class Methods {
  public:
   // definitions of measuring methods
   // arguments of method functions should include Observable<ObsType>,
-  // Measure::MeasureHandler, QuantumMonteCarlo::DqmcWalker,
+  // Measure::MeasureHandler, DQMC::Walker,
   // Model::ModelBase and Lattice::LatticeBase class.
 
   // Equal-time Measurements:
@@ -55,53 +55,51 @@ class Methods {
 
   static void measure_equaltime_config_sign(ScalarObs& equaltime_sign,
                                             const MeasureHandler& meas_handler,
-                                            const DqmcWalker& walker,
+                                            const Walker& walker,
                                             const ModelBase& model,
                                             const LatticeBase& lattice);
 
   static void measure_filling_number(ScalarObs& filling_number,
                                      const MeasureHandler& meas_handler,
-                                     const DqmcWalker& walker,
+                                     const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice);
 
   static void measure_double_occupancy(ScalarObs& double_occupancy,
                                        const MeasureHandler& meas_handler,
-                                       const DqmcWalker& walker,
+                                       const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice);
 
   static void measure_kinetic_energy(ScalarObs& kinetic_energy,
                                      const MeasureHandler& meas_handler,
-                                     const DqmcWalker& walker,
+                                     const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice);
 
   static void measure_local_spin_corr(ScalarObs& local_spin_corr,
                                       const MeasureHandler& meas_handler,
-                                      const DqmcWalker& walker,
+                                      const Walker& walker,
                                       const ModelBase& model,
                                       const LatticeBase& lattice);
 
   static void measure_momentum_distribution(ScalarObs& momentum_dist,
                                             const MeasureHandler& meas_handler,
-                                            const DqmcWalker& walker,
+                                            const Walker& walker,
                                             const ModelBase& model,
                                             const LatticeBase& lattice);
 
   static void measure_spin_density_structure_factor(
       ScalarObs& sdw_factor, const MeasureHandler& meas_handler,
-      const DqmcWalker& walker, const ModelBase& model,
-      const LatticeBase& lattice);
+      const Walker& walker, const ModelBase& model, const LatticeBase& lattice);
 
   static void measure_charge_density_structure_factor(
       ScalarObs& cdw_factor, const MeasureHandler& meas_handler,
-      const DqmcWalker& walker, const ModelBase& model,
-      const LatticeBase& lattice);
+      const Walker& walker, const ModelBase& model, const LatticeBase& lattice);
 
   static void measure_s_wave_pairing_corr(ScalarObs& s_wave_pairing,
                                           const MeasureHandler& meas_handler,
-                                          const DqmcWalker& walker,
+                                          const Walker& walker,
                                           const ModelBase& model,
                                           const LatticeBase& lattice);
 
@@ -117,31 +115,31 @@ class Methods {
 
   static void measure_dynamic_config_sign(ScalarObs& dynamic_sign,
                                           const MeasureHandler& meas_handler,
-                                          const DqmcWalker& walker,
+                                          const Walker& walker,
                                           const ModelBase& model,
                                           const LatticeBase& lattice);
 
   static void measure_greens_functions(MatrixObs& greens_functions,
                                        const MeasureHandler& meas_handler,
-                                       const DqmcWalker& walker,
+                                       const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice);
 
   static void measure_density_of_states(VectorObs& density_of_states,
                                         const MeasureHandler& meas_handler,
-                                        const DqmcWalker& walker,
+                                        const Walker& walker,
                                         const ModelBase& model,
                                         const LatticeBase& lattice);
 
   static void measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
                                            const MeasureHandler& meas_handler,
-                                           const DqmcWalker& walker,
+                                           const Walker& walker,
                                            const ModelBase& model,
                                            const LatticeBase& lattice);
 
   static void measure_dynamic_spin_susceptibility(
       VectorObs& dynamic_spin_susceptibility,
-      const MeasureHandler& meas_handler, const DqmcWalker& walker,
+      const MeasureHandler& meas_handler, const Walker& walker,
       const ModelBase& model, const LatticeBase& lattice);
 };
 

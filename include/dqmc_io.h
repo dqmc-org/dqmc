@@ -3,7 +3,7 @@
 #pragma once
 
 /**
- *  This header file defines QuantumMonteCarlo::DqmcIO class
+ *  This header file defines DQMC::IO class
  *  containing the basic IO interfaces for the input/output of the dqmc data
  */
 
@@ -26,16 +26,16 @@
 #include "model/model_base.h"
 #include "model/repulsive_hubbard.h"
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
 using MeasureHandler = Measure::MeasureHandler;
 using CheckerBoardBasePtr = std::unique_ptr<CheckerBoard::CheckerBoardBase>;
 
-// ---------------------------- IO Interface class QuantumMonteCarlo::DqmcIO
+// ---------------------------- IO Interface class DQMC::IO
 // ------------------------------
-class DqmcIO {
+class IO {
  public:
   // output the information of dqmc initialization,
   // including initialization status and simulation parameters.
@@ -43,15 +43,14 @@ class DqmcIO {
   template <typename StreamType>
   static void output_init_info(StreamType& ostream, int world_size,
                                const ModelBase& model,
-                               const LatticeBase& lattice,
-                               const DqmcWalker& walker,
+                               const LatticeBase& lattice, const Walker& walker,
                                const MeasureHandler& meas_handler,
                                const CheckerBoardBasePtr& checkerboard);
 
   // output the ending information of the simulation,
   // including time cost and wrapping errors
   template <typename StreamType>
-  static void output_ending_info(StreamType& ostream, const DqmcWalker& walker);
+  static void output_ending_info(StreamType& ostream, const Walker& walker);
 
   // output the mean value and error bar of one specific observable
   template <typename StreamType, typename ObsType>
@@ -70,7 +69,7 @@ class DqmcIO {
   // output imgainary-time grids
   template <typename StreamType>
   static void output_imaginary_time_grids(StreamType& ostream,
-                                          const DqmcWalker& walker);
+                                          const Walker& walker);
 
   // output the current configuration the bosonic fields,
   // depending on specific model type
@@ -89,14 +88,13 @@ class DqmcIO {
 // -------------------------------------------------------------------------------------------------------
 
 template <typename StreamType>
-void DqmcIO::output_init_info(StreamType& ostream, int world_size,
-                              const ModelBase& model,
-                              const LatticeBase& lattice,
-                              const DqmcWalker& walker,
-                              const MeasureHandler& meas_handler,
-                              const CheckerBoardBasePtr& checkerboard) {
+void IO::output_init_info(StreamType& ostream, int world_size,
+                          const ModelBase& model, const LatticeBase& lattice,
+                          const Walker& walker,
+                          const MeasureHandler& meas_handler,
+                          const CheckerBoardBasePtr& checkerboard) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_init_info(): "
+    std::cerr << "DQMC::IO::output_init_info(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
@@ -148,8 +146,8 @@ void DqmcIO::output_init_info(StreamType& ostream, int world_size,
     }
 
     else {
-      std::cerr << "QuantumMonteCarlo::DqmcIO::output_init_info(): "
-                << "undefined model type." << std::endl;
+      std::cerr << "DQMC::IO::output_init_info(): " << "undefined model type."
+                << std::endl;
       exit(1);
     }
 
@@ -210,8 +208,8 @@ void DqmcIO::output_init_info(StreamType& ostream, int world_size,
     // }
 
     else {
-      std::cerr << "QuantumMonteCarlo::DqmcIO::output_init_info(): "
-                << "undefined lattice type." << std::endl;
+      std::cerr << "DQMC::IO::output_init_info(): " << "undefined lattice type."
+                << std::endl;
       exit(1);
     }
 
@@ -260,9 +258,9 @@ void DqmcIO::output_init_info(StreamType& ostream, int world_size,
 }
 
 template <typename StreamType>
-void DqmcIO::output_ending_info(StreamType& ostream, const DqmcWalker& walker) {
+void IO::output_ending_info(StreamType& ostream, const Walker& walker) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_ending_info(): "
+    std::cerr << "DQMC::IO::output_ending_info(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
@@ -307,10 +305,10 @@ void DqmcIO::output_ending_info(StreamType& ostream, const DqmcWalker& walker) {
 }
 
 template <typename StreamType, typename ObsType>
-void DqmcIO::output_observable(StreamType& ostream,
-                               const Observable::Observable<ObsType>& obs) {
+void IO::output_observable(StreamType& ostream,
+                           const Observable::Observable<ObsType>& obs) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_observable(): "
+    std::cerr << "DQMC::IO::output_observable(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
@@ -339,7 +337,7 @@ void DqmcIO::output_observable(StreamType& ostream,
 
       // other observable type, raising errors
       else {
-        std::cerr << "QuantumMonteCarlo::DqmcIO::output_observable(): "
+        std::cerr << "DQMC::IO::output_observable(): "
                   << "undefined observable type." << std::endl;
         exit(1);
       }
@@ -399,7 +397,7 @@ void DqmcIO::output_observable(StreamType& ostream,
 
       // other observable types, raising errors
       else {
-        std::cerr << "QuantumMonteCarlo::DqmcIO::output_observable(): "
+        std::cerr << "DQMC::IO::output_observable(): "
                   << "undefined observable type." << std::endl;
         exit(1);
       }
@@ -407,7 +405,7 @@ void DqmcIO::output_observable(StreamType& ostream,
 
     // others stream types, raising errors
     else {
-      std::cerr << "QuantumMonteCarlo::DqmcIO::output_observable(): "
+      std::cerr << "DQMC::IO::output_observable(): "
                 << "unsupported type of output stream." << std::endl;
       exit(1);
     }
@@ -415,10 +413,10 @@ void DqmcIO::output_observable(StreamType& ostream,
 }
 
 template <typename StreamType, typename ObsType>
-void DqmcIO::output_observable_in_bins(
-    StreamType& ostream, const Observable::Observable<ObsType>& obs) {
+void IO::output_observable_in_bins(StreamType& ostream,
+                                   const Observable::Observable<ObsType>& obs) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_observable_in_bins(): "
+    std::cerr << "DQMC::IO::output_observable_in_bins(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
@@ -475,7 +473,7 @@ void DqmcIO::output_observable_in_bins(
 
     // other observable types, raising errors
     else {
-      std::cerr << "QuantumMonteCarlo::DqmcIO::output_observable_in_bins(): "
+      std::cerr << "DQMC::IO::output_observable_in_bins(): "
                 << "undefined observable type." << std::endl;
       exit(1);
     }
@@ -483,9 +481,9 @@ void DqmcIO::output_observable_in_bins(
 }
 
 template <typename StreamType>
-void DqmcIO::output_k_stars(StreamType& ostream, const LatticeBase& lattice) {
+void IO::output_k_stars(StreamType& ostream, const LatticeBase& lattice) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_k_stars(): "
+    std::cerr << "DQMC::IO::output_k_stars(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
@@ -507,10 +505,10 @@ void DqmcIO::output_k_stars(StreamType& ostream, const LatticeBase& lattice) {
 }
 
 template <typename StreamType>
-void DqmcIO::output_imaginary_time_grids(StreamType& ostream,
-                                         const DqmcWalker& walker) {
+void IO::output_imaginary_time_grids(StreamType& ostream,
+                                     const Walker& walker) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_imaginary_time_grids(): "
+    std::cerr << "DQMC::IO::output_imaginary_time_grids(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
@@ -528,15 +526,14 @@ void DqmcIO::output_imaginary_time_grids(StreamType& ostream,
 }
 
 template <typename StreamType>
-void DqmcIO::output_bosonic_fields(StreamType& ostream,
-                                   const ModelBase& model) {
+void IO::output_bosonic_fields(StreamType& ostream, const ModelBase& model) {
   if (!ostream) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::output_bosonic_fields(): "
+    std::cerr << "DQMC::IO::output_bosonic_fields(): "
               << "the ostream failed to work, please check the input."
               << std::endl;
     exit(1);
   } else {
-    // note that the DqmcIO class should be a friend class of any derived model
+    // note that the IO class should be a friend class of any derived model
     // class to get access to the bosonic fields member
 
     // ---------------------------------  Repulsive Hubbard model
@@ -585,20 +582,20 @@ void DqmcIO::output_bosonic_fields(StreamType& ostream,
 
     // other model types, raising errors
     else {
-      std::cerr << "QuantumMonteCarlo::DqmcIO::output_bosonic_fields(): "
+      std::cerr << "DQMC::IO::output_bosonic_fields(): "
                 << "undefined model type." << std::endl;
       exit(1);
     }
   }
 }
 
-void DqmcIO::read_bosonic_fields_from_file(const std::string& filename,
-                                           ModelBase& model) {
+void IO::read_bosonic_fields_from_file(const std::string& filename,
+                                       ModelBase& model) {
   std::ifstream infile(filename, std::ios::in);
 
   // check whether the ifstream works well
   if (!infile.is_open()) {
-    std::cerr << "QuantumMonteCarlo::DqmcIO::read_bosonic_fields_from_file(): "
+    std::cerr << "DQMC::IO::read_bosonic_fields_from_file(): "
               << "fail to open file \'" << filename << "\'." << std::endl;
     exit(1);
   }
@@ -607,7 +604,7 @@ void DqmcIO::read_bosonic_fields_from_file(const std::string& filename,
   std::string line;
   std::vector<std::string> data;
 
-  // note that the DqmcIO class should be a friend class of any derived model
+  // note that the IO class should be a friend class of any derived model
   // class to get access to the bosonic fields member
 
   // ---------------------------------  Repulsive Hubbard model
@@ -626,7 +623,7 @@ void DqmcIO::read_bosonic_fields_from_file(const std::string& filename,
     if ((time_size != repulsive_hubbard->m_bosonic_field.rows()) ||
         (space_size != repulsive_hubbard->m_bosonic_field.cols())) {
       std::cerr
-          << "QuantumMonteCarlo::DqmcIO::read_bosonic_fields_from_file(): "
+          << "DQMC::IO::read_bosonic_fields_from_file(): "
           << "inconsistency between model settings and input configs (time or "
              "space size). "
           << std::endl;
@@ -665,7 +662,7 @@ void DqmcIO::read_bosonic_fields_from_file(const std::string& filename,
     if ((time_size != attractive_hubbard->m_bosonic_field.rows()) ||
         (space_size != attractive_hubbard->m_bosonic_field.cols())) {
       std::cerr
-          << "QuantumMonteCarlo::DqmcIO::read_bosonic_fields_from_file(): "
+          << "DQMC::IO::read_bosonic_fields_from_file(): "
           << "inconsistency between model settings and input configs (time or "
              "space size). "
           << std::endl;
@@ -691,12 +688,12 @@ void DqmcIO::read_bosonic_fields_from_file(const std::string& filename,
   else {
     // close the file stream
     infile.close();
-    std::cerr << "QuantumMonteCarlo::DqmcIO::read_bosonic_fields_from_file(): "
+    std::cerr << "DQMC::IO::read_bosonic_fields_from_file(): "
               << "undefined model type." << std::endl;
     exit(1);
   }
 }
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC
 
 #endif  // DQMC_IO_H

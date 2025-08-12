@@ -17,8 +17,8 @@ class ModelBase;
 namespace Lattice {
 class LatticeBase;
 }
-namespace QuantumMonteCarlo {
-class DqmcWalker;
+namespace DQMC {
+class Walker;
 }
 namespace Utils {
 class MPI;
@@ -29,7 +29,7 @@ namespace Measure {
 using ObsList = std::vector<std::string>;
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
-using DqmcWalker = QuantumMonteCarlo::DqmcWalker;
+using Walker = DQMC::Walker;
 using Matrix = Eigen::MatrixXd;
 using Vector = Eigen::VectorXd;
 using MomentumIndex = int;
@@ -74,7 +74,7 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ------------------------------------  Initializations
   // ---------------------------------------------
 
-  void initial(const LatticeBase& lattice, const DqmcWalker& walker);
+  void initial(const LatticeBase& lattice, const Walker& walker);
 
   // ---------------------------------------  Interfaces
   // -----------------------------------------------
@@ -106,9 +106,9 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ---------------------------------
 
   // perform one step of sampling for the measurements
-  void equaltime_measure(const DqmcWalker& walker, const ModelBase& model,
+  void equaltime_measure(const Walker& walker, const ModelBase& model,
                          const LatticeBase& lattice);
-  void dynamic_measure(const DqmcWalker& walker, const ModelBase& model,
+  void dynamic_measure(const Walker& walker, const ModelBase& model,
                        const LatticeBase& lattice);
 
   // normalize the observable samples

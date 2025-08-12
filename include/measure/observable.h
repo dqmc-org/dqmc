@@ -17,8 +17,8 @@
 #include <vector>
 
 // forward declaration
-namespace QuantumMonteCarlo {
-class DqmcWalker;
+namespace DQMC {
+class Walker;
 }
 namespace Model {
 class ModelBase;
@@ -55,13 +55,12 @@ template <typename ObsType>
 class Observable : public ObservableBase {
  private:
   // useful aliases
-  using DqmcWalker = QuantumMonteCarlo::DqmcWalker;
+  using Walker = DQMC::Walker;
   using ModelBase = Model::ModelBase;
   using LatticeBase = Lattice::LatticeBase;
   using MeasureHandler = Measure::MeasureHandler;
   using ObsMethod = void(Observable<ObsType>&, const MeasureHandler&,
-                         const DqmcWalker&, const ModelBase&,
-                         const LatticeBase&);
+                         const Walker&, const ModelBase&, const LatticeBase&);
 
   ObsType m_mean_value{};  // statistical mean value
   ObsType m_error_bar{};   // estimated error bar
@@ -133,7 +132,7 @@ class Observable : public ObservableBase {
   // ---------------------------------------
 
   // perform one step of measurement
-  void measure(const MeasureHandler& meas_handler, const DqmcWalker& walker,
+  void measure(const MeasureHandler& meas_handler, const Walker& walker,
                const ModelBase& model, const LatticeBase& lattice) {
     this->m_method(*this, meas_handler, walker, model, lattice);
   }

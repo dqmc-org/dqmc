@@ -2,7 +2,7 @@
 #define DQMC_WALKER_H
 
 /**
- *  This header file defines the crucial class QuantumMonteCarlo::DqmcWalker
+ *  This header file defines the crucial class DQMC::Walker
  *  to organize the entire dqmc program.
  */
 
@@ -23,18 +23,18 @@ namespace Measure {
 class MeasureHandler;
 }
 
-namespace QuantumMonteCarlo {
+namespace DQMC {
 
 // forward declaration
-class DqmcInitializer;
+class Initializer;
 
 using LatticeBase = Lattice::LatticeBase;
 using ModelBase = Model::ModelBase;
 using MeasureHandler = Measure::MeasureHandler;
 
-// ---------------------------- Crucial class QuantumMonteCarlo::DqmcWalker
+// ---------------------------- Crucial class DQMC::Walker
 // ----------------------------
-class DqmcWalker {
+class Walker {
  private:
   using TimeIndex = int;
   using RealScalar = double;
@@ -96,7 +96,7 @@ class DqmcWalker {
   RealScalarVec m_vec_config_sign{};
 
  public:
-  DqmcWalker() = default;
+  Walker() = default;
 
   // -------------------------------- Interfaces and friend class
   // --------------------------------
@@ -146,7 +146,7 @@ class DqmcWalker {
   }
   const RealScalarVec& vecConfigSign() const { return this->m_vec_config_sign; }
 
-  friend class DqmcInitializer;
+  friend class Initializer;
 
   // ------------------------------- Setup of parameters
   // -----------------------------------------
@@ -161,7 +161,7 @@ class DqmcWalker {
  private:
   // ---------------------------------- Initializations
   // ------------------------------------------ never explicitly call these
-  // functions to avoid unpredictable mistakes, and use DqmcInitializer instead
+  // functions to avoid unpredictable mistakes, and use Initializer instead
 
   void initial(const LatticeBase& lattice, const MeasureHandler& meas_handler);
 
@@ -204,6 +204,6 @@ class DqmcWalker {
   void wrap_from_beta_to_0(const ModelBase& model, TimeIndex t);
 };
 
-}  // namespace QuantumMonteCarlo
+}  // namespace DQMC
 
 #endif  // DQMC_WALKER_H

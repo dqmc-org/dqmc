@@ -54,8 +54,7 @@ void MeasureHandler::set_measured_momentum_list(
   this->m_momentum_list = momentum_index_list;
 }
 
-void MeasureHandler::initial(const LatticeBase& lattice,
-                             const DqmcWalker& walker) {
+void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
   // initialize ObservableHandler
   Observable::ObservableHandler::initial(this->m_obs_list);
 
@@ -134,7 +133,7 @@ void MeasureHandler::initial(const LatticeBase& lattice,
   }
 }
 
-void MeasureHandler::equaltime_measure(const DqmcWalker& walker,
+void MeasureHandler::equaltime_measure(const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice) {
   for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
@@ -149,7 +148,7 @@ void MeasureHandler::equaltime_measure(const DqmcWalker& walker,
   this->m_equaltime_sign->measure(*this, walker, model, lattice);
 }
 
-void MeasureHandler::dynamic_measure(const DqmcWalker& walker,
+void MeasureHandler::dynamic_measure(const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice) {
   for (auto& scalar_obs : this->m_dynamic_scalar_obs) {

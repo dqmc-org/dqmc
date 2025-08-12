@@ -11,8 +11,8 @@
 #include "model/model_base.h"
 
 // forward declaration
-namespace QuantumMonteCarlo {
-class DqmcIO;
+namespace DQMC {
+class IO;
 }
 
 namespace Model {
@@ -42,9 +42,9 @@ class RepulsiveHubbard : public ModelBase {
  public:
   // ----------------------------------------- Friend class
   // --------------------------------------------- friend class
-  // QuantumMonteCarlo::DqmcIO for reading the bosonic fields from file or
+  // DQMC::IO for reading the bosonic fields from file or
   // outputting the current field configurations to standard output streams
-  friend class QuantumMonteCarlo::DqmcIO;
+  friend class DQMC::IO;
 
   // ------------------------------------------ Interfaces
   // ----------------------------------------------

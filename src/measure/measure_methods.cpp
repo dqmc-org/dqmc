@@ -21,7 +21,7 @@ using Vector = Eigen::VectorXd;
 // useful for reweighting
 void Methods::measure_equaltime_config_sign(ScalarObs& equaltime_sign,
                                             const MeasureHandler& meas_handler,
-                                            const DqmcWalker& walker,
+                                            const Walker& walker,
                                             const ModelBase& model,
                                             const LatticeBase& lattice) {
   equaltime_sign.tmp_value() += walker.vecConfigSign().sum();
@@ -32,7 +32,7 @@ void Methods::measure_equaltime_config_sign(ScalarObs& equaltime_sign,
 // which represents the total number of electrons
 void Methods::measure_filling_number(ScalarObs& filling_number,
                                      const MeasureHandler& meas_handler,
-                                     const DqmcWalker& walker,
+                                     const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice) {
   // loop over equivalent time slices
@@ -50,7 +50,7 @@ void Methods::measure_filling_number(ScalarObs& filling_number,
 // the same site
 void Methods::measure_double_occupancy(ScalarObs& double_occupancy,
                                        const MeasureHandler& meas_handler,
-                                       const DqmcWalker& walker,
+                                       const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
@@ -73,7 +73,7 @@ void Methods::measure_double_occupancy(ScalarObs& double_occupancy,
 // neighbours
 void Methods::measure_kinetic_energy(ScalarObs& kinetic_energy,
                                      const MeasureHandler& meas_handler,
-                                     const DqmcWalker& walker,
+                                     const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
@@ -103,7 +103,7 @@ void Methods::measure_kinetic_energy(ScalarObs& kinetic_energy,
 // space-time points. the local correlations are the limit of i = 0 and t = 0.
 void Methods::measure_local_spin_corr(ScalarObs& local_spin_corr,
                                       const MeasureHandler& meas_handler,
-                                      const DqmcWalker& walker,
+                                      const Walker& walker,
                                       const ModelBase& model,
                                       const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
@@ -125,7 +125,7 @@ void Methods::measure_local_spin_corr(ScalarObs& local_spin_corr,
 // )(k) measured for one specific momentum point todo: scan the momentum space
 void Methods::measure_momentum_distribution(ScalarObs& momentum_dist,
                                             const MeasureHandler& meas_handler,
-                                            const DqmcWalker& walker,
+                                            const Walker& walker,
                                             const ModelBase& model,
                                             const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
@@ -154,8 +154,7 @@ void Methods::measure_momentum_distribution(ScalarObs& momentum_dist,
 // where Q is the wave momentum of sdw.
 void Methods::measure_spin_density_structure_factor(
     ScalarObs& sdw_factor, const MeasureHandler& meas_handler,
-    const DqmcWalker& walker, const ModelBase& model,
-    const LatticeBase& lattice) {
+    const Walker& walker, const ModelBase& model, const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
     //  g(i,j) = < c_i * c^+_j > are the greens functions
     // gc(i,j) = < c^+_i * c_j > are isomorphic to the conjugation of greens
@@ -193,8 +192,7 @@ void Methods::measure_spin_density_structure_factor(
 // where Q is the wave momentum of cdw.
 void Methods::measure_charge_density_structure_factor(
     ScalarObs& cdw_factor, const MeasureHandler& meas_handler,
-    const DqmcWalker& walker, const ModelBase& model,
-    const LatticeBase& lattice) {
+    const Walker& walker, const ModelBase& model, const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
     //  g(i,j) = < c_i * c^+_j > are the greens functions
     // gc(i,j) = < c^+_i * c_j > are isomorphic to the conjugation of greens
@@ -236,7 +234,7 @@ void Methods::measure_charge_density_structure_factor(
 // duplicated countings of ij.
 void Methods::measure_s_wave_pairing_corr(ScalarObs& s_wave_pairing,
                                           const MeasureHandler& meas_handler,
-                                          const DqmcWalker& walker,
+                                          const Walker& walker,
                                           const ModelBase& model,
                                           const LatticeBase& lattice) {
   for (auto t = 0; t < walker.TimeSize(); ++t) {
@@ -272,7 +270,7 @@ void Methods::measure_s_wave_pairing_corr(ScalarObs& s_wave_pairing,
 // The sign of the bosonic field configurations for dynamic measurements
 void Methods::measure_dynamic_config_sign(ScalarObs& dynamic_sign,
                                           const MeasureHandler& meas_handler,
-                                          const DqmcWalker& walker,
+                                          const Walker& walker,
                                           const ModelBase& model,
                                           const LatticeBase& lattice) {
   dynamic_sign.tmp_value() += walker.ConfigSign();
@@ -284,7 +282,7 @@ void Methods::measure_dynamic_config_sign(ScalarObs& dynamic_sign,
 // G(k,t)  =  1/N \sum ij exp( -i k*(rj-ri) ) * ( c_j(t) * c^+_i(0) )
 void Methods::measure_greens_functions(MatrixObs& greens_functions,
                                        const MeasureHandler& meas_handler,
-                                       const DqmcWalker& walker,
+                                       const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice) {
   // because the auxiliary field configurations are not changed for
@@ -323,7 +321,7 @@ void Methods::measure_greens_functions(MatrixObs& greens_functions,
 // D(omega).
 void Methods::measure_density_of_states(VectorObs& density_of_states,
                                         const MeasureHandler& meas_handler,
-                                        const DqmcWalker& walker,
+                                        const Walker& walker,
                                         const ModelBase& model,
                                         const LatticeBase& lattice) {
   const auto& config_sign = walker.ConfigSign();
@@ -354,7 +352,7 @@ void Methods::measure_density_of_states(VectorObs& density_of_states,
 // more information in 10.1103/PhysRevB.69.184501
 void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
                                            const MeasureHandler& meas_handler,
-                                           const DqmcWalker& walker,
+                                           const Walker& walker,
                                            const ModelBase& model,
                                            const LatticeBase& lattice) {
   // currently only support square lattice,
@@ -455,8 +453,7 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
 //
 void Methods::measure_dynamic_spin_susceptibility(
     VectorObs& dynamic_spin_susceptibility, const MeasureHandler& meas_handler,
-    const DqmcWalker& walker, const ModelBase& model,
-    const LatticeBase& lattice) {
+    const Walker& walker, const ModelBase& model, const LatticeBase& lattice) {
   const auto& config_sign = walker.ConfigSign();
   const GreensFunc& g00up = walker.GreenttUp(walker.TimeSize() - 1);
   const GreensFunc& g00dn = walker.GreenttDn(walker.TimeSize() - 1);
