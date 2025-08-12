@@ -1,67 +1,68 @@
-#ifndef UTILS_PROGRESSBAR_HPP
-#define UTILS_PROGRESSBAR_HPP
+// Copyright (c) 2016 Prakhar Srivastav <prakhar@prakhar.me>
+// Copyright (c) 2025 Matheus de Sousa <msousa3145@gmail.com>
+
 #pragma once
 
 #include <chrono>
 #include <format>
 #include <iostream>
+#include <string>
 
-namespace progresscpp {
+namespace DQMC {
 class ProgressBar {
  private:
-  unsigned int ticks = 0;
-
-  const unsigned int total_ticks;
-  const unsigned int bar_width;
-  const char complete_char = '=';
-  const char incomplete_char = ' ';
-  const std::chrono::steady_clock::time_point start_time =
+  std::size_t ticks = 0;
+  std::size_t total_ticks;
+  std::size_t bar_width;
+  char complete_char = '=';
+  char incomplete_char = ' ';
+  std::chrono::steady_clock::time_point start_time =
       std::chrono::steady_clock::now();
 
  public:
-  ProgressBar(unsigned int total, unsigned int width, char complete,
+  ProgressBar(std::size_t total, std::size_t width, char complete,
               char incomplete)
       : total_ticks{total},
         bar_width{width},
         complete_char{complete},
         incomplete_char{incomplete} {}
 
-  ProgressBar(unsigned int total, unsigned int width)
+  ProgressBar(std::size_t total, std::size_t width)
       : total_ticks{total}, bar_width{width} {}
 
-  unsigned int operator++() { return ++ticks; }
+  std::size_t operator++() { return ++ticks; }
 
   void display() const {
-    float progress = (float)ticks / total_ticks;
-    int pos = (int)(bar_width * progress);
-
+    float progress = static_cast<float>(ticks) / total_ticks;
+    int pos = static_cast<int>(bar_width * progress);
     std::chrono::steady_clock::time_point now =
         std::chrono::steady_clock::now();
-    auto time_elapsed =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - start_time)
-            .count();
+    std::chrono::duration<double> time_elapsed = now - start_time;
 
-    std::cout << "[";
+    std::string bar_str;
+    bar_str.reserve(bar_width + 3);
 
-    for (int i = 0; i < (int)bar_width; ++i) {
-      if (i < pos)
-        std::cout << complete_char;
-      else if (i == pos)
-        std::cout << ">";
-      else
-        std::cout << incomplete_char;
+    bar_str += '[';
+    for (int i = 0; i < static_cast<int>(bar_width); ++i) {
+      if (i < pos) {
+        bar_str += complete_char;
+      } else if (i == pos) {
+        bar_str += '>';
+      } else {
+        bar_str += incomplete_char;
+      }
     }
+    bar_str += ']';
 
-    std::cout << std::format("] {}% {:.3f}s\r", int(progress * 100.0),
-                             float(time_elapsed) / 1000.0);
+    std::cout << std::format("{} {:>3}% {:.3f}s\r", bar_str,
+                             static_cast<int>(progress * 100.0),
+                             time_elapsed.count());
     std::cout.flush();
   }
 
   void done() const {
     display();
-    std::cout << std::endl;
+    std::cout << '\n';
   }
 };
-}  // namespace progresscpp
-
-#endif  // UTILS_PROGRESSBAR_HPP
+}  // namespace DQMC

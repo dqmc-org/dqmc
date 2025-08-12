@@ -77,7 +77,7 @@ void Dqmc::thermalize(Walker& walker, ModelBase& model, LatticeBase& lattice,
                       std::default_random_engine& rng) {
   if (meas_handler.isWarmUp()) {
     // create progress bar
-    progresscpp::ProgressBar progressbar(
+    ProgressBar progressbar(
         meas_handler.WarmUpSweeps() / 2,      // total loops
         Dqmc::m_progress_bar_width,           // bar width
         Dqmc::m_progress_bar_complete_char,   // complete character
@@ -111,7 +111,7 @@ void Dqmc::measure(Walker& walker, ModelBase& model, LatticeBase& lattice,
                    std::default_random_engine& rng) {
   if (meas_handler.isEqualTime() || meas_handler.isDynamic()) {
     // create progress bar
-    progresscpp::ProgressBar progressbar(
+    ProgressBar progressbar(
         meas_handler.BinsNum() * meas_handler.BinsSize() / 2,
         Dqmc::m_progress_bar_width, Dqmc::m_progress_bar_complete_char,
         Dqmc::m_progress_bar_incomplete_char);
