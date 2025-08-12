@@ -8,8 +8,8 @@ add_library(
   svd_stack.cpp
   checkerboard/cubic.cpp
   checkerboard/square.cpp
-  dqmc_initializer.cpp
-  dqmc_walker.cpp
+  initializer.cpp
+  walker.cpp
   measure/measure_methods.cpp
   measure/measure_handler.cpp
   measure/observable_handler.cpp
@@ -37,7 +37,7 @@ target_link_libraries(
 
 add_executable(
   main
-  dqmc_main.cpp
+  main.cpp
 )
 
 set_target_properties(
