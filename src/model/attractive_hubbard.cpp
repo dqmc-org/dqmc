@@ -1,8 +1,11 @@
 #include "model/attractive_hubbard.h"
 
 #include <Eigen/Core>
+#include <boost/algorithm/string.hpp>
+#include <boost/lexical_cast.hpp>
 #include <format>
 #include <random>
+#include <string>
 #include <unsupported/Eigen/MatrixFunctions>
 
 #include "lattice/lattice_base.h"
@@ -302,6 +305,36 @@ void AttractiveHubbard::mult_transB_from_left(GreensFunc& green,
         exp(+1.0 * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
   }
   this->call_mult_trans_expK_from_left(green);
+}
+
+void AttractiveHubbard::read_auxiliary_field_from_stream(std::istream& infile) {
+  std::string line;
+  std::vector<std::string> data;
+
+  std::getline(infile, line);
+  boost::split(data, line, boost::is_any_of(" "), boost::token_compress_on);
+  data.erase(std::remove(std::begin(data), std::end(data), ""), std::end(data));
+
+  const int time_size = boost::lexical_cast<int>(data[0]);
+  const int space_size = boost::lexical_cast<int>(data[1]);
+  if ((time_size != this->m_bosonic_field.rows()) ||
+      (space_size != this->m_bosonic_field.cols())) {
+    throw std::runtime_error(
+        "AttractiveHubbard::read_auxiliary_field_from_stream(): "
+        "inconsistency between model settings and input configs (time or "
+        "space size).");
+  }
+
+  int time_point, space_point;
+  while (std::getline(infile, line)) {
+    boost::split(data, line, boost::is_any_of(" "), boost::token_compress_on);
+    data.erase(std::remove(std::begin(data), std::end(data), ""),
+               std::end(data));
+    time_point = boost::lexical_cast<int>(data[0]);
+    space_point = boost::lexical_cast<int>(data[1]);
+    this->m_bosonic_field(time_point, space_point) =
+        boost::lexical_cast<double>(data[2]);
+  }
 }
 
 }  // namespace Model

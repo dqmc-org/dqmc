@@ -127,6 +127,9 @@ class ModelBase {
   // output auxiliary field configuration to stream
   virtual void output_configuration(std::ostream& ostream) const = 0;
 
+  // read auxiliary field configuration from stream
+  virtual void read_auxiliary_field_from_stream(std::istream& infile) = 0;
+
   // ----------------------------------------- Initializations
   // -------------------------------------------------
 

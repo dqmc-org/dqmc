@@ -57,6 +57,9 @@ class AttractiveHubbard : public ModelBase {
   // output auxiliary field configuration to stream
   void output_configuration(std::ostream& ostream) const override;
 
+  // read auxiliary field configuration from stream
+  void read_auxiliary_field_from_stream(std::istream& infile) override;
+
   // ----------------------------------- Set up model parameters
   // ----------------------------------------
 
