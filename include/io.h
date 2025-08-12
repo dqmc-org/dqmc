@@ -119,20 +119,23 @@ void IO::output_ending_info(StreamType& ostream, const Walker& walker) {
         "DQMC::IO::output_ending_info(): output stream is not valid.");
   }
 
-  const auto total_duration = Dqmc::timer_as_duration();
+  auto duration = Dqmc::timer_as_duration();
 
-  const auto d = std::chrono::duration_cast<std::chrono::days>(total_duration);
-  const auto h = std::chrono::duration_cast<std::chrono::hours>(
-      total_duration % std::chrono::days(1));
-  const auto m = std::chrono::duration_cast<std::chrono::minutes>(
-      total_duration % std::chrono::hours(1));
+  auto d = std::chrono::duration_cast<std::chrono::days>(duration);
+  duration -= d;
 
-  const std::chrono::duration<double> fractional_seconds =
-      total_duration % std::chrono::minutes(1);
+  auto h = std::chrono::duration_cast<std::chrono::hours>(duration);
+  duration -= h;
+
+  auto m = std::chrono::duration_cast<std::chrono::minutes>(duration);
+  duration -= m;
+
+  auto s = std::chrono::duration_cast<std::chrono::seconds>(duration);
+  duration -= s;
 
   ostream << std::format(
-      "\n>> The simulation finished in {}d {}h {}m {:.2f}s.\n", d.count(),
-      h.count(), m.count(), fractional_seconds.count());
+      "\n>> The simulation finished in {}d {}h {}m {}s {}ms.\n", d.count(),
+      h.count(), m.count(), s.count(), duration.count());
 
   ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n",
                          walker.WrapError());
