@@ -122,11 +122,7 @@ class ModelBase {
   virtual const RealScalar ChemicalPotential() const = 0;
 
   // output model information to stream with consistent formatting
-  virtual void output_model_info(
-      std::ostream& ostream,
-      const std::function<std::string(const std::string&, const std::string&,
-                                      double)>& fmt_param_double,
-      const std::string& joiner) const = 0;
+  virtual void output_model_info(std::ostream& ostream) const = 0;
 
   // ----------------------------------------- Initializations
   // -------------------------------------------------

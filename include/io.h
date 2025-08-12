@@ -114,7 +114,7 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
     // -------------------------------------------------------------------------------------------
     //                                 Output model information
     // -------------------------------------------------------------------------------------------
-    model.output_model_info(ostream, fmt_param_double, joiner);
+    model.output_model_info(ostream);
 
     // -------------------------------------------------------------------------------------------
     //                                Output lattice information

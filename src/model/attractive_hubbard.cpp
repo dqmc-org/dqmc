@@ -1,6 +1,7 @@
 #include "model/attractive_hubbard.h"
 
 #include <Eigen/Core>
+#include <format>
 #include <random>
 #include <unsupported/Eigen/MatrixFunctions>
 
@@ -23,11 +24,13 @@ const RealScalar AttractiveHubbard::ChemicalPotential() const {
 
 const RealScalar AttractiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
-void AttractiveHubbard::output_model_info(
-    std::ostream& ostream,
-    const std::function<std::string(const std::string&, const std::string&,
-                                    double)>& fmt_param_double,
-    const std::string& joiner) const {
+void AttractiveHubbard::output_model_info(std::ostream& ostream) const {
+  auto fmt_param_double = [](const std::string& desc, const std::string& joiner,
+                             double value) {
+    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
+  };
+  std::string joiner = "->";
+
   ostream << "   Model: Attractive Hubbard\n"
           << fmt_param_double("Hopping constant 't'", joiner, HoppingT())
           << fmt_param_double("Onsite interaction 'U'", joiner, OnSiteU())
