@@ -287,6 +287,24 @@ int main(int argc, char* argv[]) {
     outfile.close();
   }
 
+    // charge density structure factor
+  if (meas_handler->find("charge_density_structure_factor")) {
+    // output of means and errors
+    outfile.open(out_path + "/charge_density_structure_factor_" + std::to_string(run_id) + ".out",
+                 std::ios::trunc);
+    DQMC::IO::output_observable(
+        outfile,
+        meas_handler->find<Observable::ScalarObs>("charge_density_structure_factor"));
+    outfile.close();
+
+    // output of raw data in terms of bins
+    outfile.open(out_path + "/charge_density_structure_factor.bins.out", std::ios::trunc);
+    DQMC::IO::output_observable_in_bins(
+        outfile,
+        meas_handler->find<Observable::ScalarObs>("charge_density_structure_factor"));
+    outfile.close();
+  }
+
   // density of states
   if (meas_handler->find("density_of_states")) {
     // output of means and errors

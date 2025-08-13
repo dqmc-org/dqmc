@@ -28,7 +28,6 @@
 
 # Executables
 *.exe
-*.out
 *.app
 
 # Personal folders and files
@@ -43,8 +42,5 @@ build/*
 test/build/*
 !build/runcmake.sh
 !test/build/runcmake.sh
-
-results/*
-!results/example/*
 
 *~
