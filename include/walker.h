@@ -139,10 +139,12 @@ class Walker {
   const GreensFuncVec& vecGreen0tDn() const { return this->m_vec_green_0t_dn; }
 
   // interfaces for configuration signs
-  const RealScalar& ConfigSign() const { return this->m_config_sign; }
-  const RealScalar& ConfigSign(int t) const {
+  RealScalar ConfigSign() const { return this->m_config_sign; }
+
+  RealScalar ConfigSign(int t) const {
     return this->m_vec_config_sign[t];
   }
+
   const RealScalarVec& vecConfigSign() const { return this->m_vec_config_sign; }
 
   // output MonteCarlo parameters information
