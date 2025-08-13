@@ -61,9 +61,9 @@ class IO {
       std::ofstream& ostream, const Observable::Observable<ObsType>& obs);
 
   // output the bin data of one specific observable
-  template <typename StreamType, typename ObsType>
-  static void output_observable_in_bins(
-      StreamType& ostream, const Observable::Observable<ObsType>& obs);
+  template <typename ObsType>
+  static void output_observable_in_bins_to_file(
+      std::ofstream& ostream, const Observable::Observable<ObsType>& obs);
 
   // output list of inequivalent momentum points ( k stars )
   static void output_k_stars(std::ostream& ostream, const LatticeBase& lattice);
@@ -207,9 +207,9 @@ void IO::output_observable_to_file(std::ofstream& ostream,
   }
 }
 
-template <typename StreamType, typename ObsType>
-void IO::output_observable_in_bins(StreamType& ostream,
-                                   const Observable::Observable<ObsType>& obs) {
+template <typename ObsType>
+void IO::output_observable_in_bins_to_file(
+    std::ofstream& ostream, const Observable::Observable<ObsType>& obs) {
   if (!ostream) {
     std::cerr << "DQMC::IO::output_observable_in_bins(): "
               << "the ostream failed to work, please check the input."
