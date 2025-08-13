@@ -94,9 +94,8 @@ class ObservableBase {
 
   ObservableBase() = default;
 
-  explicit ObservableBase(const std::string& name, const std::string& desc,
-                          int bin_num = 0)
-      : m_name(name), m_desc(desc), m_bin_num(bin_num) {}
+  explicit ObservableBase(const std::string& name, const std::string& desc)
+      : m_name(name), m_desc(desc) {}
 
  public:
   virtual ~ObservableBase() = default;
@@ -145,8 +144,8 @@ class Observable : public ObservableBase {
   Observable() = default;
 
   explicit Observable(const std::string& name, const std::string& desc,
-                      int bin_num = 0)
-      : ObservableBase(name, desc, bin_num) {}
+                      const std::function<ObsMethod>& method)
+      : ObservableBase(name, desc), m_method(method) {}
 
   // -------------------------------------  Interface functions
   // ------------------------------------------
@@ -175,9 +174,6 @@ class Observable : public ObservableBase {
 
   void set_zero_element(const ObsType& zero_elem) {
     this->m_zero_elem = zero_elem;
-  }
-  void add_method(const std::function<ObsMethod>& method) {
-    this->m_method = method;
   }
 
   // -------------------------------------  Other member functions

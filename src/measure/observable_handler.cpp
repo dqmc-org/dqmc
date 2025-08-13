@@ -1,7 +1,7 @@
 #include "measure/observable_handler.h"
 
-#include <iostream>
 #include <format>
+#include <iostream>
 
 #include "measure/measure_methods.h"
 
@@ -12,9 +12,7 @@ template <typename ObsType, typename MethodFunc>
 auto make_observable(MethodFunc method) {
   return [method](const ObsName& name,
                   const std::string& desc) -> std::shared_ptr<ObservableBase> {
-    auto obs = std::make_shared<ObsType>(name, desc);
-    obs->add_method(method);
-    return obs;
+    return std::make_shared<ObsType>(name, desc, method);
   };
 }
 }  // namespace
@@ -50,13 +48,13 @@ std::vector<std::string> ObservableHandler::get_all_observable_names() {
 bool ObservableHandler::is_eqtime(const ObsName& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
   return it != m_supported_observables.end() &&
-          it->second.time_type == ObsTimeType::EqualTime;
+         it->second.time_type == ObsTimeType::EqualTime;
 }
 
 bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
   return it != m_supported_observables.end() &&
-          it->second.time_type == ObsTimeType::Dynamic;
+         it->second.time_type == ObsTimeType::Dynamic;
 }
 
 bool ObservableHandler::find(const ObsName& obs_name) {
@@ -66,7 +64,8 @@ bool ObservableHandler::find(const ObsName& obs_name) {
 bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {
   for (const auto& obs : obs_list) {
     if (m_supported_observables.find(obs) == m_supported_observables.end()) {
-      std::string error_message = std::format("Error: observable '{}' is not supported.", obs);
+      std::string error_message =
+          std::format("Error: observable '{}' is not supported.", obs);
       throw std::runtime_error(error_message);
     }
   }
@@ -117,8 +116,6 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
     ptrBaseObs obs_base = props.factory(obs_name, props.description);
     this->m_obs_map[obs_name] = obs_base;
 
-    // Sort the new observable into the correct typed vector for fast access
-    // later
     if (props.time_type == ObsTimeType::EqualTime) {
       switch (props.data_type) {
         case ObsDataType::Scalar:
@@ -134,7 +131,7 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
               std::static_pointer_cast<MatrixObs>(obs_base));
           break;
       }
-    } else {  // Dynamic
+    } else {  // ObsTimeType::Dynamic
       switch (props.data_type) {
         case ObsDataType::Scalar:
           m_dynamic_scalar_obs.push_back(
@@ -158,8 +155,8 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
       !this->m_eqtime_vector_obs.empty() ||
       !this->m_eqtime_matrix_obs.empty()) {
     ptrScalarObs equaltime_sign = std::make_shared<ScalarObs>(
-        "equaltime_sign", "Averaged sign (equal-time)");
-    equaltime_sign->add_method(Measure::Methods::measure_equaltime_config_sign);
+        "equaltime_sign", "Averaged sign (equal-time)",
+        Measure::Methods::measure_equaltime_config_sign);
     this->m_equaltime_sign = equaltime_sign;
     this->m_obs_map["equaltime_sign"] = equaltime_sign;
   }
@@ -168,8 +165,8 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
       !this->m_dynamic_vector_obs.empty() ||
       !this->m_dynamic_matrix_obs.empty()) {
     ptrScalarObs dynamic_sign = std::make_shared<ScalarObs>(
-        "dynamic_sign", "Averaged sign (dynamical)");
-    dynamic_sign->add_method(Measure::Methods::measure_dynamic_config_sign);
+        "dynamic_sign", "Averaged sign (dynamical)",
+        Measure::Methods::measure_dynamic_config_sign);
     this->m_dynamic_sign = dynamic_sign;
     this->m_obs_map["dynamic_sign"] = dynamic_sign;
   }
