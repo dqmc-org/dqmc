@@ -338,17 +338,20 @@ void Methods::measure_density_of_states(VectorObs& density_of_states,
                                         const Walker& walker,
                                         const ModelBase& model,
                                         const LatticeBase& lattice) {
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
   const auto& config_sign = walker.ConfigSign();
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
-    // the factor 1/2 comes from two degenerate spin states ( spin averaged,
-    // which is model dependent ) note: gt0 will automatically degenerate to g00
-    // if t = 0, it should be safe to replace Greentt with Greent0
-    const GreensFunc& gt0 =
-        (t == 0) ? 0.5 * (walker.GreenttUp(walker.TimeSize() - 1) +
-                          walker.GreenttDn(walker.TimeSize() - 1))
-                 : 0.5 * (walker.Greent0Up(t - 1) + walker.Greent0Dn(t - 1));
-    density_of_states.tmp_value()(t) +=
-        config_sign * gt0.trace() / lattice.SpaceSize();
+  const double prefactor = config_sign / static_cast<double>(space_size);
+
+  for (auto t = 0; t < time_size; ++t) {
+    const int tau = (t == 0) ? time_size - 1 : t - 1;
+
+    const GreensFunc& gup = (t == 0) ? walker.GreenttUp(tau) : walker.Greent0Up(tau);
+    const GreensFunc& gdn = (t == 0) ? walker.GreenttDn(tau) : walker.Greent0Dn(tau);
+
+    const double gt0_trace = 0.5 * (gup.trace() + gdn.trace());
+
+    density_of_states.tmp_value()(t) += prefactor * gt0_trace;
   }
   ++density_of_states;
 }
