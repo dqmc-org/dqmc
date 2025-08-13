@@ -285,32 +285,34 @@ void Methods::measure_greens_functions(MatrixObs& greens_functions,
                                        const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice) {
-  // because the auxiliary field configurations are not changed for
-  // time-displaced measurements, the sign of the configuration should be the
-  // same for all imaginary-time grids.
-  const auto& config_sign = walker.ConfigSign();
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
+  const int num_momenta = meas_handler.MomentumList().size();
+  const double config_sign = walker.ConfigSign();
+  const double prefactor = config_sign / static_cast<double>(space_size);
 
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
-    // the factor 1/2 comes from two degenerate spin states ( spin averaged,
-    // which is model dependent ) note: gt0 will automatically degenerate to g00
-    // if t = 0, it should be safe to replace Greentt with Greent0
-    const GreensFunc& gt0 =
-        (t == 0) ? 0.5 * (walker.GreenttUp(walker.TimeSize() - 1) +
-                          walker.GreenttDn(walker.TimeSize() - 1))
-                 : 0.5 * (walker.Greent0Up(t - 1) + walker.Greent0Dn(t - 1));
+  for (auto t = 0; t < time_size; ++t) {
+    const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    // the first site i
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      // the second site j
-      for (auto j = 0; j < lattice.SpaceSize(); ++j) {
-        // loop for momentum explicitly
-        for (auto k = 0; k < (int)meas_handler.MomentumList().size(); ++k) {
-          greens_functions.tmp_value()(k, t) +=
-              config_sign * gt0(j, i) / lattice.SpaceSize() *
-              lattice.FourierFactor(lattice.Displacement(i, j),
-                                    meas_handler.MomentumList(k));
+    const GreensFunc& gup = (t == 0) ? walker.GreenttUp(tau) : walker.Greent0Up(tau);
+    const GreensFunc& gdn = (t == 0) ? walker.GreenttDn(tau) : walker.Greent0Dn(tau);
+
+    for (auto k = 0; k < num_momenta; ++k) {
+      const auto& K_vector = meas_handler.MomentumList(k);
+
+      double current_k_t_sum = 0.0;
+
+      for (auto i = 0; i < space_size; ++i) {
+        for (auto j = 0; j < space_size; ++j) {
+          const double gt0_ji = 0.5 * (gup(j, i) + gdn(j, i));
+
+          const auto fourier_factor =
+              lattice.FourierFactor(lattice.Displacement(i, j), K_vector);
+
+          current_k_t_sum += gt0_ji * fourier_factor;
         }
       }
+      greens_functions.tmp_value()(k, t) += prefactor * current_k_t_sum;
     }
   }
   ++greens_functions;
