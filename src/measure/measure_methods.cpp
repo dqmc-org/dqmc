@@ -358,8 +358,8 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
   // currently only support square lattice,
   // and the side length of the lattice should be even
   // so that the minimal momentum along x and y directions can differ.
-  assert(dynamic_cast<const Lattice::Square*>(&lattice) != nullptr);
-  assert(lattice.SideLength() % 2 == 0);
+  DQMC_ASSERT(dynamic_cast<const Lattice::Square*>(&lattice) != nullptr);
+  DQMC_ASSERT(lattice.SideLength() % 2 == 0);
 
   RealScalar tmp_rho_s = 0.0;
 

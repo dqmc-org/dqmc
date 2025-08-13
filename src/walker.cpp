@@ -1,3 +1,5 @@
+#include "walker.h"
+
 #include <format>
 #include <random>
 
@@ -6,7 +8,6 @@
 #include "model/model_base.h"
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
-#include "walker.h"
 
 namespace DQMC {
 
@@ -15,14 +16,14 @@ using Matrix = Eigen::MatrixXd;
 using NumericalStable = Utils::NumericalStable;
 
 void Walker::set_physical_params(RealScalar beta, int time_size) {
-  assert(beta > 0.0);
+  DQMC_ASSERT(beta > 0.0);
   this->m_beta = beta;
   this->m_time_size = time_size;
   this->m_time_interval = beta / time_size;
 }
 
 void Walker::set_stabilization_pace(int stabilization_pace) {
-  assert(stabilization_pace > 0);
+  DQMC_ASSERT(stabilization_pace > 0);
   this->m_stabilization_pace = stabilization_pace;
 }
 
@@ -140,8 +141,8 @@ void Walker::initial_config_sign() {
  */
 void Walker::metropolis_update(ModelBase& model, TimeIndex t,
                                std::default_random_engine& rng) {
-  assert(this->m_current_time_slice == t);
-  assert(t >= 0 && t <= this->m_time_size);
+  DQMC_ASSERT(this->m_current_time_slice == t);
+  DQMC_ASSERT(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == 0) ? this->m_time_size - 1 : t - 1;
   for (auto i = 0; i < this->m_space_size; ++i) {
@@ -172,7 +173,7 @@ void Walker::metropolis_update(ModelBase& model, TimeIndex t,
  *  The greens functions are changed in place.
  */
 void Walker::wrap_from_0_to_beta(const ModelBase& model, TimeIndex t) {
-  assert(t >= 0 && t <= this->m_time_size);
+  DQMC_ASSERT(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == this->m_time_size) ? 1 : t + 1;
   model.mult_B_from_left(this->m_green_tt_up, eff_t, +1);
@@ -189,7 +190,7 @@ void Walker::wrap_from_0_to_beta(const ModelBase& model, TimeIndex t) {
  *  The greens functions are changed in place.
  */
 void Walker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
-  assert(t >= 0 && t <= this->m_time_size);
+  DQMC_ASSERT(t >= 0 && t <= this->m_time_size);
 
   const int eff_t = (t == 0) ? this->m_time_size : t;
   model.mult_B_from_right(this->m_green_tt_up, eff_t, +1);
@@ -207,15 +208,15 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
                                   std::default_random_engine& rng) {
   this->m_current_time_slice++;
 
-  const int stack_length =
+  [[maybe_unused]] const int stack_length =
       (this->m_time_size % this->m_stabilization_pace == 0)
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
-  assert(this->m_current_time_slice == 1);
-  assert(this->m_svd_stack_left_up.empty() &&
-         this->m_svd_stack_left_dn.empty());
-  assert(this->m_svd_stack_right_up.StackLength() == stack_length &&
-         this->m_svd_stack_right_dn.StackLength() == stack_length);
+  DQMC_ASSERT(this->m_current_time_slice == 1);
+  DQMC_ASSERT(this->m_svd_stack_left_up.empty() &&
+              this->m_svd_stack_left_dn.empty());
+  DQMC_ASSERT(this->m_svd_stack_right_up.StackLength() == stack_length &&
+              this->m_svd_stack_right_dn.StackLength() == stack_length);
 
   // temporary matrices
   Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
@@ -304,15 +305,15 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
                                   std::default_random_engine& rng) {
   this->m_current_time_slice--;
 
-  const int stack_length =
+  [[maybe_unused]] const int stack_length =
       (this->m_time_size % this->m_stabilization_pace == 0)
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
-  assert(this->m_current_time_slice == this->m_time_size);
-  assert(this->m_svd_stack_right_up.empty() &&
-         this->m_svd_stack_right_dn.empty());
-  assert(this->m_svd_stack_left_up.StackLength() == stack_length &&
-         this->m_svd_stack_left_dn.StackLength() == stack_length);
+  DQMC_ASSERT(this->m_current_time_slice == this->m_time_size);
+  DQMC_ASSERT(this->m_svd_stack_right_up.empty() &&
+              this->m_svd_stack_right_dn.empty());
+  DQMC_ASSERT(this->m_svd_stack_left_up.StackLength() == stack_length &&
+              this->m_svd_stack_left_dn.StackLength() == stack_length);
 
   // temporary matrices
   Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
@@ -406,15 +407,15 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
 void Walker::sweep_for_dynamic_greens(ModelBase& model) {
   if (this->m_is_dynamic) {
     this->m_current_time_slice++;
-    const int stack_length =
+    [[maybe_unused]] const int stack_length =
         (this->m_time_size % this->m_stabilization_pace == 0)
             ? this->m_time_size / this->m_stabilization_pace
             : this->m_time_size / this->m_stabilization_pace + 1;
-    assert(this->m_current_time_slice == 1);
-    assert(this->m_svd_stack_left_up.empty() &&
-           this->m_svd_stack_left_dn.empty());
-    assert(this->m_svd_stack_right_up.StackLength() == stack_length &&
-           this->m_svd_stack_right_dn.StackLength() == stack_length);
+    DQMC_ASSERT(this->m_current_time_slice == 1);
+    DQMC_ASSERT(this->m_svd_stack_left_up.empty() &&
+                this->m_svd_stack_left_dn.empty());
+    DQMC_ASSERT(this->m_svd_stack_right_up.StackLength() == stack_length &&
+                this->m_svd_stack_right_dn.StackLength() == stack_length);
 
     // initialize greens functions: at t = 0, gt0 = g00, g0t = g00 - 1
     this->m_green_t0_up = this->m_green_tt_up;

@@ -9,10 +9,10 @@
 namespace Measure {
 void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num,
                                         int bin_size, int sweeps_between_bins) {
-  assert(sweeps_warmup >= 0);
-  assert(bin_num >= 0);
-  assert(bin_size >= 0);
-  assert(sweeps_warmup >= 0);
+  DQMC_ASSERT(sweeps_warmup >= 0);
+  DQMC_ASSERT(bin_num >= 0);
+  DQMC_ASSERT(bin_size >= 0);
+  DQMC_ASSERT(sweeps_warmup >= 0);
   this->m_sweeps_warmup = sweeps_warmup;
   this->m_bin_num = bin_num;
   this->m_bin_size = bin_size;

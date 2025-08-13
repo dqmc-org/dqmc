@@ -7,6 +7,7 @@
  */
 
 #include "measure/observable_handler.h"
+#include "utils/assert.h"
 
 // forward declaration
 namespace Model {
@@ -80,26 +81,21 @@ class MeasureHandler : public Observable::ObservableHandler {
 
   int WarmUpSweeps() const { return this->m_sweeps_warmup; }
 
-  int SweepsBetweenBins() const {
-  return this->m_sweeps_between_bins;
-}
+  int SweepsBetweenBins() const { return this->m_sweeps_between_bins; }
 
   int BinsNum() const { return this->m_bin_num; }
   int BinsSize() const { return this->m_bin_size; }
 
-  const MomentumIndex& Momentum() const {
-    return this->m_momentum;
-  }
+  const MomentumIndex& Momentum() const { return this->m_momentum; }
 
   const MomentumIndexList& MomentumList() const {
     return this->m_momentum_list;
   }
 
   const MomentumIndex& MomentumList(const int i) const {
-    // assert(i >= 0 && i < (int)this->m_momentum_list.size());
-  return this->m_momentum_list[i];
+    DQMC_ASSERT(i >= 0 && i < (int)this->m_momentum_list.size());
+    return this->m_momentum_list[i];
   }
-
 
   // the following interfaces have been implemented
   // in the base class Observable::ObservableHandler.

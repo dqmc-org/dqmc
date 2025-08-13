@@ -43,7 +43,8 @@ void SvdStack::clear() {
 // Add a matrix to the product from the left: Product = matrix * Product
 // This is the core of the numerical stabilization algorithm
 void SvdStack::push(const Matrix& matrix) {
-  assert(matrix.rows() == this->m_mat_dim && matrix.cols() == this->m_mat_dim);
+  DQMC_ASSERT(matrix.rows() == this->m_mat_dim &&
+              matrix.cols() == this->m_mat_dim);
 
   if (this->m_stack.empty()) {
     // First matrix: just compute its SVD directly
@@ -74,20 +75,20 @@ void SvdStack::push(const Matrix& matrix) {
 // Remove the most recent matrix from the stack
 // Memory is not deallocated, just stack depth is decreased
 void SvdStack::pop() {
-  assert(!this->m_stack.empty());
+  DQMC_ASSERT(!this->m_stack.empty());
   this->m_stack.pop_back();
   this->m_prefix_v.pop_back();
 }
 
 // Get the current singular values of the accumulated product
 Vector SvdStack::SingularValues() const {
-  assert(!this->m_stack.empty());
+  DQMC_ASSERT(!this->m_stack.empty());
   return this->m_stack.back().SingularValues();
 }
 
 // Get the current U matrix (left singular vectors) of the accumulated product
 Matrix SvdStack::MatrixU() const {
-  assert(!this->m_stack.empty());
+  DQMC_ASSERT(!this->m_stack.empty());
   return this->m_stack.back().MatrixU();
 }
 
@@ -97,7 +98,7 @@ Matrix SvdStack::MatrixU() const {
 // previous ones. We avoid performing these multiplications by storing the
 // partial left multiplications on a separated stack.
 Matrix SvdStack::MatrixV() const {
-  assert(!this->m_stack.empty());
+  DQMC_ASSERT(!this->m_stack.empty());
   return this->m_prefix_v.back();
 }
 

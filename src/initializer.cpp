@@ -1,9 +1,10 @@
+#include "initializer.h"
+
 #include <iostream>
 
 #include "checkerboard/checkerboard_base.h"
 #include "checkerboard/cubic.h"
 #include "checkerboard/square.h"
-#include "initializer.h"
 #include "lattice/cubic.h"
 #include "lattice/honeycomb.h"
 #include "lattice/lattice_base.h"

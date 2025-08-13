@@ -14,6 +14,8 @@
 #include <string>
 #include <vector>
 
+#include "utils/assert.h"
+
 // forward declaration
 namespace DQMC {
 class Walker;
@@ -99,12 +101,12 @@ class Observable : public ObservableBase {
   ObsType& tmp_value() { return this->m_tmp_value; }
 
   const ObsType& bin_data(int bin) const {
-    assert(bin >= 0 && bin < this->m_bin_num);
+    DQMC_ASSERT(bin >= 0 && bin < this->m_bin_num);
     return this->m_bin_data[bin];
   }
 
   ObsType& bin_data(int bin) {
-    assert(bin >= 0 && bin < this->m_bin_num);
+    DQMC_ASSERT(bin >= 0 && bin < this->m_bin_num);
     return this->m_bin_data[bin];
   }
 

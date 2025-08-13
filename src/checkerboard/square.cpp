@@ -12,8 +12,8 @@ void Square::set_checkerboard_params(const LatticeBase &lattice,
                                      const ModelBase &model,
                                      const Walker &walker) {
   // make sure that the lattice class is of type Lattice::Square
-  assert(dynamic_cast<const Lattice::Square *>(&lattice) != nullptr);
-  assert(lattice.SpaceSize() >= 2);
+  DQMC_ASSERT(dynamic_cast<const Lattice::Square *>(&lattice) != nullptr);
+  DQMC_ASSERT(lattice.SpaceSize() >= 2);
   this->m_side_length = lattice.SideLength();
   this->m_space_size = lattice.SpaceSize();
   this->m_time_interval = walker.TimeInterval();
@@ -61,9 +61,9 @@ void Square::initial() {
 
 void Square::mult_expK_plaquette_from_left(Matrix &matrix,
                                            const Site &site) const {
-  assert(matrix.rows() == this->m_space_size &&
-         matrix.cols() == this->m_space_size);
-  assert(site.size() == 2);
+  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
+              matrix.cols() == this->m_space_size);
+  DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
   const int index_xy = (x % this->m_side_length) +
@@ -85,9 +85,9 @@ void Square::mult_expK_plaquette_from_left(Matrix &matrix,
 
 void Square::mult_inv_expK_plaquette_from_left(Matrix &matrix,
                                                const Site &site) const {
-  assert(matrix.rows() == this->m_space_size &&
-         matrix.cols() == this->m_space_size);
-  assert(site.size() == 2);
+  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
+              matrix.cols() == this->m_space_size);
+  DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
   const int index_xy = (x % this->m_side_length) +
@@ -109,9 +109,9 @@ void Square::mult_inv_expK_plaquette_from_left(Matrix &matrix,
 
 void Square::mult_expK_plaquette_from_right(Matrix &matrix,
                                             const Site &site) const {
-  assert(matrix.rows() == this->m_space_size &&
-         matrix.cols() == this->m_space_size);
-  assert(site.size() == 2);
+  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
+              matrix.cols() == this->m_space_size);
+  DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
   const int index_xy = (x % this->m_side_length) +
@@ -133,9 +133,9 @@ void Square::mult_expK_plaquette_from_right(Matrix &matrix,
 
 void Square::mult_inv_expK_plaquette_from_right(Matrix &matrix,
                                                 const Site &site) const {
-  assert(matrix.rows() == this->m_space_size &&
-         matrix.cols() == this->m_space_size);
-  assert(site.size() == 2);
+  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
+              matrix.cols() == this->m_space_size);
+  DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
   const int index_xy = (x % this->m_side_length) +
@@ -157,7 +157,7 @@ void Square::mult_inv_expK_plaquette_from_right(Matrix &matrix,
 
 void Square::mult_expK_from_left(Matrix &matrix) const {
   // checkerboard breakups are only supported for lattices with even side length
-  assert(this->m_side_length % 2 == 0);
+  DQMC_ASSERT(this->m_side_length % 2 == 0);
 
   // sublattice B
   for (auto x = 1; x < this->m_side_length; x += 2) {
@@ -175,7 +175,7 @@ void Square::mult_expK_from_left(Matrix &matrix) const {
 
 void Square::mult_inv_expK_from_left(Matrix &matrix) const {
   // checkerboard breakups are only supported for lattices with even side length
-  assert(this->m_side_length % 2 == 0);
+  DQMC_ASSERT(this->m_side_length % 2 == 0);
 
   // sublattice A
   for (int x = 0; x < this->m_side_length; x += 2) {
@@ -193,7 +193,7 @@ void Square::mult_inv_expK_from_left(Matrix &matrix) const {
 
 void Square::mult_expK_from_right(Matrix &matrix) const {
   // checkerboard breakups are only supported for lattices with even side length
-  assert(this->m_side_length % 2 == 0);
+  DQMC_ASSERT(this->m_side_length % 2 == 0);
 
   // sublattice A
   for (int x = 0; x < this->m_side_length; x += 2) {
@@ -211,7 +211,7 @@ void Square::mult_expK_from_right(Matrix &matrix) const {
 
 void Square::mult_inv_expK_from_right(Matrix &matrix) const {
   // checkerboard breakups are only supported for lattices with even side length
-  assert(this->m_side_length % 2 == 0);
+  DQMC_ASSERT(this->m_side_length % 2 == 0);
 
   // sublattice B
   for (auto x = 1; x < this->m_side_length; x += 2) {
@@ -229,7 +229,7 @@ void Square::mult_inv_expK_from_right(Matrix &matrix) const {
 
 void Square::mult_trans_expK_from_left(Matrix &matrix) const {
   // checkerboard breakups are only supported for lattices with even side length
-  assert(this->m_side_length % 2 == 0);
+  DQMC_ASSERT(this->m_side_length % 2 == 0);
 
   // sublattice A
   for (int x = 0; x < this->m_side_length; x += 2) {

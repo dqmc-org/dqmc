@@ -16,6 +16,7 @@
 #include <stdexcept>
 
 #include "lapacke.h"
+#include "utils/assert.h"
 
 namespace Utils {
 
@@ -38,11 +39,11 @@ class LinearAlgebra {
   static void dgesvd(const int& row, const int& col, const Eigen::MatrixXd& mat,
                      Eigen::MatrixXd& u, Eigen::VectorXd& s,
                      Eigen::MatrixXd& v) {
-    assert(row == mat.rows());
-    assert(col == mat.cols());
+    DQMC_ASSERT(row == mat.rows());
+    DQMC_ASSERT(col == mat.cols());
     // TODO: currently, the subroutine would fail
     // if the input matrix has different rows and columns
-    assert(row == col);
+    DQMC_ASSERT(row == col);
 
     // matrix size
     int matrix_layout = LAPACK_ROW_MAJOR;
@@ -98,10 +99,10 @@ class LinearAlgebra {
    */
   static void dsyev(const int& size, const Eigen::MatrixXd& mat,
                     Eigen::VectorXd& s, Eigen::MatrixXd& t) {
-    assert(mat.rows() == size);
-    assert(mat.cols() == size);
+    DQMC_ASSERT(mat.rows() == size);
+    DQMC_ASSERT(mat.cols() == size);
     // make sure the input matrix is symmetric
-    // assert(mat.isApprox(mat.transpose(), 1e-12));
+    DQMC_ASSERT(mat.isApprox(mat.transpose(), 1e-12));
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
 

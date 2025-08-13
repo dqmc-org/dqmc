@@ -28,9 +28,9 @@ class NumericalStable {
    */
   static void matrix_compare_error(const Matrix& umat, const Matrix& vmat,
                                    double& error) {
-    assert(umat.rows() == vmat.rows());
-    assert(umat.cols() == vmat.cols());
-    assert(umat.rows() == umat.cols());
+    DQMC_ASSERT(umat.rows() == vmat.rows());
+    DQMC_ASSERT(umat.cols() == vmat.cols());
+    DQMC_ASSERT(umat.rows() == umat.cols());
     error = (umat - vmat).cwiseAbs().maxCoeff();
   }
 
@@ -42,9 +42,9 @@ class NumericalStable {
    *  Output: dmax, dmin
    */
   static void div_dvec_max_min(const Vector& dvec, Vector& dmax, Vector& dmin) {
-    assert(dvec.size() == dmax.size());
-    assert(dvec.size() == dmin.size());
-    assert((dvec.array() >= 0).all());
+    DQMC_ASSERT(dvec.size() == dmax.size());
+    DQMC_ASSERT(dvec.size() == dmin.size());
+    DQMC_ASSERT((dvec.array() >= 0).all());
     dmax = dvec.cwiseMax(Vector::Ones(dvec.size()));
     dmin = dvec.cwiseMin(Vector::Ones(dvec.size()));
   }
@@ -56,12 +56,12 @@ class NumericalStable {
    */
   static void mult_v_invd_u(const Matrix& vmat, const Vector& dvec,
                             const Matrix& umat, Matrix& zmat) {
-    assert(vmat.cols() == umat.cols());
-    assert(vmat.cols() == zmat.cols());
-    assert(vmat.rows() == umat.rows());
-    assert(vmat.rows() == zmat.rows());
-    assert(vmat.rows() == vmat.cols());
-    assert(vmat.cols() == dvec.size());
+    DQMC_ASSERT(vmat.cols() == umat.cols());
+    DQMC_ASSERT(vmat.cols() == zmat.cols());
+    DQMC_ASSERT(vmat.rows() == umat.rows());
+    DQMC_ASSERT(vmat.rows() == zmat.rows());
+    DQMC_ASSERT(vmat.rows() == vmat.cols());
+    DQMC_ASSERT(vmat.cols() == dvec.size());
     zmat.noalias() = vmat * dvec.asDiagonal().inverse() * umat;
   }
 
@@ -72,12 +72,12 @@ class NumericalStable {
    */
   static void mult_v_d_u(const Matrix& vmat, const Vector& dvec,
                          const Matrix& umat, Matrix& zmat) {
-    assert(vmat.cols() == umat.cols());
-    assert(vmat.cols() == zmat.cols());
-    assert(vmat.rows() == umat.rows());
-    assert(vmat.rows() == zmat.rows());
-    assert(vmat.rows() == vmat.cols());
-    assert(vmat.cols() == dvec.size());
+    DQMC_ASSERT(vmat.cols() == umat.cols());
+    DQMC_ASSERT(vmat.cols() == zmat.cols());
+    DQMC_ASSERT(vmat.rows() == umat.rows());
+    DQMC_ASSERT(vmat.rows() == zmat.rows());
+    DQMC_ASSERT(vmat.rows() == vmat.cols());
+    DQMC_ASSERT(vmat.cols() == dvec.size());
     zmat.noalias() = vmat * dvec.asDiagonal() * umat;
   }
 
@@ -90,9 +90,9 @@ class NumericalStable {
    */
   static void computeSbiSs(const Eigen::VectorXd& S, Eigen::VectorXd& Sbi,
                            Eigen::VectorXd& Ss) {
-    assert((S.array() >= 0).all());
-    assert(Sbi.size() == S.size());
-    assert(Ss.size() == S.size());
+    DQMC_ASSERT((S.array() >= 0).all());
+    DQMC_ASSERT(Sbi.size() == S.size());
+    DQMC_ASSERT(Ss.size() == S.size());
     Ss = S.array().min(1.0);
     Sbi = 1.0 / S.array().max(1.0);
   }
@@ -111,12 +111,12 @@ class NumericalStable {
   static void scale_Atmp_Btmp_dl_dr(Matrix& Atmp, Matrix& Btmp,
                                     const Vector& dlmax, const Vector& drmax,
                                     const Vector& dlmin, const Vector& drmin) {
-    assert(Atmp.rows() == dlmax.size());
-    assert(Atmp.cols() == drmax.size());
-    assert(Btmp.rows() == dlmin.size());
-    assert(Btmp.cols() == drmin.size());
-    assert(Atmp.rows() == Btmp.rows());
-    assert(Atmp.cols() == Btmp.cols());
+    DQMC_ASSERT(Atmp.rows() == dlmax.size());
+    DQMC_ASSERT(Atmp.cols() == drmax.size());
+    DQMC_ASSERT(Btmp.rows() == dlmin.size());
+    DQMC_ASSERT(Btmp.cols() == drmin.size());
+    DQMC_ASSERT(Atmp.rows() == Btmp.rows());
+    DQMC_ASSERT(Atmp.cols() == Btmp.cols());
 
     Atmp.array().colwise() /= dlmax.array();
     Atmp.array().rowwise() /= drmax.array().transpose();
@@ -139,12 +139,12 @@ class NumericalStable {
   static void scale_Xtmp_Ytmp_dl_dr(Matrix& Xtmp, Matrix& Ytmp,
                                     const Vector& drmax, const Vector& dlmax,
                                     const Vector& drmin, const Vector& dlmin) {
-    assert(Xtmp.rows() == drmax.size());
-    assert(Xtmp.cols() == dlmax.size());
-    assert(Ytmp.rows() == drmin.size());
-    assert(Ytmp.cols() == dlmin.size());
-    assert(Xtmp.rows() == Ytmp.rows());
-    assert(Xtmp.cols() == Ytmp.cols());
+    DQMC_ASSERT(Xtmp.rows() == drmax.size());
+    DQMC_ASSERT(Xtmp.cols() == dlmax.size());
+    DQMC_ASSERT(Ytmp.rows() == drmin.size());
+    DQMC_ASSERT(Ytmp.cols() == dlmin.size());
+    DQMC_ASSERT(Xtmp.rows() == Ytmp.rows());
+    DQMC_ASSERT(Xtmp.cols() == Ytmp.cols());
 
     Xtmp.array().colwise() /= drmax.array();
     Xtmp.array().rowwise() /= dlmax.array().transpose();
@@ -202,7 +202,7 @@ class NumericalStable {
    */
   static void compute_equaltime_greens(const SvdStack& left,
                                        const SvdStack& right, Matrix& gtt) {
-    assert(left.MatDim() == right.MatDim());
+    DQMC_ASSERT(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
 
     // at time slice t = 0
@@ -260,7 +260,7 @@ class NumericalStable {
   static void compute_dynamic_greens(const SvdStack& left,
                                      const SvdStack& right, Matrix& gt0,
                                      Matrix& g0t) {
-    assert(left.MatDim() == right.MatDim());
+    DQMC_ASSERT(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
 
     // at time slice t = 0

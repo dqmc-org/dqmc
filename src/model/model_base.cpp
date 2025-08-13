@@ -1,36 +1,37 @@
 #include "model/model_base.h"
 
 #include "checkerboard/checkerboard_base.h"
+#include "utils/assert.h"
 
 namespace Model {
 
 void ModelBase::mult_expK_from_left(GreensFunc& green) const {
-  assert(green.rows() == this->m_space_size &&
-         green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size &&
+              green.cols() == this->m_space_size);
   green = this->m_expK_mat * green;
 }
 
 void ModelBase::mult_expK_from_right(GreensFunc& green) const {
-  assert(green.rows() == this->m_space_size &&
-         green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size &&
+              green.cols() == this->m_space_size);
   green = green * this->m_expK_mat;
 }
 
 void ModelBase::mult_inv_expK_from_left(GreensFunc& green) const {
-  assert(green.rows() == this->m_space_size &&
-         green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size &&
+              green.cols() == this->m_space_size);
   green = this->m_inv_expK_mat * green;
 }
 
 void ModelBase::mult_inv_expK_from_right(GreensFunc& green) const {
-  assert(green.rows() == this->m_space_size &&
-         green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size &&
+              green.cols() == this->m_space_size);
   green = green * this->m_inv_expK_mat;
 }
 
 void ModelBase::mult_trans_expK_from_left(GreensFunc& green) const {
-  assert(green.rows() == this->m_space_size &&
-         green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size &&
+              green.cols() == this->m_space_size);
   green = this->m_trans_expK_mat * green;
 }
 

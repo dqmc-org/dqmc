@@ -10,13 +10,14 @@ add_library(
   checkerboard/square.cpp
   initializer.cpp
   walker.cpp
+  io.cpp
   measure/measure_methods.cpp
   measure/measure_handler.cpp
   measure/observable_handler.cpp
   model/model_base.cpp
   model/attractive_hubbard.cpp
   model/repulsive_hubbard.cpp
-  io.cpp
+  utils/assert.cpp
 )
 
 target_include_directories(

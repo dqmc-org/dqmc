@@ -10,6 +10,8 @@
 #include <format>
 #include <iostream>
 
+#include "utils/assert.h"
+
 namespace Lattice {
 
 using LatticeBool = bool;
@@ -77,10 +79,7 @@ class LatticeBase {
   // --------------------------------- Interfaces
   // ----------------------------------------
 
-
-  LatticeBool InitialStatus() const {
-    return this->m_initial_status;
-  }
+  LatticeBool InitialStatus() const { return this->m_initial_status; }
 
   LatticeInt SpaceDim() const { return this->m_space_dim; }
 
@@ -88,70 +87,62 @@ class LatticeBase {
 
   LatticeInt SideLength() const { return this->m_side_length; }
 
-  LatticeInt CoordinationNumber() const {
-    return this->m_coordination_number;
-  }
+  LatticeInt CoordinationNumber() const { return this->m_coordination_number; }
 
   LatticeInt kStarsNum() const { return this->m_num_k_stars; }
 
-  const LatticeIntVec& kStarsIndex() const {
-    return this->m_k_stars_index;
-  }
+  const LatticeIntVec& kStarsIndex() const { return this->m_k_stars_index; }
 
-  const MatrixDouble& HoppingMatrix() const {
-    return this->m_hopping_matrix;
-  }
+  const MatrixDouble& HoppingMatrix() const { return this->m_hopping_matrix; }
 
   const MatrixDouble& FourierFactor() const {
     return this->m_fourier_factor_table;
   }
 
   LatticeInt Displacement(const LatticeInt site1_index,
-                                           const LatticeInt site2_index) const {
-    // assert(site1_index >= 0 && site1_index < this->m_space_size);
-    // assert(site2_index >= 0 && site2_index < this->m_space_size);
-  return this->m_displacement_table(site1_index, site2_index);
-}
+                          const LatticeInt site2_index) const {
+    DQMC_ASSERT(site1_index >= 0 && site1_index < this->m_space_size);
+    DQMC_ASSERT(site2_index >= 0 && site2_index < this->m_space_size);
+    return this->m_displacement_table(site1_index, site2_index);
+  }
 
-  LatticeDouble FourierFactor(
-    const LatticeInt site_index, const LatticeInt momentum_index) const {
-    // assert(site_index >= 0 && site_index < this->m_space_size);
-    // assert(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
-  return this->m_fourier_factor_table(site_index, momentum_index);
-}
+  LatticeDouble FourierFactor(const LatticeInt site_index,
+                              const LatticeInt momentum_index) const {
+    DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
+    DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
+    return this->m_fourier_factor_table(site_index, momentum_index);
+  }
 
-  LatticeInt NearestNeighbour(
-    const LatticeInt site_index, const LatticeInt direction) const {
-  // assert(site_index >= 0 && site_index < this->m_space_size);
-  // assert(direction >= 0 && direction < this->m_coordination_number);
-  return this->m_nearest_neighbour_table(site_index, direction);
-}
+  LatticeInt NearestNeighbour(const LatticeInt site_index,
+                              const LatticeInt direction) const {
+    DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
+    DQMC_ASSERT(direction >= 0 && direction < this->m_coordination_number);
+    return this->m_nearest_neighbour_table(site_index, direction);
+  }
 
-VectorInt Index2Site(const LatticeInt site_index) const {
-  // assert(site_index >= 0 && site_index < this->m_space_size);
-  return this->m_index2site_table.row(site_index);
-}
+  VectorInt Index2Site(const LatticeInt site_index) const {
+    DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
+    return this->m_index2site_table.row(site_index);
+  }
 
-LatticeInt Index2Site(const LatticeInt site_index,
-                                         const LatticeInt axis) const {
-  // assert(site_index >= 0 && site_index < this->m_space_size);
-  // assert(axis >= 0 && axis < this->m_space_dim);
-  return this->m_index2site_table(site_index, axis);
-}
+  LatticeInt Index2Site(const LatticeInt site_index,
+                        const LatticeInt axis) const {
+    DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
+    DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
+    return this->m_index2site_table(site_index, axis);
+  }
 
-VectorDouble Index2Momentum(
-    const LatticeInt momentum_index) const {
-  // assert(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
-  return this->m_index2momentum_table.row(momentum_index);
-}
+  VectorDouble Index2Momentum(const LatticeInt momentum_index) const {
+    DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
+    return this->m_index2momentum_table.row(momentum_index);
+  }
 
-LatticeDouble Index2Momentum(const LatticeInt momentum_index,
-                                                const LatticeInt axis) const {
-  // assert(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
-  // assert(axis >= 0 && axis < this->m_space_dim);
-  return this->m_index2momentum_table(momentum_index, axis);
-}
-
+  LatticeDouble Index2Momentum(const LatticeInt momentum_index,
+                               const LatticeInt axis) const {
+    DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
+    DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
+    return this->m_index2momentum_table(momentum_index, axis);
+  }
 
   // -------------------------------- Initializations
   // ------------------------------------

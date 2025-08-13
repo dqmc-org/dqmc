@@ -1,4 +1,5 @@
 #include "lattice/lattice_base.h"
+
 #include <iostream>
 
 namespace Lattice {

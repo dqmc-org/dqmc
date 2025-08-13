@@ -52,11 +52,11 @@ void Cubic::output_lattice_info(std::ostream& ostream,
 
 void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {
   // lattice in three dimension
-  assert((int)side_length_vec.size() == 3);
+  DQMC_ASSERT((int)side_length_vec.size() == 3);
   // for cubic lattice, the length of each side should be equal to each other
-  assert((side_length_vec[0] == side_length_vec[1]) &&
-         (side_length_vec[0] == side_length_vec[2]));
-  assert(side_length_vec[0] >= 2);
+  DQMC_ASSERT((side_length_vec[0] == side_length_vec[1]) &&
+              (side_length_vec[0] == side_length_vec[2]));
+  DQMC_ASSERT(side_length_vec[0] >= 2);
 
   this->m_space_dim = 3;
   this->m_coordination_number = 6;

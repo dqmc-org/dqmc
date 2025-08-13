@@ -46,10 +46,10 @@ void Square::output_lattice_info(std::ostream& ostream,
 
 void Square::set_lattice_params(const LatticeIntVec& side_length_vec) {
   // lattice in two dimension
-  assert((int)side_length_vec.size() == 2);
+  DQMC_ASSERT((int)side_length_vec.size() == 2);
   // for square lattice, the length of each side should be equal to each other
-  assert(side_length_vec[0] == side_length_vec[1]);
-  assert(side_length_vec[0] >= 2);
+  DQMC_ASSERT(side_length_vec[0] == side_length_vec[1]);
+  DQMC_ASSERT(side_length_vec[0] >= 2);
 
   this->m_space_dim = 2;
   this->m_coordination_number = 4;
