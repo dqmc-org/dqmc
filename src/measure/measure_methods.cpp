@@ -44,11 +44,12 @@ void Methods::measure_filling_number(ScalarObs& filling_number,
   for (auto t = 0; t < time_size; ++t) {
     const auto& g_up = walker.GreenttUp(t);
     const auto& g_dn = walker.GreenttDn(t);
+    const double config_sign = walker.ConfigSign(t);
 
     double combined_trace = g_up.trace() + g_dn.trace();
     const double avg_density = combined_trace * inv_space_size;
 
-    total_filling_contribution += walker.ConfigSign(t) * (2.0 - avg_density);
+    total_filling_contribution += config_sign * (2.0 - avg_density);
   }
 
   filling_number.tmp_value() += total_filling_contribution;
@@ -63,19 +64,25 @@ void Methods::measure_double_occupancy(ScalarObs& double_occupancy,
                                        const Walker& walker,
                                        const ModelBase& model,
                                        const LatticeBase& lattice) {
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
+
+  RealScalar total_double_occu = 0.0;
+
+  for (auto t = 0; t < time_size; ++t) {
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
-    const RealScalar& config_sign = walker.ConfigSign(t);
+    const double config_sign = walker.ConfigSign(t);
 
-    RealScalar tmp_double_occu = 0.0;
-    for (int i = 0; i < lattice.SpaceSize(); ++i) {
-      tmp_double_occu += (1 - gu(i, i)) * (1 - gd(i, i));
+    RealScalar current_t_sum = 0.0;
+    for (int i = 0; i < space_size; ++i) {
+      current_t_sum += (1.0 - gu(i, i)) * (1.0 - gd(i, i));
     }
-    double_occupancy.tmp_value() +=
-        config_sign * tmp_double_occu / lattice.SpaceSize();
-    ++double_occupancy;
+    total_double_occu += config_sign * current_t_sum;
   }
+
+  double_occupancy.tmp_value() += total_double_occu / space_size;
+  double_occupancy += time_size;
 }
 
 // Kinetic energy defined as -t \sum <ij> ( c^+_j c_i + h.c. )
