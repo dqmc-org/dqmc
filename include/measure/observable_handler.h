@@ -22,7 +22,7 @@ enum class ObsTimeType { EqualTime, Dynamic };
 enum class ObsDataType { Scalar, Vector, Matrix };
 
 class ObservableHandler {
-  protected:
+ protected:
   struct ObservableProperties {
     using ptrBaseObs = std::shared_ptr<ObservableBase>;
 
@@ -66,7 +66,7 @@ class ObservableHandler {
   // Central registry of all supported observables and their properties.
   static const std::map<ObsName, ObservableProperties> m_supported_observables;
 
-public:
+ public:
   ObservableHandler() = default;
 
   static std::vector<std::string> get_all_observable_names();
