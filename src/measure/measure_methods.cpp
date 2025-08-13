@@ -357,94 +357,70 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
                                            const Walker& walker,
                                            const ModelBase& model,
                                            const LatticeBase& lattice) {
-  // currently only support square lattice,
-  // and the side length of the lattice should be even
-  // so that the minimal momentum along x and y directions can differ.
   DQMC_ASSERT(dynamic_cast<const Lattice::Square*>(&lattice) != nullptr);
   DQMC_ASSERT(lattice.SideLength() % 2 == 0);
 
-  RealScalar tmp_rho_s = 0.0;
+  const int space_size = lattice.SpaceSize();
+  const int time_size = walker.TimeSize();
+  const double config_sign = walker.ConfigSign();
+  const double hopping_t2 = model.HoppingT() * model.HoppingT();
+  const double final_prefactor =
+      0.25 * hopping_t2 / (static_cast<double>(space_size) * space_size);
 
-  const GreensFunc& g00up = walker.GreenttUp(walker.TimeSize() - 1);
-  const GreensFunc& g00dn = walker.GreenttDn(walker.TimeSize() - 1);
-  const auto& config_sign = walker.ConfigSign();
+  std::vector<double> uncorrelated_i_vals(space_size);
+  const GreensFunc& g00up = walker.GreenttUp(time_size - 1);
+  const GreensFunc& g00dn = walker.GreenttDn(time_size - 1);
 
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
-    // dynamic greens functions
-    // which degenerate to the equal-time greens function if t equals 0.
-    // todo: check the correctness, eg. gt0(t=0) = g00 and g0t(t=0) = g00-1
-    const GreensFunc& gttup = (t == 0) ? walker.GreenttUp(walker.TimeSize() - 1)
-                                       : walker.GreenttUp(t - 1);
-    const GreensFunc& gttdn = (t == 0) ? walker.GreenttDn(walker.TimeSize() - 1)
-                                       : walker.GreenttDn(t - 1);
-    const GreensFunc& gt0up = (t == 0) ? walker.Greent0Up(walker.TimeSize() - 1)
-                                       : walker.Greent0Up(t - 1);
-    const GreensFunc& gt0dn = (t == 0) ? walker.Greent0Dn(walker.TimeSize() - 1)
-                                       : walker.Greent0Dn(t - 1);
-    const GreensFunc& g0tup = (t == 0) ? walker.Green0tUp(walker.TimeSize() - 1)
-                                       : walker.Green0tUp(t - 1);
-    const GreensFunc& g0tdn = (t == 0) ? walker.Green0tDn(walker.TimeSize() - 1)
-                                       : walker.Green0tDn(t - 1);
+  for (auto i = 0; i < space_size; ++i) {
+    const auto ipx = lattice.NearestNeighbour(i, 0);
+    uncorrelated_i_vals[i] = g00up(i, ipx) - g00up(ipx, i) +
+                             g00dn(i, ipx) - g00dn(ipx, i);
+  }
 
-    // the first site i
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      // the nearest neighbor of site i along positive direction of axis x
+  double total_rho_s = 0.0;
+
+  for (auto t = 0; t < time_size; ++t) {
+    const int tau = (t == 0) ? time_size - 1 : t - 1;
+
+    const GreensFunc& gttup = (t == 0) ? g00up : walker.GreenttUp(tau);
+    const GreensFunc& gttdn = (t == 0) ? g00dn : walker.GreenttDn(tau);
+    const GreensFunc& gt0up = walker.Greent0Up(tau);
+    const GreensFunc& gt0dn = walker.Greent0Dn(tau);
+    const GreensFunc& g0tup = walker.Green0tUp(tau);
+    const GreensFunc& g0tdn = walker.Green0tDn(tau);
+
+    std::vector<double> uncorrelated_j_vals(space_size);
+    for (auto j = 0; j < space_size; ++j) {
+        const auto jpx = lattice.NearestNeighbour(j, 0);
+        uncorrelated_j_vals[j] = gttup(j, jpx) - gttup(jpx, j) +
+                                 gttdn(j, jpx) - gttdn(jpx, j);
+    }
+
+    double t_slice_sum = 0.0;
+    for (auto i = 0; i < space_size; ++i) {
       const auto ipx = lattice.NearestNeighbour(i, 0);
-
-      // the second site j
-      for (auto j = 0; j < lattice.SpaceSize(); ++j) {
-        // the nearest neighbor of site j along positive direction of axis x
+      for (auto j = 0; j < space_size; ++j) {
         const auto jpx = lattice.NearestNeighbour(j, 0);
 
-        // we would like to compute the factor of fourier transformation
-        //     exp ( -i kx * r ) - exp ( -i ky * r )
-        // where r = rj - ri is the displacement between site i and j,
-        // and kx, ky are the minimal momentum along x and y direction
-        // respectively
-        //     kx = ( 2pi/L, 0 )    ky = ( 0, 2pi/L )
         const auto rx = lattice.Index2Site(lattice.Displacement(i, j), 0);
         const auto ry = lattice.Index2Site(lattice.Displacement(i, j), 1);
-
-        // becasue these two momentum kx and ky are equivalent,
-        // and belong to the same irreducible representation (k star),
-        // we will only have the fourier factor table of kx = (kx,0) in our
-        // memory, whose momentum index is 1. it may seem quite tricky here that
-        // we do the replacement
-        //     kx * r = (kx,0) * (rx,ry)    = kx * rx   ->  (kx,0) * (rx,0)
-        //     ky * r = (0,ky=kx) * (rx,ry) = kx * ry   ->  (kx,0) * (ry,0)
-        // with the site (rx,0) labeled by index rx and the site (ry,0) labeled
-        // by index ry. this replacement will keep the fourier factors
-        // invariant.
         const auto fourier_factor =
             lattice.FourierFactor(rx, 1) - lattice.FourierFactor(ry, 1);
 
-        // it should be noted that this replacement is only valid when the
-        // lattice has a even side length, otherwise the kx and ky will become
-        // the same momentum point due to the finite size effect.
+        const double correlated_part =
+            g0tup(ipx, jpx) * gt0up(j, i) + g0tdn(ipx, jpx) * gt0dn(j, i) -
+            g0tup(i, jpx) * gt0up(j, ipx) - g0tdn(i, jpx) * gt0dn(j, ipx) -
+            g0tup(ipx, j) * gt0up(jpx, i) - g0tdn(ipx, j) * gt0dn(jpx, i) +
+            g0tup(i, j) * gt0up(jpx, ipx) + g0tdn(i, j) * gt0dn(jpx, ipx);
 
-        // compute the stiffness
-        tmp_rho_s +=
-            model.HoppingT() * model.HoppingT() * config_sign * fourier_factor *
-            (
-                // uncorrelated part
-                -(gttup(j, jpx) - gttup(jpx, j) + gttdn(j, jpx) -
-                  gttdn(jpx, j)) *
-                    (g00up(i, ipx) - g00up(ipx, i) + g00dn(i, ipx) -
-                     g00dn(ipx, i))
-
-                // correlated part
-                - g0tup(ipx, jpx) * gt0up(j, i) -
-                g0tdn(ipx, jpx) * gt0dn(j, i) + g0tup(i, jpx) * gt0up(j, ipx) +
-                g0tdn(i, jpx) * gt0dn(j, ipx) + g0tup(ipx, j) * gt0up(jpx, i) +
-                g0tdn(ipx, j) * gt0dn(jpx, i) - g0tup(i, j) * gt0up(jpx, ipx) -
-                g0tdn(i, j) * gt0dn(jpx, ipx));
+        t_slice_sum += fourier_factor *
+            (-uncorrelated_j_vals[j] * uncorrelated_i_vals[i] - correlated_part);
       }
     }
+    total_rho_s += t_slice_sum;
   }
-  // the 1/4 prefactor is because that the Cooper pair carries charge 2
-  // see https://arxiv.org/pdf/1912.08848.pdf
-  superfluid_stiffness.tmp_value() +=
-      0.25 * tmp_rho_s / (lattice.SpaceSize() * lattice.SpaceSize());
+
+  superfluid_stiffness.tmp_value() += final_prefactor * config_sign * total_rho_s;
   ++superfluid_stiffness;
 }
 
