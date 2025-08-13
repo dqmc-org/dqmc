@@ -155,38 +155,37 @@ void Methods::measure_momentum_distribution(ScalarObs& momentum_dist,
 void Methods::measure_spin_density_structure_factor(
     ScalarObs& sdw_factor, const MeasureHandler& meas_handler,
     const Walker& walker, const ModelBase& model, const LatticeBase& lattice) {
+  const int space_size = lattice.SpaceSize();
+  const double inv_space_size_sq =
+      1.0 / (static_cast<double>(space_size) * space_size);
+  const int K_vector = meas_handler.Momentum();
+
   for (auto t = 0; t < walker.TimeSize(); ++t) {
-    //  g(i,j) = < c_i * c^+_j > are the greens functions
-    // gc(i,j) = < c^+_i * c_j > are isomorphic to the conjugation of greens
-    // functions
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
     const GreensFunc& guc =
-        Matrix::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
-        gu.transpose();
+        Matrix::Identity(space_size, space_size) - gu.transpose();
     const GreensFunc& gdc =
-        Matrix::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
-        gd.transpose();
-    const RealScalar& config_sign = walker.ConfigSign(t);
+        Matrix::Identity(space_size, space_size) - gd.transpose();
+    const double config_sign = walker.ConfigSign(t);
 
-    // loop over site i, j and take averages
     RealScalar tmp_sdw = 0.0;
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      for (auto j = 0; j < lattice.SpaceSize(); ++j) {
-        tmp_sdw += config_sign *
-                   lattice.FourierFactor(lattice.Displacement(i, j),
-                                         meas_handler.Momentum()) *
-                   (+guc(i, i) * guc(j, j) + guc(i, j) * gu(i, j) +
-                    gdc(i, i) * gdc(j, j) + gdc(i, j) * gd(i, j) -
-                    gdc(i, i) * guc(j, j) - guc(i, i) * gdc(j, j));
+    for (auto i = 0; i < space_size; ++i) {
+      const double guc_ii = guc(i, i);
+      const double gdc_ii = gdc(i, i);
+
+      for (auto j = 0; j < space_size; ++j) {
+        tmp_sdw +=
+            lattice.FourierFactor(lattice.Displacement(i, j), K_vector) *
+            (+guc_ii * guc(j, j) + guc(i, j) * gu(i, j) + gdc_ii * gdc(j, j) +
+             gdc(i, j) * gd(i, j) - gdc_ii * guc(j, j) - guc_ii * gdc(j, j));
       }
     }
-    sdw_factor.tmp_value() +=
-        tmp_sdw / (lattice.SpaceSize() * lattice.SpaceSize());
+
+    sdw_factor.tmp_value() += config_sign * tmp_sdw * inv_space_size_sq;
     ++sdw_factor;
   }
 }
-
 // Structure factor of charge density wave (CDW) defined as
 // 1/N \sum ij ( exp( -i Q*(ri-rj) ) * (n_up + n_dn)(j) * (n_up + n_dn)(i) )
 // where Q is the wave momentum of cdw.
