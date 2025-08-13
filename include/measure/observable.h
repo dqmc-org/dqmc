@@ -1,10 +1,11 @@
 #pragma once
 
 /**
- *  This head file includes the abstract base class Observable::ObservableBase
- *  and its template derived class Observable::Observable<ObsType> class, which
- * are designed for the measurements of physical observables in dqmc
- * simualtions. Support observable types of scalar, vector and matrix kinds.
+ * @brief This header file defines the abstract base class
+ *        `Observable::ObservableBase` and its template-derived class
+ *        `Observable::Observable<ObsType>`. These classes support scalar,
+ *        vector, and matrix observable types, providing a framework for
+ *        measurement, data collection, and statistical analysis.
  */
 
 #include <Eigen/Core>
@@ -36,6 +37,54 @@ using ScalarType = double;
 using VectorType = Eigen::VectorXd;
 using MatrixType = Eigen::MatrixXd;
 
+namespace detail {
+
+template <typename ObsType, typename = void>
+struct error_bar_calculator {
+  static void calculate(ObsType&, const ObsType&, const std::vector<ObsType>&,
+                        int) {
+    static_assert(
+        sizeof(ObsType) == 0,
+        "Observable::calculate_error_bar(): Unsupported observable type.");
+  }
+};
+
+template <>
+struct error_bar_calculator<ScalarType> {
+  static void calculate(ScalarType& error_bar, const ScalarType& mean_value,
+                        const std::vector<ScalarType>& bin_data, int bin_num) {
+    for (const auto& data : bin_data) {
+      error_bar += std::pow(data, 2);
+    }
+    error_bar /= bin_num;
+    error_bar =
+        std::sqrt(error_bar - std::pow(mean_value, 2)) / std::sqrt(bin_num - 1);
+  }
+};
+
+template <typename EigenType>
+struct error_bar_calculator<
+    EigenType, std::enable_if_t<
+                   std::is_base_of_v<Eigen::DenseBase<EigenType>, EigenType>>> {
+  static void calculate(EigenType& error_bar, const EigenType& mean_value,
+                        const std::vector<EigenType>& bin_data, int bin_num) {
+    for (const auto& data : bin_data) {
+      error_bar += data.array().square().matrix();
+    }
+    error_bar /= bin_num;
+    error_bar =
+        (error_bar.array() - mean_value.array().square()).sqrt().matrix() /
+        std::sqrt(bin_num - 1);
+  }
+};
+}  // namespace detail
+
+/**
+ * @brief An abstract base class for all observables. `ObservableBase` provides
+ *        common properties and functionalities independent of the specific
+ *        observable data type, such as name, description, and binning
+ *        information. It manages the counting of samples within a bin.
+ */
 class ObservableBase {
  protected:
   std::string m_name{};  // name of the observable
@@ -50,7 +99,7 @@ class ObservableBase {
       : m_name(name), m_desc(desc), m_bin_num(bin_num) {}
 
  public:
-  virtual ~ObservableBase(){};
+  virtual ~ObservableBase() = default;
 
   const std::string& name() const { return this->m_name; }
   const std::string& description() const { return this->m_desc; }
@@ -63,8 +112,15 @@ class ObservableBase {
   int operator+=(int i) { return this->m_count += i; }
 };
 
-// ---------------------------  Derived template class
-// Observable::Observable<ObsType>  --------------------------
+/**
+ * @brief A template-derived class from `ObservableBase` that handles the
+ *        measurement, storage, and statistical analysis for a specific
+ *        observable type. `Observable<ObsType>` manages data collection across
+ *        multiple bins, computes mean values, and estimates error bars.
+ *
+ * @tparam ObsType The data type of the observable (e.g., `ScalarType`,
+ * `VectorType`, `MatrixType`).
+ */
 template <typename ObsType>
 class Observable : public ObservableBase {
  private:
@@ -182,37 +238,9 @@ class Observable : public ObservableBase {
 
   // estimate error bar of the measurement
   void calculate_error_bar() {
-    // for observables with Scalar type
-    if constexpr (std::is_same_v<ObsType, ScalarType>) {
-      for (const auto& bin_data : this->m_bin_data) {
-        this->m_error_bar += std::pow(bin_data, 2);
-      }
-      this->m_error_bar /= this->bin_num();
-      this->m_error_bar =
-          std::sqrt(this->m_error_bar - std::pow(this->m_mean_value, 2)) /
-          std::sqrt(this->bin_num() - 1);
-    }
-
-    // for observables with Vector and Matrix types
-    else if constexpr (std::is_same_v<ObsType, VectorType> ||
-                       std::is_same_v<ObsType, MatrixType>) {
-      for (const auto& bin_data : this->m_bin_data) {
-        this->m_error_bar += bin_data.array().square().matrix();
-      }
-      this->m_error_bar /= this->bin_num();
-      this->m_error_bar =
-          (this->m_error_bar.array() - this->m_mean_value.array().square())
-              .sqrt()
-              .matrix() /
-          std::sqrt(this->bin_num() - 1);
-    }
-
-    // others observable type, raising errors
-    else {
-      std::cerr << "Observable::Observable<ObsType>::calculate_error_bar(): "
-                << "undefined observable type." << std::endl;
-      exit(1);
-    }
+    detail::error_bar_calculator<ObsType>::calculate(
+        this->m_error_bar, this->m_mean_value, this->m_bin_data,
+        this->bin_num());
   }
 };
 
