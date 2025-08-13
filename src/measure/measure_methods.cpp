@@ -95,7 +95,7 @@ void Methods::measure_kinetic_energy(ScalarObs& kinetic_energy,
                                      const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
-  const double prefactor = model.HoppingT() / lattice.SpaceSize();
+  const double prefactor = model.HoppingT() / space_size;
 
   double total_sum = 0.0;
 
@@ -125,19 +125,29 @@ void Methods::measure_local_spin_corr(ScalarObs& local_spin_corr,
                                       const Walker& walker,
                                       const ModelBase& model,
                                       const LatticeBase& lattice) {
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
+  const double prefactor = 1.0 / space_size;
+
+  double total_sum = 0.0;
+
+  for (auto t = 0; t < time_size; ++t) {
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
-    const RealScalar& config_sign = walker.ConfigSign(t);
+    const double config_sign = walker.ConfigSign(t);
 
-    RealScalar tmp_local_spin_corr = 0.0;
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      tmp_local_spin_corr +=
-          config_sign * (gu(i, i) + gd(i, i) - 2 * gu(i, i) * gd(i, i));
+    for (auto i = 0; i < space_size; ++i) {
+      // Let n_up = gu(i, i) and n_dn = gd(i, i). The local spin correlation
+      // <S_z^2> is proportional to <(n_up - n_dn)^2> = <n_up^2 - 2n_up*n_dn +
+      // n_dn^2>. For fermions, n^2 = n, so this is <n_up + n_dn - 2*n_up*n_dn>.
+      const double n_up = gu(i, i);
+      const double n_dn = gd(i, i);
+      total_sum += config_sign * (n_up + n_dn - 2.0 * n_up * n_dn);
     }
-    local_spin_corr.tmp_value() += tmp_local_spin_corr / lattice.SpaceSize();
-    ++local_spin_corr;
   }
+
+  local_spin_corr.tmp_value() += prefactor * total_sum;
+  local_spin_corr += time_size;
 }
 
 // Distribution of electrons in momentum space defined as n(k) = ( n_up + n_dn
