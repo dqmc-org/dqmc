@@ -45,6 +45,7 @@ std::vector<std::string> ObservableHandler::get_all_observable_names() {
   }
   return names;
 }
+
 bool ObservableHandler::is_eqtime(const ObsName& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
   return it != m_supported_observables.end() &&
@@ -55,10 +56,6 @@ bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
   return it != m_supported_observables.end() &&
          it->second.time_type == ObsTimeType::Dynamic;
-}
-
-bool ObservableHandler::find(const ObsName& obs_name) {
-  return this->m_obs_map.count(obs_name) > 0;
 }
 
 bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {

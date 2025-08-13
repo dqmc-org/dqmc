@@ -9,6 +9,7 @@
 
 #include <map>
 #include <memory>
+#include <optional>
 
 #include "measure/observable.h"
 
@@ -71,12 +72,9 @@ class ObservableHandler {
 
   static std::vector<std::string> get_all_observable_names();
 
-  // check if certain observable exists
-  bool find(const ObsName& obs_name);
-
-  // return certain type of the observable class
+  // find observable and return std::optional
   template <typename ObsType>
-  const ObsType find(const ObsName& obs_name);
+  std::optional<ObsType> find(const ObsName& obs_name);
 
   // initialize the handler
   void initial(const ObsNameList& obs_list);
@@ -95,13 +93,14 @@ class ObservableHandler {
 
 // implementation of the template member function
 template <typename ObsType>
-const ObsType ObservableHandler::find(const ObsName& obs_name) {
-  if (this->find(obs_name)) {
-    auto ptrObs = std::dynamic_pointer_cast<ObsType>(this->m_obs_map[obs_name]);
+std::optional<ObsType> ObservableHandler::find(const ObsName& obs_name) {
+  auto it = this->m_obs_map.find(obs_name);
+  if (it != this->m_obs_map.end()) {
+    auto ptrObs = std::dynamic_pointer_cast<ObsType>(it->second);
     if (ptrObs) {
       return *ptrObs;
     }
   }
-  return ObsType();
+  return std::nullopt;
 }
 }  // namespace Observable
