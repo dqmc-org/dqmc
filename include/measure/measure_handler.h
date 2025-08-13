@@ -64,7 +64,7 @@ class MeasureHandler : public Observable::ObservableHandler {
 
   // set up lattice momentum params for momentum-dependent measurements
   // the input momentum list should be provided by Lattice module
-  void set_measured_momentum(const MomentumIndex& momentum_index);
+  void set_measured_momentum(MomentumIndex momentum_index);
   void set_measured_momentum_list(const MomentumIndexList& momentum_index_list);
 
   // ------------------------------------  Initializations
@@ -86,13 +86,13 @@ class MeasureHandler : public Observable::ObservableHandler {
   int BinsNum() const { return this->m_bin_num; }
   int BinsSize() const { return this->m_bin_size; }
 
-  const MomentumIndex& Momentum() const { return this->m_momentum; }
+  MomentumIndex Momentum() const { return this->m_momentum; }
 
   const MomentumIndexList& MomentumList() const {
     return this->m_momentum_list;
   }
 
-  const MomentumIndex& MomentumList(const int i) const {
+  MomentumIndex MomentumList(const int i) const {
     DQMC_ASSERT(i >= 0 && i < (int)this->m_momentum_list.size());
     return this->m_momentum_list[i];
   }

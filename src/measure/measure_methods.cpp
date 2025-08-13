@@ -193,34 +193,45 @@ void Methods::measure_spin_density_structure_factor(
 void Methods::measure_charge_density_structure_factor(
     ScalarObs& cdw_factor, const MeasureHandler& meas_handler,
     const Walker& walker, const ModelBase& model, const LatticeBase& lattice) {
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
-    //  g(i,j) = < c_i * c^+_j > are the greens functions
-    // gc(i,j) = < c^+_i * c_j > are isomorphic to the conjugation of greens
-    // functions
+  const int space_size = lattice.SpaceSize();
+  const int time_size = walker.TimeSize();
+  const int K_vector = meas_handler.Momentum();
+  const double inv_space_size_sq =
+      1.0 / (static_cast<double>(space_size) * space_size);
+
+  std::vector<double> n_up(space_size);
+  std::vector<double> n_dn(space_size);
+
+  for (auto t = 0; t < time_size; ++t) {
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
-    const GreensFunc& guc =
-        Matrix::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
-        gu.transpose();
-    const GreensFunc& gdc =
-        Matrix::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
-        gd.transpose();
-    const RealScalar& config_sign = walker.ConfigSign(t);
+    const double config_sign = walker.ConfigSign(t);
 
-    // loop over site i, j and take averages
-    RealScalar tmp_cdw = 0.0;
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      for (auto j = 0; j < lattice.SpaceSize(); ++j) {
-        tmp_cdw += config_sign *
-                   lattice.FourierFactor(lattice.Displacement(i, j),
-                                         meas_handler.Momentum()) *
-                   (+guc(i, i) * guc(j, j) + guc(i, j) * gu(i, j) +
-                    gdc(i, i) * gdc(j, j) + gdc(i, j) * gd(i, j) +
-                    gdc(i, i) * guc(j, j) + guc(i, i) * gdc(j, j));
+    for (int i = 0; i < space_size; ++i) {
+      n_up[i] = 1.0 - gu(i, i);
+      n_dn[i] = 1.0 - gd(i, i);
+    }
+
+    double tmp_cdw = 0.0;
+    for (auto i = 0; i < space_size; ++i) {
+      const double ni = n_up[i] + n_dn[i];
+
+      for (auto j = 0; j < space_size; ++j) {
+        const double nj = n_up[j] + n_dn[j];
+        const double density_term = ni * nj;
+
+        const double guc_ij = (i == j) - gu(j, i);
+        const double gdc_ij = (i == j) - gd(j, i);
+        const double hopping_term = guc_ij * gu(i, j) + gdc_ij * gd(i, j);
+
+        const double total_correlator = density_term + hopping_term;
+        const auto fourier_factor =
+            lattice.FourierFactor(lattice.Displacement(i, j), K_vector);
+
+        tmp_cdw += fourier_factor * total_correlator;
       }
     }
-    cdw_factor.tmp_value() +=
-        tmp_cdw / (lattice.SpaceSize() * lattice.SpaceSize());
+    cdw_factor.tmp_value() += config_sign * tmp_cdw * inv_space_size_sq;
     ++cdw_factor;
   }
 }
@@ -294,8 +305,10 @@ void Methods::measure_greens_functions(MatrixObs& greens_functions,
   for (auto t = 0; t < time_size; ++t) {
     const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    const GreensFunc& gup = (t == 0) ? walker.GreenttUp(tau) : walker.Greent0Up(tau);
-    const GreensFunc& gdn = (t == 0) ? walker.GreenttDn(tau) : walker.Greent0Dn(tau);
+    const GreensFunc& gup =
+        (t == 0) ? walker.GreenttUp(tau) : walker.Greent0Up(tau);
+    const GreensFunc& gdn =
+        (t == 0) ? walker.GreenttDn(tau) : walker.Greent0Dn(tau);
 
     for (auto k = 0; k < num_momenta; ++k) {
       const auto& K_vector = meas_handler.MomentumList(k);
@@ -373,8 +386,8 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
 
   for (auto i = 0; i < space_size; ++i) {
     const auto ipx = lattice.NearestNeighbour(i, 0);
-    uncorrelated_i_vals[i] = g00up(i, ipx) - g00up(ipx, i) +
-                             g00dn(i, ipx) - g00dn(ipx, i);
+    uncorrelated_i_vals[i] =
+        g00up(i, ipx) - g00up(ipx, i) + g00dn(i, ipx) - g00dn(ipx, i);
   }
 
   double total_rho_s = 0.0;
@@ -391,9 +404,9 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
 
     std::vector<double> uncorrelated_j_vals(space_size);
     for (auto j = 0; j < space_size; ++j) {
-        const auto jpx = lattice.NearestNeighbour(j, 0);
-        uncorrelated_j_vals[j] = gttup(j, jpx) - gttup(jpx, j) +
-                                 gttdn(j, jpx) - gttdn(jpx, j);
+      const auto jpx = lattice.NearestNeighbour(j, 0);
+      uncorrelated_j_vals[j] =
+          gttup(j, jpx) - gttup(jpx, j) + gttdn(j, jpx) - gttdn(jpx, j);
     }
 
     double t_slice_sum = 0.0;
@@ -413,14 +426,16 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
             g0tup(ipx, j) * gt0up(jpx, i) - g0tdn(ipx, j) * gt0dn(jpx, i) +
             g0tup(i, j) * gt0up(jpx, ipx) + g0tdn(i, j) * gt0dn(jpx, ipx);
 
-        t_slice_sum += fourier_factor *
-            (-uncorrelated_j_vals[j] * uncorrelated_i_vals[i] - correlated_part);
+        t_slice_sum +=
+            fourier_factor * (-uncorrelated_j_vals[j] * uncorrelated_i_vals[i] -
+                              correlated_part);
       }
     }
     total_rho_s += t_slice_sum;
   }
 
-  superfluid_stiffness.tmp_value() += final_prefactor * config_sign * total_rho_s;
+  superfluid_stiffness.tmp_value() +=
+      final_prefactor * config_sign * total_rho_s;
   ++superfluid_stiffness;
 }
 
@@ -432,7 +447,6 @@ void Methods::measure_superfluid_stiffness(ScalarObs& superfluid_stiffness,
 void Methods::measure_dynamic_spin_susceptibility(
     VectorObs& dynamic_spin_susceptibility, const MeasureHandler& meas_handler,
     const Walker& walker, const ModelBase& model, const LatticeBase& lattice) {
-
   const int space_size = lattice.SpaceSize();
   const int time_size = walker.TimeSize();
   const double config_sign = walker.ConfigSign();
@@ -460,9 +474,12 @@ void Methods::measure_dynamic_spin_susceptibility(
       const double gc00up_ii = 1.0 - g00up(i, i);
       const double gc00dn_ii = 1.0 - g00dn(i, i);
 
-      const double up_contribution   = gcttup_ii * gc00up_ii - g0tup(i, i) * gt0up(i, i);
-      const double dn_contribution   = gcttdn_ii * gc00dn_ii - g0tdn(i, i) * gt0dn(i, i);
-      const double mixed_contribution = gcttup_ii * gc00dn_ii + gc00up_ii * gcttdn_ii;
+      const double up_contribution =
+          gcttup_ii * gc00up_ii - g0tup(i, i) * gt0up(i, i);
+      const double dn_contribution =
+          gcttdn_ii * gc00dn_ii - g0tdn(i, i) * gt0dn(i, i);
+      const double mixed_contribution =
+          gcttup_ii * gc00dn_ii + gc00up_ii * gcttdn_ii;
 
       current_t_sum += (up_contribution + dn_contribution - mixed_contribution);
     }

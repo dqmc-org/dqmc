@@ -141,9 +141,7 @@ class Walker {
   // interfaces for configuration signs
   RealScalar ConfigSign() const { return this->m_config_sign; }
 
-  RealScalar ConfigSign(int t) const {
-    return this->m_vec_config_sign[t];
-  }
+  RealScalar ConfigSign(int t) const { return this->m_vec_config_sign[t]; }
 
   const RealScalarVec& vecConfigSign() const { return this->m_vec_config_sign; }
 

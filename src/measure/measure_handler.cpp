@@ -23,8 +23,7 @@ void MeasureHandler::set_observables(ObsList obs_list) {
   this->m_obs_list = obs_list;
 }
 
-void MeasureHandler::set_measured_momentum(
-    const MomentumIndex& momentum_index) {
+void MeasureHandler::set_measured_momentum(MomentumIndex momentum_index) {
   this->m_momentum = momentum_index;
 }
 
