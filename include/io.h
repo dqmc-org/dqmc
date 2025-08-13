@@ -50,10 +50,15 @@ class IO {
   // including time cost and wrapping errors
   static void output_ending_info(std::ostream& ostream, const Walker& walker);
 
-  // output the mean value and error bar of one specific observable
-  template <typename StreamType, typename ObsType>
-  static void output_observable(StreamType& ostream,
-                                const Observable::Observable<ObsType>& obs);
+  // output observable to console
+  template <typename ObsType>
+  static void output_observable_to_console(
+      std::ostream& ostream, const Observable::Observable<ObsType>& obs);
+
+  // output observable to file
+  template <typename ObsType>
+  static void output_observable_to_file(
+      std::ofstream& ostream, const Observable::Observable<ObsType>& obs);
 
   // output the bin data of one specific observable
   template <typename StreamType, typename ObsType>
@@ -82,131 +87,123 @@ class IO {
 //                                Implementation of template functions
 // -------------------------------------------------------------------------------------------------------
 
-template <typename StreamType, typename ObsType>
-void IO::output_observable(StreamType& ostream,
-                           const Observable::Observable<ObsType>& obs) {
+template <typename ObsType>
+void IO::output_observable_to_console(
+    std::ostream& ostream, const Observable::Observable<ObsType>& obs) {
   if (!ostream) {
-    std::cerr << "DQMC::IO::output_observable(): "
-              << "the ostream failed to work, please check the input."
+    throw std::runtime_error(
+        "DQMC::IO::output_observable_to_console(): "
+        "output stream is not valid.");
+  }
+
+  // for scalar observables
+  if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
+    auto fmt_scalar_obs = [](const std::string& desc, const std::string& joiner,
+                             double mean, double error) {
+      return std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}", desc, joiner,
+                         mean, error);
+    };
+    const std::string joiner = "->";
+    ostream << fmt_scalar_obs(obs.description(), joiner, obs.mean_value(),
+                              obs.error_bar())
+            << std::endl;
+  }
+
+  // // todo: currently not used
+  // // for vector observables
+  // else if constexpr ( std::is_same_v<ObsType, Observable::VectorType> ) {
+
+  // }
+
+  // // for matrix observables
+  // else if constexpr ( std::is_same_v<ObsType, Observable::MatrixType> ) {
+
+  // }
+
+  // other observable type, raising errors
+  else {
+    throw std::runtime_error(
+        "DQMC::IO::output_observable_to_console(): "
+        "undefined observable type.");
+  }
+}
+
+template <typename ObsType>
+void IO::output_observable_to_file(std::ofstream& ostream,
+                                   const Observable::Observable<ObsType>& obs) {
+  if (!ostream) {
+    throw std::runtime_error(
+        "DQMC::IO::output_observable_to_file(): "
+        "output stream is not valid.");
+  }
+
+  // for scalar observables
+  if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
+    // for specfic scalar observable, output the mean value, error bar and
+    // relative error in order.
+    auto fmt_scalar_obs = [](double mean, double error, double rel_error) {
+      return std::format("{:>20.10f}{:>20.10f}{:>20.10f}", mean, error,
+                         rel_error);
+    };
+    ostream << fmt_scalar_obs(obs.mean_value(), obs.error_bar(),
+                              (obs.error_bar() / obs.mean_value()))
+            << std::endl;
+  }
+
+  // for vector observables
+  else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
+    // output vector observable
+    auto fmt_size_info = [](int size) { return std::format("{:>20d}", size); };
+    auto fmt_vector_obs = [](int i, double mean, double error,
+                             double rel_error) {
+      return std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i, mean,
+                         error, rel_error);
+    };
+
+    const int size = obs.mean_value().size();
+    const auto relative_error =
+        (obs.error_bar().array() / obs.mean_value().array()).matrix();
+    ostream << fmt_size_info(size) << std::endl;
+    for (auto i = 0; i < size; ++i) {
+      // output the mean value, error bar and relative error in order.
+      ostream << fmt_vector_obs(i, obs.mean_value()(i), obs.error_bar()(i),
+                                relative_error(i))
               << std::endl;
-    exit(1);
-  } else {
-    // standard screen output
-    if constexpr (std::is_same_v<StreamType, std::ostream>) {
-      // for scalar observables
-      if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
-        auto fmt_scalar_obs = [](const std::string& desc,
-                                 const std::string& joiner, double mean,
-                                 double error) {
-          return std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}", desc,
-                             joiner, mean, error);
-        };
-        const std::string joiner = "->";
-        ostream << fmt_scalar_obs(obs.description(), joiner, obs.mean_value(),
-                                  obs.error_bar())
+    }
+  }
+
+  // for matrix observables
+  else if constexpr (std::is_same_v<ObsType, Observable::MatrixType>) {
+    // output matrix observable
+    auto fmt_size_info = [](int row, int col) {
+      return std::format("{:>20d}{:>20d}", row, col);
+    };
+    auto fmt_matrix_obs = [](int i, int j, double mean, double error,
+                             double rel_error) {
+      return std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i, j,
+                         mean, error, rel_error);
+    };
+
+    const int row = obs.mean_value().rows();
+    const int col = obs.mean_value().cols();
+    const auto relative_error =
+        (obs.error_bar().array() / obs.mean_value().array()).matrix();
+    ostream << fmt_size_info(row, col) << std::endl;
+    for (auto i = 0; i < row; ++i) {
+      for (auto j = 0; j < col; ++j) {
+        // output the mean value, error bar and relative error in order.
+        ostream << fmt_matrix_obs(i, j, obs.mean_value()(i, j),
+                                  obs.error_bar()(i, j), relative_error(i, j))
                 << std::endl;
       }
-
-      // // todo: currently not used
-      // // for vector observables
-      // else if constexpr ( std::is_same_v<ObsType, Observable::VectorType> ) {
-
-      // }
-
-      // // for matrix observables
-      // else if constexpr ( std::is_same_v<ObsType, Observable::MatrixType> ) {
-
-      // }
-
-      // other observable type, raising errors
-      else {
-        std::cerr << "DQMC::IO::output_observable(): "
-                  << "undefined observable type." << std::endl;
-        exit(1);
-      }
     }
+  }
 
-    // standard file output
-    else if constexpr (std::is_same_v<StreamType, std::ofstream>) {
-      // for scalar observables
-      if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
-        // for specfic scalar observable, output the mean value, error bar and
-        // relative error in order.
-        auto fmt_scalar_obs = [](double mean, double error, double rel_error) {
-          return std::format("{:>20.10f}{:>20.10f}{:>20.10f}", mean, error,
-                             rel_error);
-        };
-        ostream << fmt_scalar_obs(obs.mean_value(), obs.error_bar(),
-                                  (obs.error_bar() / obs.mean_value()))
-                << std::endl;
-      }
-
-      // for vector observables
-      else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
-        // output vector observable
-        auto fmt_size_info = [](int size) {
-          return std::format("{:>20d}", size);
-        };
-        auto fmt_vector_obs = [](int i, double mean, double error,
-                                 double rel_error) {
-          return std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i, mean,
-                             error, rel_error);
-        };
-
-        const int size = obs.mean_value().size();
-        const auto relative_error =
-            (obs.error_bar().array() / obs.mean_value().array()).matrix();
-        ostream << fmt_size_info(size) << std::endl;
-        for (auto i = 0; i < size; ++i) {
-          // output the mean value, error bar and relative error in order.
-          ostream << fmt_vector_obs(i, obs.mean_value()(i), obs.error_bar()(i),
-                                    relative_error(i))
-                  << std::endl;
-        }
-      }
-
-      // for matrix observables
-      else if constexpr (std::is_same_v<ObsType, Observable::MatrixType>) {
-        // output matrix observable
-        auto fmt_size_info = [](int row, int col) {
-          return std::format("{:>20d}{:>20d}", row, col);
-        };
-        auto fmt_matrix_obs = [](int i, int j, double mean, double error,
-                                 double rel_error) {
-          return std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i,
-                             j, mean, error, rel_error);
-        };
-
-        const int row = obs.mean_value().rows();
-        const int col = obs.mean_value().cols();
-        const auto relative_error =
-            (obs.error_bar().array() / obs.mean_value().array()).matrix();
-        ostream << fmt_size_info(row, col) << std::endl;
-        for (auto i = 0; i < row; ++i) {
-          for (auto j = 0; j < col; ++j) {
-            // output the mean value, error bar and relative error in order.
-            ostream << fmt_matrix_obs(i, j, obs.mean_value()(i, j),
-                                      obs.error_bar()(i, j),
-                                      relative_error(i, j))
-                    << std::endl;
-          }
-        }
-      }
-
-      // other observable types, raising errors
-      else {
-        std::cerr << "DQMC::IO::output_observable(): "
-                  << "undefined observable type." << std::endl;
-        exit(1);
-      }
-    }
-
-    // others stream types, raising errors
-    else {
-      std::cerr << "DQMC::IO::output_observable(): "
-                << "unsupported type of output stream." << std::endl;
-      exit(1);
-    }
+  // other observable types, raising errors
+  else {
+    throw std::runtime_error(
+        "DQMC::IO::output_observable_to_file(): "
+        "undefined observable type.");
   }
 }
 
