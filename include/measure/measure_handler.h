@@ -97,16 +97,6 @@ class MeasureHandler : public Observable::ObservableHandler {
     return this->m_momentum_list[i];
   }
 
-  // the following interfaces have been implemented
-  // in the base class Observable::ObservableHandler.
-  // and can be directly called in the MeasureHandler class.
-
-  // // check if certain observable exists
-  // bool find(const ObsName& obs_name);
-
-  // // return certain type of the observable class
-  // template<typename ObsType> const ObsType find(const ObsName& obs_name);
-
   // --------------------------  Subroutines for measuring observables
   // ---------------------------------
 
