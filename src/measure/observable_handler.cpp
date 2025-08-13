@@ -60,7 +60,7 @@ bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
 }
 
 bool ObservableHandler::find(const ObsName& obs_name) {
-  return (this->m_obs_map.count(obs_name) > 0);
+  return this->m_obs_map.count(obs_name) > 0;
 }
 
 bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {
