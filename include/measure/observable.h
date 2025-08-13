@@ -32,21 +32,29 @@ class MeasureHandler;
 
 namespace Observable {
 
-// data types of observables
 using ScalarType = double;
 using VectorType = Eigen::VectorXd;
 using MatrixType = Eigen::MatrixXd;
 
-// ------------------------------  Abstract base class
-// Observable::ObservableBase  ------------------------------- this class should
-// not be instantiated in any case it only serves as a pointer to its derived
-// class
 class ObservableBase {
  protected:
+  std::string m_name{};  // name of the observable
+  std::string m_desc{};  // description of the observable
+  int m_bin_num{0};      // total number of bins
+
   ObservableBase() = default;
+
+  explicit ObservableBase(const std::string& name, const std::string& desc,
+                          int bin_num = 0)
+      : m_name(name), m_desc(desc), m_bin_num(bin_num) {}
 
  public:
   virtual ~ObservableBase(){};
+
+  const std::string& name() const { return this->m_name; }
+  const std::string& description() const { return this->m_desc; }
+  int bin_num() const { return this->m_bin_num; }
+  void set_number_of_bins(int bin_num) { this->m_bin_num = bin_num; }
 };
 
 // ---------------------------  Derived template class
@@ -67,11 +75,7 @@ class Observable : public ObservableBase {
   ObsType m_tmp_value{};   // temporary value during sample collections
   ObsType m_zero_elem{};   // zero element to clear temporary values
 
-  std::string m_name{};  // name of the observable
-  std::string
-      m_desc{};      // description of the observable, used as output message
-  int m_count{0};    // countings
-  int m_bin_num{0};  // total number of bins
+  int m_count{0};                     // countings
   std::vector<ObsType> m_bin_data{};  // collected data in bins
 
   std::function<ObsMethod> m_method{};  // user-defined measuring method
@@ -79,7 +83,9 @@ class Observable : public ObservableBase {
  public:
   Observable() = default;
 
-  explicit Observable(int bin_num) { this->set_number_of_bins(bin_num); }
+  explicit Observable(const std::string& name, const std::string& desc,
+                      int bin_num = 0)
+      : ObservableBase(name, desc, bin_num) {}
 
   // overload operator ++
   int operator++() { return ++this->m_count; }
@@ -91,9 +97,6 @@ class Observable : public ObservableBase {
 
   int& counts() { return this->m_count; }
   int counts() const { return this->m_count; }
-  int bin_num() const { return this->m_bin_num; }
-  const std::string name() const { return this->m_name; }
-  const std::string description() const { return this->m_desc; }
 
   const ObsType& zero_element() const { return this->m_zero_elem; }
   const ObsType& mean_value() const { return this->m_mean_value; }
@@ -117,14 +120,8 @@ class Observable : public ObservableBase {
   // ---------------------------------  Set up parameters and methods
   // ------------------------------------
 
-  void set_number_of_bins(const int& bin_num) { this->m_bin_num = bin_num; }
   void set_zero_element(const ObsType& zero_elem) {
     this->m_zero_elem = zero_elem;
-  }
-  void set_name_and_description(const std::string& name,
-                                const std::string& desc) {
-    this->m_name = name;
-    this->m_desc = desc;
   }
   void add_method(const std::function<ObsMethod>& method) {
     this->m_method = method;
