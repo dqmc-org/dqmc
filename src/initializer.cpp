@@ -239,7 +239,7 @@ void Initializer::parse_toml_config(std::string_view toml_config,
   // deal with special keywords ( all/All , none/None )
   if (observables.size() == 1) {
     if (observables[0] == "all" || observables[0] == "All") {
-      observables = Measure::MeasureHandler::ObservableAll;
+      observables = Observable::ObservableHandler::get_all_observable_names();
     } else if (observables[0] == "none" || observables[0] == "None") {
       observables = {};
     }

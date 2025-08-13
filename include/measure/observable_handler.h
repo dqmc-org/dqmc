@@ -18,10 +18,21 @@ using ObsName = std::string;
 using ObsNameList = std::vector<std::string>;
 using ObsTable = std::vector<std::string>;
 
-// -----------------------------  Handler class Observable::ObservableHandler
-// ------------------------------
+enum class ObsTimeType { EqualTime, Dynamic };
+enum class ObsDataType { Scalar, Vector, Matrix };
+
 class ObservableHandler {
- protected:
+  protected:
+  struct ObservableProperties {
+    using ptrBaseObs = std::shared_ptr<ObservableBase>;
+
+    std::string description;
+    ObsTimeType time_type;
+    ObsDataType data_type;
+
+    std::function<ptrBaseObs(const ObsName&, const std::string&)> factory;
+  };
+
   using ObsMap = std::map<std::string, std::shared_ptr<ObservableBase>>;
 
   using ptrBaseObs = std::shared_ptr<ObservableBase>;
@@ -52,15 +63,13 @@ class ObservableHandler {
   ptrScalarObs m_equaltime_sign{};
   ptrScalarObs m_dynamic_sign{};
 
-  // protected tables for supported physical observables
-  static ObsTable m_eqtime_obs_table;
-  static ObsTable m_dynamic_obs_table;
+  // Central registry of all supported observables and their properties.
+  static const std::map<ObsName, ObservableProperties> m_supported_observables;
 
- public:
+public:
   ObservableHandler() = default;
 
-  // public static memebr of all supported observables for external calls
-  static ObsTable ObservableAll;
+  static std::vector<std::string> get_all_observable_names();
 
   // check if certain observable exists
   bool find(const ObsName& obs_name);
