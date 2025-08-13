@@ -157,25 +157,31 @@ void Methods::measure_momentum_distribution(ScalarObs& momentum_dist,
                                             const Walker& walker,
                                             const ModelBase& model,
                                             const LatticeBase& lattice) {
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
+  const int K_vector = meas_handler.Momentum();
+  const double norm_factor = 0.5 / static_cast<double>(space_size);
+
+  double total_sum = 0.0;
+
+  for (auto t = 0; t < time_size; ++t) {
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
-    const RealScalar& config_sign = walker.ConfigSign(t);
+    const double config_sign = walker.ConfigSign(t);
 
-    RealScalar tmp_momentum_dist = 0.0;
-    // the first site i
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      // the second site j
-      for (auto j = 0; j < lattice.SpaceSize(); ++j) {
-        tmp_momentum_dist += (gu(j, i) + gd(j, i)) *
-                             lattice.FourierFactor(lattice.Displacement(i, j),
-                                                   meas_handler.Momentum());
+    double tmp_momentum_dist = 0.0;
+
+    for (auto j = 0; j < space_size; ++j) {
+      for (auto i = 0; i < space_size; ++i) {
+        tmp_momentum_dist +=
+            (gu(j, i) + gd(j, i)) *
+            lattice.FourierFactor(lattice.Displacement(i, j), K_vector);
       }
     }
-    momentum_dist.tmp_value() +=
-        config_sign * (1 - 0.5 * tmp_momentum_dist / lattice.SpaceSize());
-    ++momentum_dist;
+    total_sum += config_sign * (1 - norm_factor * tmp_momentum_dist);
   }
+  momentum_dist.tmp_value() += total_sum;
+  momentum_dist += time_size;
 }
 
 // Structure factor of spin density wave (SDW) defined as
