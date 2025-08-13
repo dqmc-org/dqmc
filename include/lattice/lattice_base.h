@@ -120,6 +120,11 @@ class LatticeBase {
     return this->m_nearest_neighbour_table(site_index, direction);
   }
 
+  VectorInt GetNeighbors(const LatticeInt site_index) const {
+    DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
+    return this->m_nearest_neighbour_table.row(site_index);
+  }
+
   VectorInt Index2Site(const LatticeInt site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_index2site_table.row(site_index);

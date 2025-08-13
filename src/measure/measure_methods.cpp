@@ -93,26 +93,28 @@ void Methods::measure_kinetic_energy(ScalarObs& kinetic_energy,
                                      const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice) {
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
-    const GreensFunc& gu = walker.GreenttUp(t);
-    const GreensFunc& gd = walker.GreenttDn(t);
-    const RealScalar& config_sign = walker.ConfigSign(t);
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
+  const double prefactor = model.HoppingT() / lattice.SpaceSize();
 
-    RealScalar tmp_kinetic_energy = 0.0;
-    for (auto i = 0; i < lattice.SpaceSize(); ++i) {
-      // loop over lattice sites
-      for (auto dir = 0; dir < lattice.SpaceDim(); ++dir) {
-        // loop over nearest neighbours
-        // todo: the independent directions should equal to the coordination
-        // number of the lattice
-        tmp_kinetic_energy += gu(i, lattice.NearestNeighbour(i, dir)) +
-                              gd(i, lattice.NearestNeighbour(i, dir));
+  double total_sum = 0.0;
+
+  for (auto t = 0; t < time_size; ++t) {
+    const GreensFunc& g_up = walker.GreenttUp(t);
+    const GreensFunc& g_dn = walker.GreenttDn(t);
+    const RealScalar config_sign = walker.ConfigSign(t);
+
+    double sum_this_t = 0.0;
+    for (auto i = 0; i < space_size; ++i) {
+      for (const auto j : lattice.GetNeighbors(i)) {
+        sum_this_t += g_up(i, j) + g_dn(i, j);
       }
     }
-    kinetic_energy.tmp_value() += config_sign * (2 * model.HoppingT()) *
-                                  tmp_kinetic_energy / lattice.SpaceSize();
-    ++kinetic_energy;
+    total_sum += config_sign * sum_this_t;
   }
+
+  kinetic_energy.tmp_value() += prefactor * total_sum;
+  kinetic_energy += time_size;
 }
 
 // In general, spin correlations is defined as C(i,t) = < (n_up - n_dn)(i,t) *
