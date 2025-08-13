@@ -41,6 +41,7 @@ class ObservableBase {
   std::string m_name{};  // name of the observable
   std::string m_desc{};  // description of the observable
   int m_bin_num{0};      // total number of bins
+  int m_count{0};        // countings within a bin
 
   ObservableBase() = default;
 
@@ -55,6 +56,11 @@ class ObservableBase {
   const std::string& description() const { return this->m_desc; }
   int bin_num() const { return this->m_bin_num; }
   void set_number_of_bins(int bin_num) { this->m_bin_num = bin_num; }
+
+  int counts() const { return this->m_count; }
+
+  int operator++() { return ++this->m_count; }
+  int operator+=(int i) { return this->m_count += i; }
 };
 
 // ---------------------------  Derived template class
@@ -75,7 +81,6 @@ class Observable : public ObservableBase {
   ObsType m_tmp_value{};   // temporary value during sample collections
   ObsType m_zero_elem{};   // zero element to clear temporary values
 
-  int m_count{0};                     // countings
   std::vector<ObsType> m_bin_data{};  // collected data in bins
 
   std::function<ObsMethod> m_method{};  // user-defined measuring method
@@ -87,16 +92,8 @@ class Observable : public ObservableBase {
                       int bin_num = 0)
       : ObservableBase(name, desc, bin_num) {}
 
-  // overload operator ++
-  int operator++() { return ++this->m_count; }
-
-  int operator+=(int i) { return this->m_count += i; }
-
   // -------------------------------------  Interface functions
   // ------------------------------------------
-
-  int& counts() { return this->m_count; }
-  int counts() const { return this->m_count; }
 
   const ObsType& zero_element() const { return this->m_zero_elem; }
   const ObsType& mean_value() const { return this->m_mean_value; }

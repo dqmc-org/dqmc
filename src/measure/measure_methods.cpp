@@ -25,7 +25,7 @@ void Methods::measure_equaltime_config_sign(ScalarObs& equaltime_sign,
                                             const ModelBase& model,
                                             const LatticeBase& lattice) {
   equaltime_sign.tmp_value() += walker.vecConfigSign().sum();
-  equaltime_sign.counts() += walker.TimeSize();
+  equaltime_sign += walker.TimeSize();
 }
 
 // Filling number defined as \sum i ( n_up + n_dn )(i)
