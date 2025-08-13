@@ -35,14 +35,24 @@ void Methods::measure_filling_number(ScalarObs& filling_number,
                                      const Walker& walker,
                                      const ModelBase& model,
                                      const LatticeBase& lattice) {
-  // loop over equivalent time slices
-  for (auto t = 0; t < walker.TimeSize(); ++t) {
-    filling_number.tmp_value() +=
-        walker.ConfigSign(t) *
-        (2 - (walker.GreenttUp(t).trace() + walker.GreenttDn(t).trace()) /
-                 lattice.SpaceSize());
-    ++filling_number;
+  const int time_size = walker.TimeSize();
+  const int space_size = lattice.SpaceSize();
+  const double inv_space_size = 1.0 / static_cast<double>(space_size);
+
+  double total_filling_contribution = 0.0;
+
+  for (auto t = 0; t < time_size; ++t) {
+    const auto& g_up = walker.GreenttUp(t);
+    const auto& g_dn = walker.GreenttDn(t);
+
+    double combined_trace = g_up.trace() + g_dn.trace();
+    const double avg_density = combined_trace * inv_space_size;
+
+    total_filling_contribution += walker.ConfigSign(t) * (2.0 - avg_density);
   }
+
+  filling_number.tmp_value() += total_filling_contribution;
+  filling_number += time_size;
 }
 
 // Double occupation defined as \sum i ( n_up * n_dn )(i)
@@ -346,8 +356,10 @@ void Methods::measure_density_of_states(VectorObs& density_of_states,
   for (auto t = 0; t < time_size; ++t) {
     const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    const GreensFunc& gup = (t == 0) ? walker.GreenttUp(tau) : walker.Greent0Up(tau);
-    const GreensFunc& gdn = (t == 0) ? walker.GreenttDn(tau) : walker.Greent0Dn(tau);
+    const GreensFunc& gup =
+        (t == 0) ? walker.GreenttUp(tau) : walker.Greent0Up(tau);
+    const GreensFunc& gdn =
+        (t == 0) ? walker.GreenttDn(tau) : walker.Greent0Dn(tau);
 
     const double gt0_trace = 0.5 * (gup.trace() + gdn.trace());
 

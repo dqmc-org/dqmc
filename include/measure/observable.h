@@ -84,6 +84,8 @@ class Observable : public ObservableBase {
   // overload operator ++
   int operator++() { return ++this->m_count; }
 
+  int operator+=(int i) { return this->m_count += i; }
+
   // -------------------------------------  Interface functions
   // ------------------------------------------
 
