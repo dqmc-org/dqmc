@@ -98,13 +98,11 @@ void IO::output_observable_to_console(
 
   // for scalar observables
   if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
-    auto fmt_scalar_obs = [](const std::string& desc, const std::string& joiner,
-                             double mean, double error) {
-      return std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}", desc, joiner,
+    auto fmt_scalar_obs = [](std::string_view desc, double mean, double error) {
+      return std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}", desc, "->",
                          mean, error);
     };
-    const std::string joiner = "->";
-    ostream << fmt_scalar_obs(obs.description(), joiner, obs.mean_value(),
+    ostream << fmt_scalar_obs(obs.description(), obs.mean_value(),
                               obs.error_bar())
             << std::endl;
   }

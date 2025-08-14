@@ -212,7 +212,7 @@ int main(int argc, char* argv[]) {
 
   // helper lambda to output observable to files
   auto output_observable_files = [&](const auto& obs,
-                                     const std::string& obs_name) {
+                                     const std::string_view& obs_name) {
     // output of means and errors
     outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, run_id),
                  std::ios::trunc);

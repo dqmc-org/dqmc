@@ -223,7 +223,7 @@ void Initializer::parse_toml_config(std::string_view toml_config,
       config["Measure"]["sweeps_between_bins"].value_or(20);
 
   // parse obervable lists
-  std::vector<std::string> observables;
+  std::vector<std::string_view> observables;
   toml::array* observable_arr = config["Measure"]["observables"].as_array();
   if (observable_arr && observable_arr->is_homogeneous<std::string>()) {
     observables.reserve(observable_arr->size());

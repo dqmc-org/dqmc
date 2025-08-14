@@ -15,9 +15,9 @@
 
 namespace Observable {
 
-using ObsName = std::string;
-using ObsNameList = std::vector<std::string>;
-using ObsTable = std::vector<std::string>;
+using ObsName = std::string_view;
+using ObsNameList = std::vector<std::string_view>;
+using ObsTable = std::vector<std::string_view>;
 
 enum class ObsTimeType { EqualTime, Dynamic };
 enum class ObsDataType { Scalar, Vector, Matrix };
@@ -27,14 +27,14 @@ class ObservableHandler {
   struct ObservableProperties {
     using ptrBaseObs = std::shared_ptr<ObservableBase>;
 
-    std::string description;
+    std::string_view description;
     ObsTimeType time_type;
     ObsDataType data_type;
 
-    std::function<ptrBaseObs(const ObsName&, const std::string&)> factory;
+    std::function<ptrBaseObs(ObsName, std::string_view)> factory;
   };
 
-  using ObsMap = std::map<std::string, std::shared_ptr<ObservableBase>>;
+  using ObsMap = std::map<std::string_view, std::shared_ptr<ObservableBase>>;
 
   using ptrBaseObs = std::shared_ptr<ObservableBase>;
   using ptrScalar = std::shared_ptr<Scalar>;
@@ -65,16 +65,17 @@ class ObservableHandler {
   ptrScalar m_dynamic_sign{};
 
   // Central registry of all supported observables and their properties.
-  static const std::map<ObsName, ObservableProperties> m_supported_observables;
+  static const std::map<std::string_view, ObservableProperties>
+      m_supported_observables;
 
  public:
   ObservableHandler() = default;
 
-  static std::vector<std::string> get_all_observable_names();
+  static std::vector<std::string_view> get_all_observable_names();
 
   // find observable and return std::optional
   template <typename DataType>
-  std::optional<DataType> find(const ObsName& obs_name);
+  std::optional<DataType> find(std::string_view obs_name);
 
   // initialize the handler
   void initial(const ObsNameList& obs_list);
@@ -93,7 +94,7 @@ class ObservableHandler {
 
 // implementation of the template member function
 template <typename DataType>
-std::optional<DataType> ObservableHandler::find(const ObsName& obs_name) {
+std::optional<DataType> ObservableHandler::find(std::string_view obs_name) {
   if (auto it = this->m_obs_map.find(obs_name); it != this->m_obs_map.end()) {
     if (auto p = std::dynamic_pointer_cast<DataType>(it->second)) {
       return *p;
