@@ -79,13 +79,12 @@ int main(int argc, char* argv[]) {
   // ------------------------------------------------------------------------------------------------
   //                                Output current date and time
   // ------------------------------------------------------------------------------------------------
-  const auto current_time = std::chrono::system_clock::now();
-  const auto time_t = std::chrono::system_clock::to_time_t(current_time);
-  const auto local_time = std::localtime(&time_t);
-  std::ostringstream time_stream;
-  time_stream << std::put_time(local_time, "%Y-%m-%d %H:%M:%S");
-  std::cout << std::format(">> Current time: {}\n", time_stream.str())
-            << std::endl;
+  const auto current_sys_time = std::chrono::system_clock::now();
+  const auto local_zone_ptr = std::chrono::current_zone();
+  const auto zoned_local_time =
+    std::chrono::zoned_time(local_zone_ptr, current_sys_time);
+  std::cout << std::format(">> Current time: {:%Y-%m-%d %H:%M:%S}\n",
+                           zoned_local_time);
 
   // ------------------------------------------------------------------------------------------------
   //                                Output run information
