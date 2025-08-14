@@ -97,6 +97,8 @@ class MeasureHandler : public Observable::ObservableHandler {
     return this->m_momentum_list[i];
   }
 
+  const ObsList& ObservablesList() const { return this->m_obs_list; }
+
   // --------------------------  Subroutines for measuring observables
   // ---------------------------------
 

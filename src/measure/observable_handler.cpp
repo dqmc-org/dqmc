@@ -58,6 +58,12 @@ bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
          it->second.time_type == ObsTimeType::Dynamic;
 }
 
+bool ObservableHandler::is_scalar(const ObsName& obs_name) const {
+  auto it = m_supported_observables.find(obs_name);
+  return it != m_supported_observables.end() &&
+         it->second.data_type == ObsDataType::Scalar;
+}
+
 bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {
   for (const auto& obs : obs_list) {
     if (m_supported_observables.find(obs) == m_supported_observables.end()) {

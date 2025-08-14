@@ -76,6 +76,9 @@ class ObservableHandler {
   template <typename ObsType>
   std::optional<ObsType> find(const ObsName& obs_name);
 
+  // check if certain observable is of scalar type
+  bool is_scalar(const ObsName& obs_name) const;
+
   // initialize the handler
   void initial(const ObsNameList& obs_list);
 

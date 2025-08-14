@@ -179,55 +179,12 @@ int main(int argc, char* argv[]) {
   // ------------------------------------
 
   // screen output the results of scalar observables
-  if (auto obs = meas_handler->find<Observable::Scalar>("equaltime_sign")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::Scalar>("dynamic_sign")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  std::cout << std::endl;
-
-  if (auto obs = meas_handler->find<Observable::Scalar>("filling_number")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::Scalar>("double_occupancy")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::Scalar>("kinetic_energy")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::Scalar>("local_spin_corr")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs =
-          meas_handler->find<Observable::Scalar>("momentum_distribution")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::Scalar>(
-          "spin_density_structure_factor")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::Scalar>(
-          "charge_density_structure_factor")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs =
-          meas_handler->find<Observable::Scalar>("s_wave_pairing_corr")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs =
-          meas_handler->find<Observable::Scalar>("superfluid_stiffness")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
+  for (const auto& obs_name : meas_handler->ObservablesList()) {
+    if (meas_handler->is_scalar(obs_name)) {
+      if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
+        DQMC::IO::output_observable_to_console(std::cout, *obs);
+      }
+    }
   }
 
   // file output
@@ -256,217 +213,41 @@ int main(int argc, char* argv[]) {
 
   // output measuring results of the observables
 
-  // s wave pairing correlation functions
-  if (auto obs =
-          meas_handler->find<Observable::Scalar>("s_wave_pairing_corr")) {
+  // helper lambda to output observable to files
+  auto output_observable_files = [&](const auto& obs,
+                                     const std::string& obs_name) {
     // output of means and errors
-    outfile.open(out_path + "/swave_" + std::to_string(run_id) + ".out",
-                 std::ios::trunc);
+    outfile.open(
+        out_path + "/" + obs_name + "_" + std::to_string(run_id) + ".out",
+        std::ios::trunc);
     DQMC::IO::output_observable_to_file(outfile, *obs);
     outfile.close();
 
     // output of raw data in terms of bins
-    outfile.open(out_path + "/swave.bins.out", std::ios::trunc);
+    outfile.open(out_path + "/" + obs_name + ".bins.out", std::ios::trunc);
     DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
     outfile.close();
+  };
+
+  // iterate through all observables and output them
+  for (const auto& obs_name : meas_handler->ObservablesList()) {
+    if (meas_handler->is_scalar(obs_name)) {
+      if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
+        output_observable_files(obs, obs_name);
+      }
+    } else if (auto obs = meas_handler->find<Observable::Vector>(obs_name)) {
+      output_observable_files(obs, obs_name);
+    } else if (auto obs = meas_handler->find<Observable::Matrix>(obs_name)) {
+      output_observable_files(obs, obs_name);
+    }
   }
 
-  // charge density structure factor
-  if (auto obs = meas_handler->find<Observable::Scalar>(
-          "charge_density_structure_factor")) {
-    // output of means and errors
-    outfile.open(out_path + "/charge_density_structure_factor_" +
-                     std::to_string(run_id) + ".out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/charge_density_structure_factor.bins.out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // spin density structure factor
-  if (auto obs = meas_handler->find<Observable::Scalar>(
-          "spin_density_structure_factor")) {
-    // output of means and errors
-    outfile.open(out_path + "/spin_density_structure_factor_" +
-                     std::to_string(run_id) + ".out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/spin_density_structure_factor.bins.out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // density of states
-  if (auto obs = meas_handler->find<Observable::Vector>("density_of_states")) {
-    // output of means and errors
-    outfile.open(out_path + "/dos_" + std::to_string(run_id) + ".out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/dos.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // equal-time sign
+  // handle sign observables that are added automatically
   if (auto obs = meas_handler->find<Observable::Scalar>("equaltime_sign")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/equaltime_sign_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/equaltime_sign.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
+    output_observable_files(obs, "equaltime_sign");
   }
-
-  // dynamic sign
   if (auto obs = meas_handler->find<Observable::Scalar>("dynamic_sign")) {
-    // output of means and errors
-    outfile.open(out_path + "/dynamic_sign_" + std::to_string(run_id) + ".out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/dynamic_sign.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // filling number
-  if (auto obs = meas_handler->find<Observable::Scalar>("filling_number")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/filling_number_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/filling_number.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // double occupancy
-  if (auto obs = meas_handler->find<Observable::Scalar>("double_occupancy")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/double_occupancy_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/double_occupancy.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // kinetic energy
-  if (auto obs = meas_handler->find<Observable::Scalar>("kinetic_energy")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/kinetic_energy_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/kinetic_energy.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // local spin correlation
-  if (auto obs = meas_handler->find<Observable::Scalar>("local_spin_corr")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/local_spin_corr_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/local_spin_corr.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // momentum distribution
-  if (auto obs =
-          meas_handler->find<Observable::Scalar>("momentum_distribution")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/momentum_distribution_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/momentum_distribution.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // superfluid stiffness
-  if (auto obs =
-          meas_handler->find<Observable::Scalar>("superfluid_stiffness")) {
-    // output of means and errors
-    outfile.open(
-        out_path + "/superfluid_stiffness_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/superfluid_stiffness.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // dynamical green's function in the reciprocal space
-  if (auto obs = meas_handler->find<Observable::Matrix>("greens_functions")) {
-    // output of means and errors
-    outfile.open(out_path + "/greens_" + std::to_string(run_id) + ".out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/greens.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
-  }
-
-  // dynamic spin susceptibility
-  if (auto obs = meas_handler->find<Observable::Vector>(
-          "dynamic_spin_susceptibility")) {
-    // output of means and errors
-    outfile.open(out_path + "/dss_" + std::to_string(run_id) + ".out",
-                 std::ios::trunc);
-    DQMC::IO::output_observable_to_file(outfile, *obs);
-    outfile.close();
-
-    // output of raw data in terms of bins
-    outfile.open(out_path + "/dss.bins.out", std::ios::trunc);
-    DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
-    outfile.close();
+    output_observable_files(obs, "dynamic_sign");
   }
 
   return 0;
