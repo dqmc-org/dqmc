@@ -209,6 +209,7 @@ void Square::initial_fourier_factor_table() {
 
 void Square::initial_hopping_matrix() {
   this->m_hopping_matrix.resize(this->m_space_size, this->m_space_size);
+  this->m_hopping_matrix.setZero();
   for (auto index = 0; index < this->m_space_size; ++index) {
     // direction 0 for x+1 and 1 for y+1
     const int index_xplus1 = this->NearestNeighbour(index, 0);
