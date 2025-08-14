@@ -49,8 +49,7 @@ void SvdStack::push(const Matrix& matrix) {
   if (this->m_stack.empty()) {
     // First matrix: just compute its SVD directly
     SvdClass svd(this->m_mat_dim);
-    Utils::LinearAlgebra::dgesvd(this->m_mat_dim, this->m_mat_dim, matrix,
-                                 svd.MatrixU(), svd.SingularValues(),
+    Utils::LinearAlgebra::dgesvd(matrix, svd.MatrixU(), svd.SingularValues(),
                                  svd.MatrixV());
     this->m_stack.push_back(svd);
     this->m_prefix_v.push_back(svd.MatrixV());
@@ -64,8 +63,7 @@ void SvdStack::push(const Matrix& matrix) {
     Matrix tmp =
         (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
     SvdClass svd(this->m_mat_dim);
-    Utils::LinearAlgebra::dgesvd(this->m_mat_dim, this->m_mat_dim, tmp,
-                                 svd.MatrixU(), svd.SingularValues(),
+    Utils::LinearAlgebra::dgesvd(tmp, svd.MatrixU(), svd.SingularValues(),
                                  svd.MatrixV());
     this->m_stack.push_back(svd);
     this->m_prefix_v.push_back(this->m_prefix_v.back() * svd.MatrixV());

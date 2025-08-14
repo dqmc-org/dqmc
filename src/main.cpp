@@ -82,7 +82,7 @@ int main(int argc, char* argv[]) {
   const auto current_sys_time = std::chrono::system_clock::now();
   const auto local_zone_ptr = std::chrono::current_zone();
   const auto zoned_local_time =
-    std::chrono::zoned_time(local_zone_ptr, current_sys_time);
+      std::chrono::zoned_time(local_zone_ptr, current_sys_time);
   std::cout << std::format(">> Current time: {:%Y-%m-%d %H:%M:%S}\n",
                            zoned_local_time);
 

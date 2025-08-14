@@ -12,16 +12,12 @@
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <Eigen/SVD>
-#include <iostream>
 #include <stdexcept>
 
-#include "lapacke.h"
 #include "utils/assert.h"
 
 namespace Utils {
 
-// -------------------------------------  Utils::LinearAlgebra class
-// ----------------------------------------
 class LinearAlgebra {
  public:
   /**
@@ -36,12 +32,8 @@ class LinearAlgebra {
    *  @param s -> eigenvalues s of type Eigen::VectorXd, descending sorted.
    *  @param v -> v matrix of type Eigen::MatrixXd, `col` * `col`.
    */
-  static void dgesvd(int row, int col, const Eigen::MatrixXd& mat,
-                     Eigen::MatrixXd& u, Eigen::VectorXd& s,
-                     Eigen::MatrixXd& v) {
-    DQMC_ASSERT(row == mat.rows());
-    DQMC_ASSERT(col == mat.cols());
-
+  static void dgesvd(const Eigen::MatrixXd& mat, Eigen::MatrixXd& u,
+                     Eigen::VectorXd& s, Eigen::MatrixXd& v) {
     // BUG: Eigen Jacobi is not compatible with LAPACK dgesvd, make sure to
     // enable EIGEN_USE_BLAS and EIGEN_USE_LAPACKE. BDCSVD lowers to JacobiSVD
     // for sizes below or equal to 16. For more details:
@@ -73,10 +65,9 @@ class LinearAlgebra {
    *  @param s -> diagonal eigen matrix.
    *  @param t -> rotation matrix, whose columns are corresponding eigenstates.
    */
-  static void dsyev(int size, const Eigen::MatrixXd& mat, Eigen::VectorXd& s,
+  static void dsyev(const Eigen::MatrixXd& mat, Eigen::VectorXd& s,
                     Eigen::MatrixXd& t) {
-    DQMC_ASSERT(mat.rows() == size);
-    DQMC_ASSERT(mat.cols() == size);
+    DQMC_ASSERT(mat.rows() == mat.cols());
     DQMC_ASSERT(mat.isApprox(mat.transpose(), 1e-12));
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
