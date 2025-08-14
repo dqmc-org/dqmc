@@ -180,10 +180,8 @@ int main(int argc, char* argv[]) {
 
   // screen output the results of scalar observables
   for (const auto& obs_name : meas_handler->ObservablesList()) {
-    if (meas_handler->is_scalar(obs_name)) {
-      if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
-        DQMC::IO::output_observable_to_console(std::cout, *obs);
-      }
+    if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
+      DQMC::IO::output_observable_to_console(std::cout, *obs);
     }
   }
 
@@ -232,10 +230,8 @@ int main(int argc, char* argv[]) {
 
   // iterate through all observables and output them
   for (const auto& obs_name : meas_handler->ObservablesList()) {
-    if (meas_handler->is_scalar(obs_name)) {
-      if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
-        output_observable_files(obs, obs_name);
-      }
+    if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
+      output_observable_files(obs, obs_name);
     } else if (auto obs = meas_handler->find<Observable::Vector>(obs_name)) {
       output_observable_files(obs, obs_name);
     } else if (auto obs = meas_handler->find<Observable::Matrix>(obs_name)) {

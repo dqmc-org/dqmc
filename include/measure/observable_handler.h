@@ -73,11 +73,8 @@ class ObservableHandler {
   static std::vector<std::string> get_all_observable_names();
 
   // find observable and return std::optional
-  template <typename ObsType>
-  std::optional<ObsType> find(const ObsName& obs_name);
-
-  // check if certain observable is of scalar type
-  bool is_scalar(const ObsName& obs_name) const;
+  template <typename DataType>
+  std::optional<DataType> find(const ObsName& obs_name);
 
   // initialize the handler
   void initial(const ObsNameList& obs_list);
@@ -95,13 +92,11 @@ class ObservableHandler {
 };
 
 // implementation of the template member function
-template <typename ObsType>
-std::optional<ObsType> ObservableHandler::find(const ObsName& obs_name) {
-  auto it = this->m_obs_map.find(obs_name);
-  if (it != this->m_obs_map.end()) {
-    auto ptrObs = std::dynamic_pointer_cast<ObsType>(it->second);
-    if (ptrObs) {
-      return *ptrObs;
+template <typename DataType>
+std::optional<DataType> ObservableHandler::find(const ObsName& obs_name) {
+  if (auto it = this->m_obs_map.find(obs_name); it != this->m_obs_map.end()) {
+    if (auto p = std::dynamic_pointer_cast<DataType>(it->second)) {
+      return *p;
     }
   }
   return std::nullopt;
