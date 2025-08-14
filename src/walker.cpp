@@ -9,6 +9,8 @@
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
 
+using namespace std::literals;
+
 namespace DQMC {
 
 // alias conventions
@@ -535,39 +537,29 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
 }
 
 void Walker::output_montecarlo_info(std::ostream& ostream) const {
-  auto fmt_param_double = [](const std::string& desc, const std::string& joiner,
-                             double value) {
-    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
+  auto fmt_double = [](std::string_view desc, double value) {
+    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, "->", value);
   };
-  auto fmt_param_int = [](const std::string& desc, const std::string& joiner,
-                          int value) {
-    return std::format("{:>30s}{:>7s}{:>24d}\n", desc, joiner, value);
+
+  auto fmt_int = [](std::string_view desc, int value) {
+    return std::format("{:>30s}{:>7s}{:>24d}\n", desc, "->", value);
   };
-  std::string joiner = "->";
 
   ostream << "   MonteCarlo Params:\n"
-          << fmt_param_double("Inverse temperature", joiner, this->Beta())
-          << fmt_param_int("Imaginary-time length", joiner, this->TimeSize())
-          << fmt_param_double("Imaginary-time interval", joiner,
-                              this->TimeInterval())
-          << fmt_param_int("Stabilization pace", joiner,
-                           this->StabilizationPace())
+          << fmt_double("Inverse temperature"sv, this->Beta())
+          << fmt_int("Imaginary-time length"sv, this->TimeSize())
+          << fmt_double("Imaginary-time interval"sv, this->TimeInterval())
+          << fmt_int("Stabilization pace"sv, this->StabilizationPace())
           << std::endl;
 }
 
 void Walker::output_imaginary_time_grids(std::ostream& ostream) const {
   // output the imaginary-time grids
-  auto fmt_tgrids_info = [](int time_size, double beta, double interval) {
-    return std::format("{:>20d}{:>20.5f}{:>20.5f}", time_size, beta, interval);
-  };
-  auto fmt_tgrids = [](int t, double time_val) {
-    return std::format("{:>20d}{:>20.10f}", t, time_val);
-  };
-  ostream << fmt_tgrids_info(this->TimeSize(), this->Beta(),
-                             this->TimeInterval())
-          << std::endl;
+  ostream << std::format("{:>20d}{:>20.5f}{:>20.5f}\n", this->TimeSize(),
+                         this->Beta(), this->TimeInterval());
   for (auto t = 0; t < this->TimeSize(); ++t) {
-    ostream << fmt_tgrids(t, (t * this->TimeInterval())) << std::endl;
+    ostream << std::format("{:>20d}{:>20.10f}\n", t,
+                           (t * this->TimeInterval()));
   }
 }
 

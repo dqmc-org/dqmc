@@ -17,6 +17,8 @@ using RealScalar = double;
 using SpaceTimeMat = Eigen::MatrixXd;
 using SpaceSpaceMat = Eigen::MatrixXd;
 
+using namespace std::literals;
+
 RealScalar AttractiveHubbard::HoppingT() const { return this->m_hopping_t; }
 
 RealScalar AttractiveHubbard::ChemicalPotential() const {
@@ -26,34 +28,26 @@ RealScalar AttractiveHubbard::ChemicalPotential() const {
 RealScalar AttractiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
 void AttractiveHubbard::output_model_info(std::ostream& ostream) const {
-  auto fmt_param_double = [](const std::string& desc, const std::string& joiner,
-                             double value) {
-    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, joiner, value);
+  auto fmt_double = [](std::string_view desc, double value) {
+    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, "->", value);
   };
-  std::string joiner = "->";
 
   ostream << "   Model: Attractive Hubbard\n"
-          << fmt_param_double("Hopping constant 't'", joiner, HoppingT())
-          << fmt_param_double("Onsite interaction 'U'", joiner, OnSiteU())
-          << fmt_param_double("Checimcal potential 'mu'", joiner,
-                              ChemicalPotential())
+          << fmt_double("Hopping constant 't'"sv, HoppingT())
+          << fmt_double("Onsite interaction 'U'"sv, OnSiteU())
+          << fmt_double("Checimcal potential 'mu'"sv, ChemicalPotential())
           << std::endl;
 }
 
 void AttractiveHubbard::output_configuration(std::ostream& ostream) const {
-  auto fmt_fields_info = [](int time_size, int space_size) {
-    return std::format("{:>20d}{:>20d}", time_size, space_size);
-  };
-  auto fmt_fields = [](int t, int i, double field) {
-    return std::format("{:>20d}{:>20d}{:>20.1f}", t, i, field);
-  };
   const int time_size = this->m_bosonic_field.rows();
   const int space_size = this->m_bosonic_field.cols();
 
-  ostream << fmt_fields_info(time_size, space_size) << std::endl;
+  ostream << std::format("{:>20d}{:>20d}\n", time_size, space_size);
   for (auto t = 0; t < time_size; ++t) {
     for (auto i = 0; i < space_size; ++i) {
-      ostream << fmt_fields(t, i, this->m_bosonic_field(t, i)) << std::endl;
+      ostream << std::format("{:>20d}{:>20d}{:>20.1f}\n", t, i,
+                             this->m_bosonic_field(t, i));
     }
   }
 }

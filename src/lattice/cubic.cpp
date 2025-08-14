@@ -4,6 +4,8 @@
 
 namespace Lattice {
 
+using namespace std::literals;
+
 // high symmetry points in the reciprocal lattice
 LatticeInt Cubic::GammaPointIndex() const { return this->m_gamma_point_index; }
 
@@ -33,15 +35,14 @@ const LatticeIntVec& Cubic::TLineIndex() const { return this->m_t_line_index; }
 
 void Cubic::output_lattice_info(std::ostream& ostream,
                                 int momentum_index) const {
-  auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
-                          const std::string& value) {
-    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
+  auto fmt_str = [](std::string_view desc, std::string_view value) {
+    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
-  std::string joiner = "->";
 
   auto fmt_cell = [](int side) {
     return std::format("{} * {} * {}", side, side, side);
   };
+
   auto fmt_momentum = [](double px, double py, double pz) {
     return std::format("({:.2f}, {:.2f}, {:.2f}) pi", px, py, pz);
   };
@@ -51,9 +52,8 @@ void Cubic::output_lattice_info(std::ostream& ostream,
   const double pz = (this->Index2Momentum(momentum_index, 2) / M_PI);
 
   ostream << "   Lattice: Cubic lattice\n"
-          << fmt_param_str("Size of cell", joiner,
-                           fmt_cell(this->m_side_length))
-          << fmt_param_str("Momentum point", joiner, fmt_momentum(px, py, pz))
+          << fmt_str("Size of cell"sv, fmt_cell(this->m_side_length))
+          << fmt_str("Momentum point"sv, fmt_momentum(px, py, pz))
           << std::flush;
 }
 

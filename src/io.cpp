@@ -11,17 +11,11 @@ void IO::output_init_info(std::ostream& ostream, int world_size,
         "DQMC::IO::output_init_info(): output stream is not valid.");
   }
 
-  auto fmt_param_str = [](const std::string& desc, const std::string& joiner,
-                          const std::string& value) {
-    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, joiner, value);
-  };
-
   model.output_model_info(ostream);
   lattice.output_lattice_info(ostream, meas_handler.Momentum());
 
-  ostream << fmt_param_str("Checkerboard breakups", "->",
-                           checkerboard ? "True" : "False")
-          << std::endl;
+  ostream << std::format("{:>30s}{:>7s}{:>24s}\n\n", "Checkerboard breakups",
+                         "->", checkerboard ? "True" : "False");
 
   walker.output_montecarlo_info(ostream);
   meas_handler.output_measuring_info(ostream, world_size);
