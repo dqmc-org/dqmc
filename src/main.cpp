@@ -207,7 +207,7 @@ int main(int argc, char* argv[]) {
   outfile.close();
 
   // output the imaginary-time grids
-  outfile.open(out_path + "/tgrids.out", std::ios::trunc);
+  outfile.open(out_path + "/imaginary_time_grids.out", std::ios::trunc);
   DQMC::IO::output_imaginary_time_grids(outfile, *walker);
   outfile.close();
 
