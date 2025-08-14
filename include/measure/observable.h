@@ -241,7 +241,7 @@ class Observable : public ObservableBase {
 };
 
 // some aliases
-using ScalarObs = Observable<ScalarType>;
-using VectorObs = Observable<VectorType>;
-using MatrixObs = Observable<MatrixType>;
+using Scalar = Observable<ScalarType>;
+using Vector = Observable<VectorType>;
+using Matrix = Observable<MatrixType>;
 }  // namespace Observable

@@ -20,20 +20,20 @@ auto make_observable(MethodFunc method) {
 // clang-format off
 const std::map<ObsName, ObservableHandler::ObservableProperties> ObservableHandler::m_supported_observables = {
     // --- Equal-Time Observables ---
-    {"filling_number",                 {"Filling number",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_filling_number)}},
-    {"double_occupancy",               {"Double occupation",           ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_double_occupancy)}},
-    {"kinetic_energy",                 {"Kinetic energy",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_kinetic_energy)}},
-    {"momentum_distribution",          {"Momentum distribution",       ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_momentum_distribution)}},
-    {"local_spin_corr",                {"Local spin correlation",      ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_local_spin_corr)}},
-    {"spin_density_structure_factor",  {"SDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_spin_density_structure_factor)}},
-    {"charge_density_structure_factor",{"CDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_charge_density_structure_factor)}},
-    {"s_wave_pairing_corr",            {"S-wave pairing correlation",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_s_wave_pairing_corr)}},
+    {"filling_number",                 {"Filling number",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_filling_number)}},
+    {"double_occupancy",               {"Double occupation",           ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_double_occupancy)}},
+    {"kinetic_energy",                 {"Kinetic energy",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_kinetic_energy)}},
+    {"momentum_distribution",          {"Momentum distribution",       ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_momentum_distribution)}},
+    {"local_spin_corr",                {"Local spin correlation",      ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_local_spin_corr)}},
+    {"spin_density_structure_factor",  {"SDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_spin_density_structure_factor)}},
+    {"charge_density_structure_factor",{"CDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_charge_density_structure_factor)}},
+    {"s_wave_pairing_corr",            {"S-wave pairing correlation",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_s_wave_pairing_corr)}},
 
     // --- Dynamic Observables ---
-    {"greens_functions",               {"Green's functions",           ObsTimeType::Dynamic,   ObsDataType::Matrix, make_observable<MatrixObs>(Measure::Methods::measure_greens_functions)}},
-    {"density_of_states",              {"Density of states",           ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<VectorObs>(Measure::Methods::measure_density_of_states)}},
-    {"superfluid_stiffness",           {"Superfluid stiffness",        ObsTimeType::Dynamic,   ObsDataType::Scalar, make_observable<ScalarObs>(Measure::Methods::measure_superfluid_stiffness)}},
-    {"dynamic_spin_susceptibility",    {"Dynamic Spin Susceptibility", ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<VectorObs>(Measure::Methods::measure_dynamic_spin_susceptibility)}},
+    {"greens_functions",               {"Green's functions",           ObsTimeType::Dynamic,   ObsDataType::Matrix, make_observable<Matrix>(Measure::Methods::measure_greens_functions)}},
+    {"density_of_states",              {"Density of states",           ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_density_of_states)}},
+    {"superfluid_stiffness",           {"Superfluid stiffness",        ObsTimeType::Dynamic,   ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_superfluid_stiffness)}},
+    {"dynamic_spin_susceptibility",    {"Dynamic Spin Susceptibility", ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_dynamic_spin_susceptibility)}},
 };
 // clang-format on
 
@@ -117,30 +117,30 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
       switch (props.data_type) {
         case ObsDataType::Scalar:
           m_eqtime_scalar_obs.push_back(
-              std::static_pointer_cast<ScalarObs>(obs_base));
+              std::static_pointer_cast<Scalar>(obs_base));
           break;
         case ObsDataType::Vector:
           m_eqtime_vector_obs.push_back(
-              std::static_pointer_cast<VectorObs>(obs_base));
+              std::static_pointer_cast<Vector>(obs_base));
           break;
         case ObsDataType::Matrix:
           m_eqtime_matrix_obs.push_back(
-              std::static_pointer_cast<MatrixObs>(obs_base));
+              std::static_pointer_cast<Matrix>(obs_base));
           break;
       }
     } else {  // ObsTimeType::Dynamic
       switch (props.data_type) {
         case ObsDataType::Scalar:
           m_dynamic_scalar_obs.push_back(
-              std::static_pointer_cast<ScalarObs>(obs_base));
+              std::static_pointer_cast<Scalar>(obs_base));
           break;
         case ObsDataType::Vector:
           m_dynamic_vector_obs.push_back(
-              std::static_pointer_cast<VectorObs>(obs_base));
+              std::static_pointer_cast<Vector>(obs_base));
           break;
         case ObsDataType::Matrix:
           m_dynamic_matrix_obs.push_back(
-              std::static_pointer_cast<MatrixObs>(obs_base));
+              std::static_pointer_cast<Matrix>(obs_base));
           break;
       }
     }
@@ -151,7 +151,7 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
   if (!this->m_eqtime_scalar_obs.empty() ||
       !this->m_eqtime_vector_obs.empty() ||
       !this->m_eqtime_matrix_obs.empty()) {
-    ptrScalarObs equaltime_sign = std::make_shared<ScalarObs>(
+    ptrScalar equaltime_sign = std::make_shared<Scalar>(
         "equaltime_sign", "Averaged sign (equal-time)",
         Measure::Methods::measure_equaltime_config_sign);
     this->m_equaltime_sign = equaltime_sign;
@@ -161,9 +161,9 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
   if (!this->m_dynamic_scalar_obs.empty() ||
       !this->m_dynamic_vector_obs.empty() ||
       !this->m_dynamic_matrix_obs.empty()) {
-    ptrScalarObs dynamic_sign = std::make_shared<ScalarObs>(
-        "dynamic_sign", "Averaged sign (dynamical)",
-        Measure::Methods::measure_dynamic_config_sign);
+    ptrScalar dynamic_sign =
+        std::make_shared<Scalar>("dynamic_sign", "Averaged sign (dynamical)",
+                                 Measure::Methods::measure_dynamic_config_sign);
     this->m_dynamic_sign = dynamic_sign;
     this->m_obs_map["dynamic_sign"] = dynamic_sign;
   }

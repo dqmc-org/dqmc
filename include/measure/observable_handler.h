@@ -37,32 +37,32 @@ class ObservableHandler {
   using ObsMap = std::map<std::string, std::shared_ptr<ObservableBase>>;
 
   using ptrBaseObs = std::shared_ptr<ObservableBase>;
-  using ptrScalarObs = std::shared_ptr<ScalarObs>;
-  using ptrVectorObs = std::shared_ptr<VectorObs>;
-  using ptrMatrixObs = std::shared_ptr<MatrixObs>;
+  using ptrScalar = std::shared_ptr<Scalar>;
+  using ptrVector = std::shared_ptr<Vector>;
+  using ptrMatrix = std::shared_ptr<Matrix>;
 
-  using EqtimeScalarObs = std::vector<std::shared_ptr<ScalarObs>>;
-  using EqtimeVectorObs = std::vector<std::shared_ptr<VectorObs>>;
-  using EqtimeMatrixObs = std::vector<std::shared_ptr<MatrixObs>>;
-  using DynamicScalarObs = std::vector<std::shared_ptr<ScalarObs>>;
-  using DynamicVectorObs = std::vector<std::shared_ptr<VectorObs>>;
-  using DynamicMatrixObs = std::vector<std::shared_ptr<MatrixObs>>;
+  using EqtimeScalar = std::vector<std::shared_ptr<Scalar>>;
+  using EqtimeVector = std::vector<std::shared_ptr<Vector>>;
+  using EqtimeMatrix = std::vector<std::shared_ptr<Matrix>>;
+  using DynamicScalar = std::vector<std::shared_ptr<Scalar>>;
+  using DynamicVector = std::vector<std::shared_ptr<Vector>>;
+  using DynamicMatrix = std::vector<std::shared_ptr<Matrix>>;
 
   // map of observable objects for quick references
   // only for finding or searching certain observable, and frequent calls should
   // be avoided
   ObsMap m_obs_map{};
 
-  EqtimeScalarObs m_eqtime_scalar_obs{};
-  EqtimeVectorObs m_eqtime_vector_obs{};
-  EqtimeMatrixObs m_eqtime_matrix_obs{};
+  EqtimeScalar m_eqtime_scalar_obs{};
+  EqtimeVector m_eqtime_vector_obs{};
+  EqtimeMatrix m_eqtime_matrix_obs{};
 
-  DynamicScalarObs m_dynamic_scalar_obs{};
-  DynamicVectorObs m_dynamic_vector_obs{};
-  DynamicMatrixObs m_dynamic_matrix_obs{};
+  DynamicScalar m_dynamic_scalar_obs{};
+  DynamicVector m_dynamic_vector_obs{};
+  DynamicMatrix m_dynamic_matrix_obs{};
 
-  ptrScalarObs m_equaltime_sign{};
-  ptrScalarObs m_dynamic_sign{};
+  ptrScalar m_equaltime_sign{};
+  ptrScalar m_dynamic_sign{};
 
   // Central registry of all supported observables and their properties.
   static const std::map<ObsName, ObservableProperties> m_supported_observables;

@@ -179,55 +179,54 @@ int main(int argc, char* argv[]) {
   // ------------------------------------
 
   // screen output the results of scalar observables
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("equaltime_sign")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("equaltime_sign")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("dynamic_sign")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("dynamic_sign")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
   std::cout << std::endl;
 
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("filling_number")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("filling_number")) {
+    DQMC::IO::output_observable_to_console(std::cout, *obs);
+  }
+
+  if (auto obs = meas_handler->find<Observable::Scalar>("double_occupancy")) {
+    DQMC::IO::output_observable_to_console(std::cout, *obs);
+  }
+
+  if (auto obs = meas_handler->find<Observable::Scalar>("kinetic_energy")) {
+    DQMC::IO::output_observable_to_console(std::cout, *obs);
+  }
+
+  if (auto obs = meas_handler->find<Observable::Scalar>("local_spin_corr")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
   if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("double_occupancy")) {
+          meas_handler->find<Observable::Scalar>("momentum_distribution")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("kinetic_energy")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("local_spin_corr")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("momentum_distribution")) {
-    DQMC::IO::output_observable_to_console(std::cout, *obs);
-  }
-
-  if (auto obs = meas_handler->find<Observable::ScalarObs>(
+  if (auto obs = meas_handler->find<Observable::Scalar>(
           "spin_density_structure_factor")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
-  if (auto obs = meas_handler->find<Observable::ScalarObs>(
+  if (auto obs = meas_handler->find<Observable::Scalar>(
           "charge_density_structure_factor")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
   if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("s_wave_pairing_corr")) {
+          meas_handler->find<Observable::Scalar>("s_wave_pairing_corr")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
   if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("superfluid_stiffness")) {
+          meas_handler->find<Observable::Scalar>("superfluid_stiffness")) {
     DQMC::IO::output_observable_to_console(std::cout, *obs);
   }
 
@@ -259,7 +258,7 @@ int main(int argc, char* argv[]) {
 
   // s wave pairing correlation functions
   if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("s_wave_pairing_corr")) {
+          meas_handler->find<Observable::Scalar>("s_wave_pairing_corr")) {
     // output of means and errors
     outfile.open(out_path + "/swave_" + std::to_string(run_id) + ".out",
                  std::ios::trunc);
@@ -273,7 +272,7 @@ int main(int argc, char* argv[]) {
   }
 
   // charge density structure factor
-  if (auto obs = meas_handler->find<Observable::ScalarObs>(
+  if (auto obs = meas_handler->find<Observable::Scalar>(
           "charge_density_structure_factor")) {
     // output of means and errors
     outfile.open(out_path + "/charge_density_structure_factor_" +
@@ -290,7 +289,7 @@ int main(int argc, char* argv[]) {
   }
 
   // spin density structure factor
-  if (auto obs = meas_handler->find<Observable::ScalarObs>(
+  if (auto obs = meas_handler->find<Observable::Scalar>(
           "spin_density_structure_factor")) {
     // output of means and errors
     outfile.open(out_path + "/spin_density_structure_factor_" +
@@ -307,8 +306,7 @@ int main(int argc, char* argv[]) {
   }
 
   // density of states
-  if (auto obs =
-          meas_handler->find<Observable::VectorObs>("density_of_states")) {
+  if (auto obs = meas_handler->find<Observable::Vector>("density_of_states")) {
     // output of means and errors
     outfile.open(out_path + "/dos_" + std::to_string(run_id) + ".out",
                  std::ios::trunc);
@@ -322,7 +320,7 @@ int main(int argc, char* argv[]) {
   }
 
   // equal-time sign
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("equaltime_sign")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("equaltime_sign")) {
     // output of means and errors
     outfile.open(
         out_path + "/equaltime_sign_" + std::to_string(run_id) + ".out",
@@ -337,7 +335,7 @@ int main(int argc, char* argv[]) {
   }
 
   // dynamic sign
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("dynamic_sign")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("dynamic_sign")) {
     // output of means and errors
     outfile.open(out_path + "/dynamic_sign_" + std::to_string(run_id) + ".out",
                  std::ios::trunc);
@@ -351,7 +349,7 @@ int main(int argc, char* argv[]) {
   }
 
   // filling number
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("filling_number")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("filling_number")) {
     // output of means and errors
     outfile.open(
         out_path + "/filling_number_" + std::to_string(run_id) + ".out",
@@ -366,8 +364,7 @@ int main(int argc, char* argv[]) {
   }
 
   // double occupancy
-  if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("double_occupancy")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("double_occupancy")) {
     // output of means and errors
     outfile.open(
         out_path + "/double_occupancy_" + std::to_string(run_id) + ".out",
@@ -382,7 +379,7 @@ int main(int argc, char* argv[]) {
   }
 
   // kinetic energy
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("kinetic_energy")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("kinetic_energy")) {
     // output of means and errors
     outfile.open(
         out_path + "/kinetic_energy_" + std::to_string(run_id) + ".out",
@@ -397,7 +394,7 @@ int main(int argc, char* argv[]) {
   }
 
   // local spin correlation
-  if (auto obs = meas_handler->find<Observable::ScalarObs>("local_spin_corr")) {
+  if (auto obs = meas_handler->find<Observable::Scalar>("local_spin_corr")) {
     // output of means and errors
     outfile.open(
         out_path + "/local_spin_corr_" + std::to_string(run_id) + ".out",
@@ -413,7 +410,7 @@ int main(int argc, char* argv[]) {
 
   // momentum distribution
   if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("momentum_distribution")) {
+          meas_handler->find<Observable::Scalar>("momentum_distribution")) {
     // output of means and errors
     outfile.open(
         out_path + "/momentum_distribution_" + std::to_string(run_id) + ".out",
@@ -429,7 +426,7 @@ int main(int argc, char* argv[]) {
 
   // superfluid stiffness
   if (auto obs =
-          meas_handler->find<Observable::ScalarObs>("superfluid_stiffness")) {
+          meas_handler->find<Observable::Scalar>("superfluid_stiffness")) {
     // output of means and errors
     outfile.open(
         out_path + "/superfluid_stiffness_" + std::to_string(run_id) + ".out",
@@ -444,8 +441,7 @@ int main(int argc, char* argv[]) {
   }
 
   // dynamical green's function in the reciprocal space
-  if (auto obs =
-          meas_handler->find<Observable::MatrixObs>("greens_functions")) {
+  if (auto obs = meas_handler->find<Observable::Matrix>("greens_functions")) {
     // output of means and errors
     outfile.open(out_path + "/greens_" + std::to_string(run_id) + ".out",
                  std::ios::trunc);
@@ -459,7 +455,7 @@ int main(int argc, char* argv[]) {
   }
 
   // dynamic spin susceptibility
-  if (auto obs = meas_handler->find<Observable::VectorObs>(
+  if (auto obs = meas_handler->find<Observable::Vector>(
           "dynamic_spin_susceptibility")) {
     // output of means and errors
     outfile.open(out_path + "/dss_" + std::to_string(run_id) + ".out",
