@@ -1,5 +1,6 @@
 #include <boost/program_options.hpp>
 #include <chrono>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iomanip>
@@ -7,6 +8,7 @@
 #include <memory>
 #include <random>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 
 #include "checkerboard/checkerboard_base.h"
@@ -67,14 +69,11 @@ int main(int argc, char* argv[]) {
   }
 
   // initialize the output folder, create if not exist
-  if (access(out_path.c_str(), 0) != 0) {
-    const std::string command = "mkdir -p " + out_path;
-    if (system(command.c_str()) != 0) {
-      std::cerr << std::format("main(): fail to creat folder at {} .\n",
-                               out_path)
-                << std::endl;
-      exit(1);
-    }
+  try {
+    std::filesystem::create_directories(out_path);
+  } catch (const std::filesystem::filesystem_error& e) {
+    throw std::runtime_error(std::format(
+        "DQMC::main(): Failed to initialize output folder at {}.", out_path));
   }
 
   // ------------------------------------------------------------------------------------------------
