@@ -60,14 +60,14 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
       // note that the dimensions of the observable should be adjusted or
       // specialized here
-      vector_obs->set_zero_element(Vector::Zero(walker.TimeSize()));
+      vector_obs->set_zero_element(VectorType::Zero(walker.TimeSize()));
       vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
       // specialize dimensions for certain observables if needed
       matrix_obs->set_zero_element(
-          Matrix::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
+          MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
       matrix_obs->set_number_of_bins(this->m_bin_num);
       matrix_obs->allocate();
     }
@@ -87,7 +87,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
       // specialize dimensions for certain observables if needed
-      vector_obs->set_zero_element(Vector::Zero(walker.TimeSize()));
+      vector_obs->set_zero_element(VectorType::Zero(walker.TimeSize()));
       vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
@@ -97,13 +97,13 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
         // for greens function measure, the rows represent different lattice
         // momentum and the columns represent imaginary-time grids.
         matrix_obs->set_zero_element(
-            Matrix::Zero(this->m_momentum_list.size(), walker.TimeSize()));
+            MatrixType::Zero(this->m_momentum_list.size(), walker.TimeSize()));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       } else {
         // otherwise initialize by default
         matrix_obs->set_zero_element(
-            Matrix::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
+            MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       }

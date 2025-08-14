@@ -26,8 +26,8 @@ using ObsList = std::vector<std::string>;
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
 using Walker = DQMC::Walker;
-using Matrix = Eigen::MatrixXd;
-using Vector = Eigen::VectorXd;
+using MatrixType = Eigen::MatrixXd;
+using VectorType = Eigen::VectorXd;
 using MomentumIndex = int;
 using MomentumIndexList = std::vector<int>;
 

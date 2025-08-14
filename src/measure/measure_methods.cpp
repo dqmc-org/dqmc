@@ -11,8 +11,8 @@ namespace Measure {
 // some aliases
 using RealScalar = double;
 using GreensFunc = Eigen::MatrixXd;
-using Matrix = Eigen::MatrixXd;
-using Vector = Eigen::VectorXd;
+using MatrixType = Eigen::MatrixXd;
+using VectorType = Eigen::VectorXd;
 
 // -----------------------------  Method routines for equal-time measurements
 // -------------------------------
@@ -199,9 +199,9 @@ void Methods::measure_spin_density_structure_factor(
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
     const GreensFunc& guc =
-        Matrix::Identity(space_size, space_size) - gu.transpose();
+        MatrixType::Identity(space_size, space_size) - gu.transpose();
     const GreensFunc& gdc =
-        Matrix::Identity(space_size, space_size) - gd.transpose();
+        MatrixType::Identity(space_size, space_size) - gd.transpose();
     const double config_sign = walker.ConfigSign(t);
 
     RealScalar tmp_sdw = 0.0;
@@ -289,10 +289,10 @@ void Methods::measure_s_wave_pairing_corr(Scalar& s_wave_pairing,
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
     const GreensFunc& guc =
-        Matrix::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
+        MatrixType::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
         gu.transpose();
     const GreensFunc& gdc =
-        Matrix::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
+        MatrixType::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
         gd.transpose();
     const RealScalar& config_sign = walker.ConfigSign(t);
 
