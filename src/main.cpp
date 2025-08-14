@@ -195,19 +195,20 @@ int main(int argc, char* argv[]) {
   // otherwise the field configs are stored under the output folder.
   const auto fields_out =
       (fields_file.empty())
-          ? out_path + "/bosonic_fields_" + std::to_string(run_id) + ".out"
+          ? std::format("{}/bosonic_fields_{}.out", out_path, run_id)
           : fields_file;
   outfile.open(fields_out, std::ios::trunc);
   DQMC::IO::output_bosonic_fields(outfile, *model);
   outfile.close();
 
   // output the k stars
-  outfile.open(out_path + "/kstars.out", std::ios::trunc);
+  outfile.open(std::format("{}/kstars.out", out_path), std::ios::trunc);
   DQMC::IO::output_k_stars(outfile, *lattice);
   outfile.close();
 
   // output the imaginary-time grids
-  outfile.open(out_path + "/imaginary_time_grids.out", std::ios::trunc);
+  outfile.open(std::format("{}/imaginary_time_grids.out", out_path),
+               std::ios::trunc);
   DQMC::IO::output_imaginary_time_grids(outfile, *walker);
   outfile.close();
 
@@ -217,14 +218,14 @@ int main(int argc, char* argv[]) {
   auto output_observable_files = [&](const auto& obs,
                                      const std::string& obs_name) {
     // output of means and errors
-    outfile.open(
-        out_path + "/" + obs_name + "_" + std::to_string(run_id) + ".out",
-        std::ios::trunc);
+    outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, run_id),
+                 std::ios::trunc);
     DQMC::IO::output_observable_to_file(outfile, *obs);
     outfile.close();
 
     // output of raw data in terms of bins
-    outfile.open(out_path + "/" + obs_name + ".bins.out", std::ios::trunc);
+    outfile.open(std::format("{}/{}.bins.out", out_path, obs_name),
+                 std::ios::trunc);
     DQMC::IO::output_observable_in_bins_to_file(outfile, *obs);
     outfile.close();
   };
