@@ -98,13 +98,9 @@ void IO::output_observable_to_console(
 
   // for scalar observables
   if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
-    auto fmt_scalar_obs = [](std::string_view desc, double mean, double error) {
-      return std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}", desc, "->",
-                         mean, error);
-    };
-    ostream << fmt_scalar_obs(obs.description(), obs.mean_value(),
-                              obs.error_bar())
-            << std::endl;
+    ostream << std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}\n",
+                           obs.description(), "->", obs.mean_value(),
+                           obs.error_bar());
   }
 
   // // todo: currently not used
@@ -139,60 +135,39 @@ void IO::output_observable_to_file(std::ofstream& ostream,
   if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
     // for specfic scalar observable, output the mean value, error bar and
     // relative error in order.
-    auto fmt_scalar_obs = [](double mean, double error, double rel_error) {
-      return std::format("{:>20.10f}{:>20.10f}{:>20.10f}", mean, error,
-                         rel_error);
-    };
-    ostream << fmt_scalar_obs(obs.mean_value(), obs.error_bar(),
-                              (obs.error_bar() / obs.mean_value()))
-            << std::endl;
+    ostream << std::format("{:>20.10f}{:>20.10f}{:>20.10f}\n", obs.mean_value(),
+                           obs.error_bar(), obs.error_bar() / obs.mean_value());
   }
 
   // for vector observables
   else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
     // output vector observable
-    auto fmt_size_info = [](int size) { return std::format("{:>20d}", size); };
-    auto fmt_vector_obs = [](int i, double mean, double error,
-                             double rel_error) {
-      return std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i, mean,
-                         error, rel_error);
-    };
-
     const int size = obs.mean_value().size();
     const auto relative_error =
         (obs.error_bar().array() / obs.mean_value().array()).matrix();
-    ostream << fmt_size_info(size) << std::endl;
+    ostream << std::format("{:>20d}", size) << std::endl;
     for (auto i = 0; i < size; ++i) {
       // output the mean value, error bar and relative error in order.
-      ostream << fmt_vector_obs(i, obs.mean_value()(i), obs.error_bar()(i),
-                                relative_error(i))
-              << std::endl;
+      ostream << std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i,
+                             obs.mean_value()(i), obs.error_bar()(i),
+                             relative_error(i));
     }
   }
 
   // for matrix observables
   else if constexpr (std::is_same_v<ObsType, Observable::MatrixType>) {
     // output matrix observable
-    auto fmt_size_info = [](int row, int col) {
-      return std::format("{:>20d}{:>20d}", row, col);
-    };
-    auto fmt_matrix_obs = [](int i, int j, double mean, double error,
-                             double rel_error) {
-      return std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}", i, j,
-                         mean, error, rel_error);
-    };
-
     const int row = obs.mean_value().rows();
     const int col = obs.mean_value().cols();
     const auto relative_error =
         (obs.error_bar().array() / obs.mean_value().array()).matrix();
-    ostream << fmt_size_info(row, col) << std::endl;
+    ostream << std::format("{:>20d}{:>20d}", row, col) << std::endl;
     for (auto i = 0; i < row; ++i) {
       for (auto j = 0; j < col; ++j) {
         // output the mean value, error bar and relative error in order.
-        ostream << fmt_matrix_obs(i, j, obs.mean_value()(i, j),
-                                  obs.error_bar()(i, j), relative_error(i, j))
-                << std::endl;
+        ostream << std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n",
+                               i, j, obs.mean_value()(i, j),
+                               obs.error_bar()(i, j), relative_error(i, j));
       }
     }
   }
@@ -217,36 +192,23 @@ void IO::output_observable_in_bins_to_file(
     // for scalar observables
     if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
       // output bin data of scalar observable
-      auto fmt_size_info = [](int bins) {
-        return std::format("{:>20d}", bins);
-      };
-      auto fmt_scalar_obs = [](int bin, double value) {
-        return std::format("{:>20d}{:>20.10f}", bin, value);
-      };
-
       const int number_of_bins = obs.bin_num();
-      ostream << fmt_size_info(number_of_bins) << std::endl;
+      ostream << std::format("{:>20d}\n", number_of_bins);
       for (auto bin = 0; bin < number_of_bins; ++bin) {
-        ostream << fmt_scalar_obs(bin, obs.bin_data(bin)) << std::endl;
+        ostream << std::format("{:>20d}{:>20.10f}\n", bin, obs.bin_data(bin));
       }
     }
 
     // for vector observables
     else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
       // output bin data of vector observable
-      auto fmt_size_info = [](int bins, int size) {
-        return std::format("{:>20d}{:>20d}", bins, size);
-      };
-      auto fmt_vector_obs = [](int bin, int i, double value) {
-        return std::format("{:>20d}{:>20d}{:>20.10f}", bin, i, value);
-      };
-
       const int number_of_bins = obs.bin_num();
       const int size = obs.mean_value().size();
-      ostream << fmt_size_info(number_of_bins, size) << std::endl;
+      ostream << std::format("{:>20d}{:>20d}\n", number_of_bins, size);
       for (auto bin = 0; bin < number_of_bins; ++bin) {
         for (auto i = 0; i < size; ++i) {
-          ostream << fmt_vector_obs(bin, i, obs.bin_data(bin)(i)) << std::endl;
+          ostream << std::format("{:>20d}{:>20d}{:>20.10f}\n", bin, i,
+                                 obs.bin_data(bin)(i));
         }
       }
     }
@@ -254,22 +216,16 @@ void IO::output_observable_in_bins_to_file(
     // for matrix observables
     else if constexpr (std::is_same_v<ObsType, Observable::MatrixType>) {
       // output bin data of matrix observable
-      auto fmt_size_info = [](int bins, int row, int col) {
-        return std::format("{:>20d}{:>20d}{:>20d}", bins, row, col);
-      };
-      auto fmt_matrix_obs = [](int bin, int i, int j, double value) {
-        return std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}", bin, i, j, value);
-      };
-
       const int number_of_bins = obs.bin_num();
       const int row = obs.mean_value().rows();
       const int col = obs.mean_value().cols();
-      ostream << fmt_size_info(number_of_bins, row, col) << std::endl;
+      ostream << std::format("{:>20d}{:>20d}{:>20d}\n", number_of_bins, row,
+                             col);
       for (auto bin = 0; bin < number_of_bins; ++bin) {
         for (auto i = 0; i < row; ++i) {
           for (auto j = 0; j < col; ++j) {
-            ostream << fmt_matrix_obs(bin, i, j, obs.bin_data(bin)(i, j))
-                    << std::endl;
+            ostream << std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}\n", bin, i,
+                                   j, obs.bin_data(bin)(i, j));
           }
         }
       }
