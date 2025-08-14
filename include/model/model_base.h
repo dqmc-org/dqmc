@@ -118,8 +118,8 @@ class ModelBase {
   // setup model params ( interface for the derived classes )
   virtual void set_model_params(RealScalar, RealScalar, RealScalar) = 0;
 
-  virtual const RealScalar HoppingT() const = 0;
-  virtual const RealScalar ChemicalPotential() const = 0;
+  virtual RealScalar HoppingT() const = 0;
+  virtual RealScalar ChemicalPotential() const = 0;
 
   // output model information to stream with consistent formatting
   virtual void output_model_info(std::ostream& ostream) const = 0;
@@ -165,8 +165,8 @@ class ModelBase {
 
   // return the updating ratio of one step of the local dqmc update
   // which is model-dependent
-  virtual const double get_update_ratio(Walker& walker, TimeIndex time_index,
-                                        SpaceIndex space_index) const = 0;
+  virtual double get_update_ratio(Walker& walker, TimeIndex time_index,
+                                  SpaceIndex space_index) const = 0;
 
   // transform the equal-time green's functions
   // given a specific update of the bosonic fields

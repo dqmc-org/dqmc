@@ -47,9 +47,9 @@ class AttractiveHubbard : public ModelBase {
   // ------------------------------------------ Interfaces
   // ----------------------------------------------
 
-  const RealScalar HoppingT() const override;
-  const RealScalar OnSiteU() const;
-  const RealScalar ChemicalPotential() const override;
+  RealScalar HoppingT() const override;
+  RealScalar OnSiteU() const;
+  RealScalar ChemicalPotential() const override;
 
   // output model information to stream with consistent formatting
   void output_model_info(std::ostream& ostream) const override;
@@ -84,8 +84,8 @@ class AttractiveHubbard : public ModelBase {
                             SpaceIndex space_index) override;
   void update_greens_function(Walker& walker, TimeIndex time_index,
                               SpaceIndex space_index) override;
-  const double get_update_ratio(Walker& walker, TimeIndex time_index,
-                                SpaceIndex space_index) const override;
+  double get_update_ratio(Walker& walker, TimeIndex time_index,
+                          SpaceIndex space_index) const override;
 
   // -------------------------------------- Warpping methods
   // --------------------------------------------

@@ -5,18 +5,22 @@
 namespace Lattice {
 
 // high symmetry points in the reciprocal lattice
-const LatticeInt Square::GammaPointIndex() const {
-  return this->m_gamma_point_index;
-}
-const LatticeInt Square::XPointIndex() const { return this->m_x_point_index; }
-const LatticeInt Square::MPointIndex() const { return this->m_m_point_index; }
+LatticeInt Square::GammaPointIndex() const { return this->m_gamma_point_index; }
+
+LatticeInt Square::XPointIndex() const { return this->m_x_point_index; }
+
+LatticeInt Square::MPointIndex() const { return this->m_m_point_index; }
+
 const LatticeIntVec& Square::DeltaLineIndex() const {
   return this->m_delta_line_index;
 }
+
 const LatticeIntVec& Square::ZLineIndex() const { return this->m_z_line_index; }
+
 const LatticeIntVec& Square::SigmaLineIndex() const {
   return this->m_sigma_line_index;
 }
+
 const LatticeIntVec& Square::Gamma2X2M2GammaLoopIndex() const {
   return this->m_gamma2x2m2gamma_loop_index;
 }

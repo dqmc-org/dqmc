@@ -17,15 +17,13 @@ using RealScalar = double;
 using SpaceTimeMat = Eigen::MatrixXd;
 using SpaceSpaceMat = Eigen::MatrixXd;
 
-const RealScalar AttractiveHubbard::HoppingT() const {
-  return this->m_hopping_t;
-}
+RealScalar AttractiveHubbard::HoppingT() const { return this->m_hopping_t; }
 
-const RealScalar AttractiveHubbard::ChemicalPotential() const {
+RealScalar AttractiveHubbard::ChemicalPotential() const {
   return this->m_chemical_potential;
 }
 
-const RealScalar AttractiveHubbard::OnSiteU() const { return this->m_onsite_u; }
+RealScalar AttractiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
 void AttractiveHubbard::output_model_info(std::ostream& ostream) const {
   auto fmt_param_double = [](const std::string& desc, const std::string& joiner,
@@ -137,9 +135,8 @@ void AttractiveHubbard::update_bosonic_field(TimeIndex time_index,
       -this->m_bosonic_field(time_index, space_index);
 }
 
-const double AttractiveHubbard::get_update_ratio(Walker& walker,
-                                                 TimeIndex time_index,
-                                                 SpaceIndex space_index) const {
+double AttractiveHubbard::get_update_ratio(Walker& walker, TimeIndex time_index,
+                                           SpaceIndex space_index) const {
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);
 

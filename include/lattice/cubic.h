@@ -37,10 +37,10 @@ class Cubic : public LatticeBase {
   void initial() override;
 
   // interfaces for high symmetry momentum points
-  const LatticeInt GammaPointIndex() const;
-  const LatticeInt XPointIndex() const;
-  const LatticeInt MPointIndex() const;
-  const LatticeInt RPointIndex() const;
+  LatticeInt GammaPointIndex() const;
+  LatticeInt XPointIndex() const;
+  LatticeInt MPointIndex() const;
+  LatticeInt RPointIndex() const;
   const LatticeIntVec& DeltaLineIndex() const;
   const LatticeIntVec& ZLineIndex() const;
   const LatticeIntVec& SigmaLineIndex() const;

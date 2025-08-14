@@ -5,23 +5,30 @@
 namespace Lattice {
 
 // high symmetry points in the reciprocal lattice
-const LatticeInt Cubic::GammaPointIndex() const {
-  return this->m_gamma_point_index;
-}
-const LatticeInt Cubic::XPointIndex() const { return this->m_x_point_index; }
-const LatticeInt Cubic::MPointIndex() const { return this->m_m_point_index; }
-const LatticeInt Cubic::RPointIndex() const { return this->m_r_point_index; }
+LatticeInt Cubic::GammaPointIndex() const { return this->m_gamma_point_index; }
+
+LatticeInt Cubic::XPointIndex() const { return this->m_x_point_index; }
+
+LatticeInt Cubic::MPointIndex() const { return this->m_m_point_index; }
+
+LatticeInt Cubic::RPointIndex() const { return this->m_r_point_index; }
+
 const LatticeIntVec& Cubic::DeltaLineIndex() const {
   return this->m_delta_line_index;
 }
+
 const LatticeIntVec& Cubic::ZLineIndex() const { return this->m_z_line_index; }
+
 const LatticeIntVec& Cubic::SigmaLineIndex() const {
   return this->m_sigma_line_index;
 }
+
 const LatticeIntVec& Cubic::LambdaLineIndex() const {
   return this->m_lambda_line_index;
 }
+
 const LatticeIntVec& Cubic::SLineIndex() const { return this->m_s_line_index; }
+
 const LatticeIntVec& Cubic::TLineIndex() const { return this->m_t_line_index; }
 
 void Cubic::output_lattice_info(std::ostream& ostream,
