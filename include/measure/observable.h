@@ -39,12 +39,12 @@ using MatrixType = Eigen::MatrixXd;
 
 namespace detail {
 
-template <typename ObsType, typename = void>
+template <typename DataType, typename = void>
 struct error_bar_calculator {
-  static void calculate(ObsType&, const ObsType&, const std::vector<ObsType>&,
-                        int) {
+  static void calculate(DataType&, const DataType&,
+                        const std::vector<DataType>&, int) {
     static_assert(
-        sizeof(ObsType) == 0,
+        sizeof(DataType) == 0,
         "Observable::calculate_error_bar(): Unsupported observable type.");
   }
 };
@@ -117,10 +117,10 @@ class ObservableBase {
  *        observable type. `Observable<ObsType>` manages data collection across
  *        multiple bins, computes mean values, and estimates error bars.
  *
- * @tparam ObsType The data type of the observable (e.g., `ScalarType`,
+ * @tparam DataType The data type of the observable (e.g., `ScalarType`,
  * `VectorType`, `MatrixType`).
  */
-template <typename ObsType>
+template <typename DataType>
 class Observable : public ObservableBase {
  private:
   // useful aliases
@@ -128,15 +128,15 @@ class Observable : public ObservableBase {
   using ModelBase = Model::ModelBase;
   using LatticeBase = Lattice::LatticeBase;
   using MeasureHandler = Measure::MeasureHandler;
-  using ObsMethod = void(Observable<ObsType>&, const MeasureHandler&,
+  using ObsMethod = void(Observable<DataType>&, const MeasureHandler&,
                          const Walker&, const ModelBase&, const LatticeBase&);
 
-  ObsType m_mean_value{};  // statistical mean value
-  ObsType m_error_bar{};   // estimated error bar
-  ObsType m_tmp_value{};   // temporary value during sample collections
-  ObsType m_zero_elem{};   // zero element to clear temporary values
+  DataType m_mean_value{};  // statistical mean value
+  DataType m_error_bar{};   // estimated error bar
+  DataType m_tmp_value{};   // temporary value during sample collections
+  DataType m_zero_elem{};   // zero element to clear temporary values
 
-  std::vector<ObsType> m_bin_data{};  // collected data in bins
+  std::vector<DataType> m_bin_data{};  // collected data in bins
 
   std::function<ObsMethod> m_method{};  // user-defined measuring method
 
@@ -150,29 +150,29 @@ class Observable : public ObservableBase {
   // -------------------------------------  Interface functions
   // ------------------------------------------
 
-  const ObsType& zero_element() const { return this->m_zero_elem; }
-  const ObsType& mean_value() const { return this->m_mean_value; }
-  const ObsType& error_bar() const { return this->m_error_bar; }
+  const DataType& zero_element() const { return this->m_zero_elem; }
+  const DataType& mean_value() const { return this->m_mean_value; }
+  const DataType& error_bar() const { return this->m_error_bar; }
 
-  const ObsType& tmp_value() const { return this->m_tmp_value; }
-  ObsType& tmp_value() { return this->m_tmp_value; }
+  const DataType& tmp_value() const { return this->m_tmp_value; }
+  DataType& tmp_value() { return this->m_tmp_value; }
 
-  const ObsType& bin_data(int bin) const {
+  const DataType& bin_data(int bin) const {
     DQMC_ASSERT(bin >= 0 && bin < this->m_bin_num);
     return this->m_bin_data[bin];
   }
 
-  ObsType& bin_data(int bin) {
+  DataType& bin_data(int bin) {
     DQMC_ASSERT(bin >= 0 && bin < this->m_bin_num);
     return this->m_bin_data[bin];
   }
 
-  std::vector<ObsType>& bin_data() { return this->m_bin_data; }
+  std::vector<DataType>& bin_data() { return this->m_bin_data; }
 
   // ---------------------------------  Set up parameters and methods
   // ------------------------------------
 
-  void set_zero_element(const ObsType& zero_elem) {
+  void set_zero_element(const DataType& zero_elem) {
     this->m_zero_elem = zero_elem;
   }
 
@@ -191,7 +191,7 @@ class Observable : public ObservableBase {
     this->m_error_bar = this->m_zero_elem;
     this->m_tmp_value = this->m_zero_elem;
 
-    std::vector<ObsType>().swap(this->m_bin_data);
+    std::vector<DataType>().swap(this->m_bin_data);
     this->m_bin_data.reserve(this->m_bin_num);
     for (int i = 0; i < this->m_bin_num; ++i) {
       this->m_bin_data.emplace_back(this->m_zero_elem);
@@ -234,7 +234,7 @@ class Observable : public ObservableBase {
 
   // estimate error bar of the measurement
   void calculate_error_bar() {
-    detail::error_bar_calculator<ObsType>::calculate(
+    detail::error_bar_calculator<DataType>::calculate(
         this->m_error_bar, this->m_mean_value, this->m_bin_data,
         this->bin_num());
   }
