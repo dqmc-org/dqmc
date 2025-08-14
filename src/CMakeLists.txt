@@ -34,6 +34,14 @@ target_link_libraries(
   BLAS::BLAS
   Eigen3::Eigen
   ${Boost_LIBRARIES}
+  lapacke
+)
+
+target_compile_definitions(
+  dqmc
+  PUBLIC
+  EIGEN_USE_BLAS
+  EIGEN_USE_LAPACKE
 )
 
 add_executable(

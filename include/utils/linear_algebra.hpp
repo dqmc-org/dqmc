@@ -36,53 +36,29 @@ class LinearAlgebra {
    *  @param s -> eigenvalues s of type Eigen::VectorXd, descending sorted.
    *  @param v -> v matrix of type Eigen::MatrixXd, `col` * `col`.
    */
-  static void dgesvd(const int& row, const int& col, const Eigen::MatrixXd& mat,
+  static void dgesvd(int row, int col, const Eigen::MatrixXd& mat,
                      Eigen::MatrixXd& u, Eigen::VectorXd& s,
                      Eigen::MatrixXd& v) {
     DQMC_ASSERT(row == mat.rows());
     DQMC_ASSERT(col == mat.cols());
-    // TODO: currently, the subroutine would fail
-    // if the input matrix has different rows and columns
-    DQMC_ASSERT(row == col);
 
-    // matrix size
-    int matrix_layout = LAPACK_ROW_MAJOR;
-    lapack_int info{};
-    lapack_int lda = row, ldu = row, ldvt = col;
+    // BUG: Eigen Jacobi is not compatible with LAPACK dgesvd, make sure to
+    // enable EIGEN_USE_BLAS and EIGEN_USE_LAPACKE. BDCSVD lowers to JacobiSVD
+    // for sizes below or equal to 16. For more details:
+    // https://eigen.tuxfamily.org/dox-devel/TopicUsingBlasLapack.html
 
-    // local arrays
-    std::vector<double> tmp_s(ldu * ldu);
-    std::vector<double> tmp_u(ldu * row);
-    std::vector<double> tmp_vt(ldvt * col);
-    std::vector<double> mat_in(lda * col);
-    std::vector<double> super_mat(ldu * lda);
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(
+        mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
-    // convert eigen matrix to c-style array
-    Eigen::Map<
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
-        mat_in.data(), lda, col) = mat;
-
-    // compute SVD
-    info = LAPACKE_dgesvd(matrix_layout, 'A', 'A', row, col, mat_in.data(), lda,
-                          tmp_s.data(), tmp_u.data(), ldu, tmp_vt.data(), ldvt,
-                          super_mat.data());
-
-    // check for convergence
-    if (info > 0) {
+    if (svd.info() != Eigen::Success) {
       throw std::runtime_error(
-          "Utils::LinearAlgebra::mkl_lapack_dgesvd(): "
-          "computing SVD failed to converge.");
+          "Utils::LinearAlgebra::dgesvd(): "
+          "SVD algorithm failed.");
     }
 
-    // convert the results into Eigen style
-    u = Eigen::Map<
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>>(
-        tmp_u.data(), col, col);
-    s = Eigen::Map<Eigen::Matrix<double, 1, Eigen::Dynamic, Eigen::RowMajor>>(
-        tmp_s.data(), 1, col);
-    v = Eigen::Map<
-        Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>>(
-        tmp_vt.data(), row, row);
+    u = svd.matrixU();
+    s = svd.singularValues();
+    v = svd.matrixV();
   }
 
   /**
@@ -97,11 +73,10 @@ class LinearAlgebra {
    *  @param s -> diagonal eigen matrix.
    *  @param t -> rotation matrix, whose columns are corresponding eigenstates.
    */
-  static void dsyev(const int& size, const Eigen::MatrixXd& mat,
-                    Eigen::VectorXd& s, Eigen::MatrixXd& t) {
+  static void dsyev(int size, const Eigen::MatrixXd& mat, Eigen::VectorXd& s,
+                    Eigen::MatrixXd& t) {
     DQMC_ASSERT(mat.rows() == size);
     DQMC_ASSERT(mat.cols() == size);
-    // make sure the input matrix is symmetric
     DQMC_ASSERT(mat.isApprox(mat.transpose(), 1e-12));
 
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
