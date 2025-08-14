@@ -128,8 +128,8 @@ class Observable : public ObservableBase {
   using ModelBase = Model::ModelBase;
   using LatticeBase = Lattice::LatticeBase;
   using MeasureHandler = Measure::MeasureHandler;
-  using ObsMethod = void(Observable<DataType>&, const MeasureHandler&,
-                         const Walker&, const ModelBase&, const LatticeBase&);
+  using Method = void(Observable<DataType>&, const MeasureHandler&,
+                      const Walker&, const ModelBase&, const LatticeBase&);
 
   DataType m_mean_value{};  // statistical mean value
   DataType m_error_bar{};   // estimated error bar
@@ -138,13 +138,13 @@ class Observable : public ObservableBase {
 
   std::vector<DataType> m_bin_data{};  // collected data in bins
 
-  std::function<ObsMethod> m_method{};  // user-defined measuring method
+  std::function<Method> m_method{};  // user-defined measuring method
 
  public:
   Observable() = default;
 
   explicit Observable(const std::string& name, const std::string& desc,
-                      const std::function<ObsMethod>& method)
+                      const std::function<Method>& method)
       : ObservableBase(name, desc), m_method(method) {}
 
   // -------------------------------------  Interface functions
