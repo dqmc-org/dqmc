@@ -195,7 +195,7 @@ int main(int argc, char* argv[]) {
   // otherwise the field configs are stored under the output folder.
   const auto fields_out =
       (fields_file.empty())
-          ? out_path + "/fields_" + std::to_string(run_id) + ".out"
+          ? out_path + "/bosonic_fields_" + std::to_string(run_id) + ".out"
           : fields_file;
   outfile.open(fields_out, std::ios::trunc);
   DQMC::IO::output_bosonic_fields(outfile, *model);
