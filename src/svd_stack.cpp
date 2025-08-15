@@ -46,12 +46,11 @@ void SvdStack::push(const Matrix& matrix) {
   DQMC_ASSERT(matrix.rows() == this->m_mat_dim &&
               matrix.cols() == this->m_mat_dim);
 
+  SvdClass svd(this->m_mat_dim);
   if (this->m_stack.empty()) {
     // First matrix: just compute its SVD directly
-    SvdClass svd(this->m_mat_dim);
     Utils::LinearAlgebra::dgesvd(matrix, svd.MatrixU(), svd.SingularValues(),
                                  svd.MatrixV());
-    this->m_stack.push_back(svd);
     this->m_prefix_v.push_back(svd.MatrixV());
   } else {
     // Subsequent matrices: multiply with existing decomposition
@@ -62,12 +61,11 @@ void SvdStack::push(const Matrix& matrix) {
     // 3. Finally compute SVD of the combined result
     Matrix tmp =
         (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
-    SvdClass svd(this->m_mat_dim);
     Utils::LinearAlgebra::dgesvd(tmp, svd.MatrixU(), svd.SingularValues(),
                                  svd.MatrixV());
-    this->m_stack.push_back(svd);
     this->m_prefix_v.push_back(this->m_prefix_v.back() * svd.MatrixV());
   }
+  this->m_stack.push_back(std::move(svd));
 }
 
 // Remove the most recent matrix from the stack
@@ -79,13 +77,13 @@ void SvdStack::pop() {
 }
 
 // Get the current singular values of the accumulated product
-Vector SvdStack::SingularValues() const {
+const Vector& SvdStack::SingularValues() const {
   DQMC_ASSERT(!this->m_stack.empty());
   return this->m_stack.back().SingularValues();
 }
 
 // Get the current U matrix (left singular vectors) of the accumulated product
-Matrix SvdStack::MatrixU() const {
+const Matrix& SvdStack::MatrixU() const {
   DQMC_ASSERT(!this->m_stack.empty());
   return this->m_stack.back().MatrixU();
 }
@@ -95,7 +93,7 @@ Matrix SvdStack::MatrixU() const {
 // since each push() operation creates a new V that must be composed with
 // previous ones. We avoid performing these multiplications by storing the
 // partial left multiplications on a separated stack.
-Matrix SvdStack::MatrixV() const {
+const Matrix& SvdStack::MatrixV() const {
   DQMC_ASSERT(!this->m_stack.empty());
   return this->m_prefix_v.back();
 }

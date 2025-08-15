@@ -96,9 +96,9 @@ class SvdStack {
 
   // Access to the current accumulated product's SVD components
   // These represent the decomposition of the entire matrix chain
-  Vector SingularValues() const;  // Current singular values
-  Matrix MatrixU() const;         // Current U matrix
-  Matrix MatrixV() const;         // Accumulated V matrix across all operations
+  const Vector& SingularValues() const;  // Current singular values
+  const Matrix& MatrixU() const;         // Current U matrix
+  const Matrix& MatrixV() const;  // Accumulated V matrix across all operations
 
   // Reset the stack to empty state (memory remains allocated for reuse)
   void clear();
