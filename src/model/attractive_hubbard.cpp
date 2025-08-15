@@ -68,7 +68,7 @@ void AttractiveHubbard::initial_params(const LatticeBase& lattice,
   this->m_time_size = walker.TimeSize();
   const RealScalar time_interval = walker.TimeInterval();
 
-  this->m_alpha = acosh(exp(0.5 * time_interval * this->m_onsite_u));
+  this->m_alpha = std::acosh(std::exp(0.5 * time_interval * this->m_onsite_u));
 
   // allocate memory for bosonic fields
   this->m_bosonic_field.resize(this->m_time_size, this->m_space_size);
@@ -137,15 +137,15 @@ double AttractiveHubbard::get_update_ratio(Walker& walker, TimeIndex time_index,
   const Eigen::MatrixXd& green_tt_up = walker.GreenttUp();
   const Eigen::MatrixXd& green_tt_dn = walker.GreenttDn();
 
-  return exp(2 * this->m_alpha *
-             this->m_bosonic_field(time_index, space_index)) *
+  return std::exp(2 * this->m_alpha *
+                  this->m_bosonic_field(time_index, space_index)) *
          (1 + (1 - green_tt_up(space_index, space_index)) *
-                  (exp(-2 * this->m_alpha *
-                       this->m_bosonic_field(time_index, space_index)) -
+                  (std::exp(-2 * this->m_alpha *
+                            this->m_bosonic_field(time_index, space_index)) -
                    1)) *
          (1 + (1 - green_tt_dn(space_index, space_index)) *
-                  (exp(-2 * this->m_alpha *
-                       this->m_bosonic_field(time_index, space_index)) -
+                  (std::exp(-2 * this->m_alpha *
+                            this->m_bosonic_field(time_index, space_index)) -
                    1));
 }
 
@@ -166,12 +166,12 @@ void AttractiveHubbard::update_greens_function(Walker& walker,
   //   method
   // here we use the sparseness of the matrix \delta
   const double factor_up =
-      (exp(-2 * this->m_alpha *
-           this->m_bosonic_field(time_index, space_index)) -
+      (std::exp(-2 * this->m_alpha *
+                this->m_bosonic_field(time_index, space_index)) -
        1) /
       (1 + (1 - green_tt_up(space_index, space_index)) *
-               (exp(-2 * this->m_alpha *
-                    this->m_bosonic_field(time_index, space_index)) -
+               (std::exp(-2 * this->m_alpha *
+                         this->m_bosonic_field(time_index, space_index)) -
                 1));
 
   // for attractive hubbard model, because the spin-up and spin-down parts are
@@ -208,10 +208,10 @@ void AttractiveHubbard::mult_B_from_left(GreensFunc& green,
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
   this->call_mult_expK_from_left(green);
-  for (auto i = 0; i < this->m_space_size; ++i) {
-    green.row(i) *=
-        exp(+1.0 * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
-  }
+  green.array().colwise() *=
+      (this->m_alpha *
+       this->m_bosonic_field.row(eff_time_index).transpose().array())
+          .exp();
 }
 
 void AttractiveHubbard::mult_B_from_right(GreensFunc& green,
@@ -228,10 +228,8 @@ void AttractiveHubbard::mult_B_from_right(GreensFunc& green,
 
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  for (auto i = 0; i < this->m_space_size; ++i) {
-    green.col(i) *=
-        exp(+1.0 * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
-  }
+  green.array().rowwise() *=
+      (this->m_alpha * this->m_bosonic_field.row(eff_time_index).array()).exp();
   this->call_mult_expK_from_right(green);
 }
 
@@ -249,10 +247,10 @@ void AttractiveHubbard::mult_invB_from_left(GreensFunc& green,
 
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  for (auto i = 0; i < this->m_space_size; ++i) {
-    green.row(i) *=
-        exp(-1.0 * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
-  }
+  green.array().colwise() *=
+      (-this->m_alpha *
+       this->m_bosonic_field.row(eff_time_index).transpose().array())
+          .exp();
   this->call_mult_inv_expK_from_left(green);
 }
 
@@ -271,10 +269,9 @@ void AttractiveHubbard::mult_invB_from_right(GreensFunc& green,
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
   this->call_mult_inv_expK_from_right(green);
-  for (auto i = 0; i < this->m_space_size; ++i) {
-    green.col(i) *=
-        exp(-1.0 * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
-  }
+  green.array().rowwise() *=
+      (-this->m_alpha * this->m_bosonic_field.row(eff_time_index).array())
+          .exp();
 }
 
 void AttractiveHubbard::mult_transB_from_left(GreensFunc& green,
@@ -291,10 +288,10 @@ void AttractiveHubbard::mult_transB_from_left(GreensFunc& green,
 
   const int eff_time_index =
       (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  for (auto i = 0; i < this->m_space_size; ++i) {
-    green.row(i) *=
-        exp(+1.0 * this->m_alpha * this->m_bosonic_field(eff_time_index, i));
-  }
+  green.array().colwise() *=
+      (this->m_alpha *
+       this->m_bosonic_field.row(eff_time_index).transpose().array())
+          .exp();
   this->call_mult_trans_expK_from_left(green);
 }
 
