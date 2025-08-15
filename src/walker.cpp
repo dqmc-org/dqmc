@@ -99,8 +99,8 @@ void Walker::initial_svd_stacks(const LatticeBase& lattice,
     if ((t - 1) % this->m_stabilization_pace == 0) {
       this->m_svd_stack_right_up.push(tmp_stack_up);
       this->m_svd_stack_right_dn.push(tmp_stack_dn);
-      tmp_stack_up = Matrix::Identity(this->m_space_size, this->m_space_size);
-      tmp_stack_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
+      tmp_stack_up.setIdentity();
+      tmp_stack_dn.setIdentity();
     }
   }
 }
@@ -223,6 +223,8 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
   // temporary matrices
   Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
   Matrix tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
+  Matrix tmp_green_tt_up(this->m_space_size, this->m_space_size);
+  Matrix tmp_green_tt_dn(this->m_space_size, this->m_space_size);
 
   // sweep upwards from 0 to beta
   for (auto t = 1; t <= this->m_time_size; ++t) {
@@ -249,10 +251,8 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
       this->m_svd_stack_left_dn.push(tmp_mat_dn);
 
       // collect the wrapping errors
-      Matrix tmp_green_tt_up =
-          Matrix::Zero(this->m_space_size, this->m_space_size);
-      Matrix tmp_green_tt_dn =
-          Matrix::Zero(this->m_space_size, this->m_space_size);
+      tmp_green_tt_up.setZero();
+      tmp_green_tt_dn.setZero();
       double tmp_wrap_error_tt_up = 0.0;
       double tmp_wrap_error_tt_dn = 0.0;
 
@@ -283,8 +283,8 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
         this->m_vec_green_tt_dn[t - 1] = this->m_green_tt_dn;
       }
 
-      tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
-      tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
+      tmp_mat_up.setIdentity();
+      tmp_mat_dn.setIdentity();
     }
 
     // finally stop at time slice t = ts + 1
@@ -320,6 +320,8 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
   // temporary matrices
   Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
   Matrix tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
+  Matrix tmp_green_tt_up(this->m_space_size, this->m_space_size);
+  Matrix tmp_green_tt_dn(this->m_space_size, this->m_space_size);
 
   // sweep downwards from beta to 0
   for (auto t = this->m_time_size; t >= 1; --t) {
@@ -332,10 +334,8 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
       this->m_svd_stack_right_dn.push(tmp_mat_dn);
 
       // collect the wrapping errors
-      Matrix tmp_green_tt_up =
-          Matrix::Zero(this->m_space_size, this->m_space_size);
-      Matrix tmp_green_tt_dn =
-          Matrix::Zero(this->m_space_size, this->m_space_size);
+      tmp_green_tt_up.setZero();
+      tmp_green_tt_dn.setZero();
       double tmp_wrap_error_tt_up = 0.0;
       double tmp_wrap_error_tt_dn = 0.0;
 
@@ -358,8 +358,8 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
       this->m_green_tt_up = tmp_green_tt_up;
       this->m_green_tt_dn = tmp_green_tt_dn;
 
-      tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
-      tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
+      tmp_mat_up.setIdentity();
+      tmp_mat_dn.setIdentity();
     }
 
     // update auxiliary fields and record the updated greens functions
@@ -434,6 +434,10 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
         Matrix::Identity(this->m_space_size, this->m_space_size);
     Matrix tmp_mat_dn =
         Matrix::Identity(this->m_space_size, this->m_space_size);
+    Matrix tmp_green_t0_up(this->m_space_size, this->m_space_size);
+    Matrix tmp_green_t0_dn(this->m_space_size, this->m_space_size);
+    Matrix tmp_green_0t_up(this->m_space_size, this->m_space_size);
+    Matrix tmp_green_0t_dn(this->m_space_size, this->m_space_size);
 
     // sweep forwards from 0 to beta
     for (auto t = 1; t <= this->m_time_size; ++t) {
@@ -466,14 +470,10 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
         this->m_svd_stack_left_dn.push(tmp_mat_dn);
 
         // collect the wrapping errors
-        Matrix tmp_green_t0_up =
-            Matrix::Zero(this->m_space_size, this->m_space_size);
-        Matrix tmp_green_t0_dn =
-            Matrix::Zero(this->m_space_size, this->m_space_size);
-        Matrix tmp_green_0t_up =
-            Matrix::Zero(this->m_space_size, this->m_space_size);
-        Matrix tmp_green_0t_dn =
-            Matrix::Zero(this->m_space_size, this->m_space_size);
+        tmp_green_t0_up.setZero();
+        tmp_green_t0_dn.setZero();
+        tmp_green_0t_up.setZero();
+        tmp_green_0t_dn.setZero();
         double tmp_wrap_error_t0_up = 0.0;
         double tmp_wrap_error_t0_dn = 0.0;
         double tmp_wrap_error_0t_up = 0.0;
@@ -526,8 +526,8 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
         this->m_vec_green_0t_up[t - 1] = this->m_green_0t_up;
         this->m_vec_green_0t_dn[t - 1] = this->m_green_0t_dn;
 
-        tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
-        tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
+        tmp_mat_up.setIdentity();
+        tmp_mat_dn.setIdentity();
       }
 
       // finally stop at time slice t = ts + 1
