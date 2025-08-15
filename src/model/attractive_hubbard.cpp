@@ -70,8 +70,11 @@ void AttractiveHubbard::initial_params(const LatticeBase& lattice,
 
   this->m_alpha = std::acosh(std::exp(0.5 * time_interval * this->m_onsite_u));
 
-  this->m_exp_val_plus = std::exp(-2 * this->m_alpha);
-  this->m_exp_val_minus = std::exp(+2 * this->m_alpha);
+  const double exp_val_plus = std::exp(-2 * this->m_alpha);
+  const double exp_val_minus = std::exp(+2 * this->m_alpha);
+
+  this->m_exp_val_half_diff = (exp_val_plus - exp_val_minus) * 0.5;
+  this->m_exp_val_avg = (exp_val_plus + exp_val_minus) * 0.5;
 
   // allocate memory for bosonic fields
   this->m_bosonic_field.resize(this->m_time_size, this->m_space_size);
@@ -137,13 +140,11 @@ double AttractiveHubbard::get_update_ratio(Walker& walker, TimeIndex time_index,
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);
 
-  const double exp_factor = (this->m_bosonic_field(time_index, space_index) > 0)
-                                ? this->m_exp_val_plus
-                                : this->m_exp_val_minus;
-
   const Eigen::MatrixXd& green_tt_up = walker.GreenttUp();
   const Eigen::MatrixXd& green_tt_dn = walker.GreenttDn();
 
+  const double s = this->m_bosonic_field(time_index, space_index);
+  const double exp_factor = this->m_exp_val_half_diff * s + this->m_exp_val_avg;
   const double delta = exp_factor - 1;
 
   const double det_ratio_up =
@@ -170,11 +171,9 @@ void AttractiveHubbard::update_greens_function(Walker& walker,
   //   Quantum Monte Carlo Methods (Algorithms for Lattice Models) Determinant
   //   method
   // here we use the sparseness of the matrix \delta
-  const double exp_val = (this->m_bosonic_field(time_index, space_index) > 0)
-                             ? this->m_exp_val_plus
-                             : this->m_exp_val_minus;
-
-  const double delta = exp_val - 1;
+  const double s = this->m_bosonic_field(time_index, space_index);
+  const double exp_factor = this->m_exp_val_half_diff * s + this->m_exp_val_avg;
+  const double delta = exp_factor - 1;
 
   const double factor_up =
       delta / (1 + (1 - green_tt_up(space_index, space_index)) * delta);

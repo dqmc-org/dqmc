@@ -38,8 +38,8 @@ class AttractiveHubbard : public ModelBase {
   SpaceTimeMat m_bosonic_field{};
 
   // cached exponentials
-  double m_exp_val_plus{};
-  double m_exp_val_minus{};
+  double m_exp_val_avg;
+  double m_exp_val_half_diff;
 
  public:
   // ----------------------------------------- Friend class
