@@ -70,6 +70,9 @@ void AttractiveHubbard::initial_params(const LatticeBase& lattice,
 
   this->m_alpha = std::acosh(std::exp(0.5 * time_interval * this->m_onsite_u));
 
+  this->m_exp_val_plus = std::exp(-2 * this->m_alpha);
+  this->m_exp_val_minus = std::exp(+2 * this->m_alpha);
+
   // allocate memory for bosonic fields
   this->m_bosonic_field.resize(this->m_time_size, this->m_space_size);
 }
@@ -134,15 +137,22 @@ double AttractiveHubbard::get_update_ratio(Walker& walker, TimeIndex time_index,
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);
 
+    const double exp_factor =
+      (this->m_bosonic_field(time_index, space_index) > 0)
+          ? this->m_exp_val_plus
+          : this->m_exp_val_minus;
+
   const Eigen::MatrixXd& green_tt_up = walker.GreenttUp();
   const Eigen::MatrixXd& green_tt_dn = walker.GreenttDn();
 
-  const double exp_factor = std::exp(
-      -2 * this->m_alpha * this->m_bosonic_field(time_index, space_index));
+  const double delta = exp_factor - 1;
 
-  return (1 + (1 - green_tt_up(space_index, space_index)) * (exp_factor - 1)) *
-         (1 + (1 - green_tt_dn(space_index, space_index)) * (exp_factor - 1)) /
-         exp_factor;
+  const double det_ratio_up =
+      1 + (1 - green_tt_up(space_index, space_index)) * delta;
+  const double det_ratio_dn =
+      1 + (1 - green_tt_dn(space_index, space_index)) * delta;
+
+  return det_ratio_up * det_ratio_dn / exp_factor;
 }
 
 void AttractiveHubbard::update_greens_function(Walker& walker,

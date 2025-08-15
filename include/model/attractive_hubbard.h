@@ -37,6 +37,10 @@ class AttractiveHubbard : public ModelBase {
   // auxiliary bonsonic fields
   SpaceTimeMat m_bosonic_field{};
 
+  // cached exponentials
+  double m_exp_val_plus{};
+  double m_exp_val_minus{};
+
  public:
   // ----------------------------------------- Friend class
   // --------------------------------------------- friend class
