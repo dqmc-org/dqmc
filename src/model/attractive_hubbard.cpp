@@ -176,14 +176,11 @@ void AttractiveHubbard::update_greens_function(Walker& walker,
   // spin state.
   const double factor_dn = factor_up;
 
-  green_tt_up -=
-      factor_up * green_tt_up.col(space_index) *
-      (Eigen::VectorXd::Unit(this->m_space_size, space_index).transpose() -
-       green_tt_up.row(space_index));
-  green_tt_dn -=
-      factor_dn * green_tt_dn.col(space_index) *
-      (Eigen::VectorXd::Unit(this->m_space_size, space_index).transpose() -
-       green_tt_dn.row(space_index));
+  const auto unit = Eigen::VectorXd::Unit(this->m_space_size, space_index);
+  green_tt_up.noalias() -= factor_up * green_tt_up.col(space_index) *
+                           (unit.transpose() - green_tt_up.row(space_index));
+  green_tt_dn.noalias() -= factor_dn * green_tt_dn.col(space_index) *
+                           (unit.transpose() - green_tt_dn.row(space_index));
 }
 
 void AttractiveHubbard::mult_B_from_left(GreensFunc& green,
