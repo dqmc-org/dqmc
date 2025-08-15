@@ -195,13 +195,19 @@ void Methods::measure_spin_density_structure_factor(
       1.0 / (static_cast<double>(space_size) * space_size);
   const int K_vector = meas_handler.Momentum();
 
+  MatrixType guc(space_size, space_size);
+  MatrixType gdc(space_size, space_size);
+
   for (auto t = 0; t < walker.TimeSize(); ++t) {
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
-    const GreensFunc& guc =
-        MatrixType::Identity(space_size, space_size) - gu.transpose();
-    const GreensFunc& gdc =
-        MatrixType::Identity(space_size, space_size) - gd.transpose();
+
+    // We need to make this dance to avoid allocations
+    guc.setIdentity();
+    guc -= gu.transpose();
+    gdc.setIdentity();
+    gdc -= gd.transpose();
+
     const double config_sign = walker.ConfigSign(t);
 
     RealScalar tmp_sdw = 0.0;
@@ -282,18 +288,24 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
                                           const Walker& walker,
                                           const ModelBase& model,
                                           const LatticeBase& lattice) {
+  const int space_size = lattice.SpaceSize();
+
+  MatrixType guc(space_size, space_size);
+  MatrixType gdc(space_size, space_size);
+
   for (auto t = 0; t < walker.TimeSize(); ++t) {
     //  g(i,j) = < c_i * c^+_j > are the greens functions
     // gc(i,j) = < c^+_i * c_j > are isomorphic to the conjugation of greens
     // functions
     const GreensFunc& gu = walker.GreenttUp(t);
     const GreensFunc& gd = walker.GreenttDn(t);
-    const GreensFunc& guc =
-        MatrixType::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
-        gu.transpose();
-    const GreensFunc& gdc =
-        MatrixType::Identity(lattice.SpaceSize(), lattice.SpaceSize()) -
-        gd.transpose();
+
+    // We need to make this dance to avoid allocations
+    guc.setIdentity();
+    guc -= gu.transpose();
+    gdc.setIdentity();
+    gdc -= gd.transpose();
+
     const RealScalar& config_sign = walker.ConfigSign(t);
 
     // loop over site i, j and take averages
@@ -422,6 +434,8 @@ void Methods::measure_superfluid_stiffness(
   const GreensFunc& g00up = walker.GreenttUp(time_size - 1);
   const GreensFunc& g00dn = walker.GreenttDn(time_size - 1);
 
+  std::vector<double> uncorrelated_j_vals(space_size);
+
   for (auto i = 0; i < space_size; ++i) {
     const auto ipx = lattice.NearestNeighbour(i, 0);
     uncorrelated_i_vals[i] =
@@ -440,7 +454,6 @@ void Methods::measure_superfluid_stiffness(
     const GreensFunc& g0tup = walker.Green0tUp(tau);
     const GreensFunc& g0tdn = walker.Green0tDn(tau);
 
-    std::vector<double> uncorrelated_j_vals(space_size);
     for (auto j = 0; j < space_size; ++j) {
       const auto jpx = lattice.NearestNeighbour(j, 0);
       uncorrelated_j_vals[j] =
