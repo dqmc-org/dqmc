@@ -137,10 +137,9 @@ double AttractiveHubbard::get_update_ratio(Walker& walker, TimeIndex time_index,
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);
 
-    const double exp_factor =
-      (this->m_bosonic_field(time_index, space_index) > 0)
-          ? this->m_exp_val_plus
-          : this->m_exp_val_minus;
+  const double exp_factor = (this->m_bosonic_field(time_index, space_index) > 0)
+                                ? this->m_exp_val_plus
+                                : this->m_exp_val_minus;
 
   const Eigen::MatrixXd& green_tt_up = walker.GreenttUp();
   const Eigen::MatrixXd& green_tt_dn = walker.GreenttDn();
@@ -171,14 +170,14 @@ void AttractiveHubbard::update_greens_function(Walker& walker,
   //   Quantum Monte Carlo Methods (Algorithms for Lattice Models) Determinant
   //   method
   // here we use the sparseness of the matrix \delta
-  const double exp_factor =
-      (std::exp(-2 * this->m_alpha *
-                this->m_bosonic_field(time_index, space_index)) -
-       1);
+  const double exp_val = (this->m_bosonic_field(time_index, space_index) > 0)
+                             ? this->m_exp_val_plus
+                             : this->m_exp_val_minus;
+
+  const double delta = exp_val - 1;
 
   const double factor_up =
-      exp_factor /
-      (1 + (1 - green_tt_up(space_index, space_index)) * exp_factor);
+      delta / (1 + (1 - green_tt_up(space_index, space_index)) * delta);
 
   // for attractive hubbard model, because the spin-up and spin-down parts are
   // coupled to the bosonic fields in the same way, the model possesses the spin
