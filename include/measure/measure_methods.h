@@ -6,27 +6,13 @@
  *  Both equal-time and dynamical measurements are supported.
  */
 
+#include "measure/measure_context.h"
 #include "measure/observable.h"
-
-// forward declaration
-namespace Model {
-class ModelBase;
-}
-namespace Lattice {
-class LatticeBase;
-}
-namespace DQMC {
-class Walker;
-}
 
 namespace Measure {
 
 // forward declaration of MeasureHandler class
 class MeasureHandler;
-
-using ModelBase = Model::ModelBase;
-using LatticeBase = Lattice::LatticeBase;
-using Walker = DQMC::Walker;
 
 // --------------------------------------  Interface class Measure::Method
 // --------------------------------------- provide user-defined measuring
@@ -34,9 +20,7 @@ using Walker = DQMC::Walker;
 class Methods {
  public:
   // definitions of measuring methods
-  // arguments of method functions should include Observable<ObsType>,
-  // Measure::MeasureHandler, DQMC::Walker,
-  // Model::ModelBase and Lattice::LatticeBase class.
+  // arguments of method functions include Observable<ObsType> and MeasureContext.
 
   // Equal-time Measurements:
   //    1. Filling number < n >
@@ -49,44 +33,29 @@ class Methods {
   //    8. S-wave Cooper pairing correlation functions
 
   static void measure_equaltime_config_sign(Observable::Scalar& equaltime_sign,
-                                            const MeasureHandler& meas_handler,
-                                            const Walker& walker, const ModelBase& model,
-                                            const LatticeBase& lattice);
+                                            const MeasureContext& ctx);
 
-  static void measure_filling_number(Observable::Scalar& filling_number,
-                                     const MeasureHandler& meas_handler, const Walker& walker,
-                                     const ModelBase& model, const LatticeBase& lattice);
+  static void measure_filling_number(Observable::Scalar& filling_number, const MeasureContext& ctx);
 
   static void measure_double_occupancy(Observable::Scalar& double_occupancy,
-                                       const MeasureHandler& meas_handler, const Walker& walker,
-                                       const ModelBase& model, const LatticeBase& lattice);
+                                       const MeasureContext& ctx);
 
-  static void measure_kinetic_energy(Observable::Scalar& kinetic_energy,
-                                     const MeasureHandler& meas_handler, const Walker& walker,
-                                     const ModelBase& model, const LatticeBase& lattice);
+  static void measure_kinetic_energy(Observable::Scalar& kinetic_energy, const MeasureContext& ctx);
 
   static void measure_local_spin_corr(Observable::Scalar& local_spin_corr,
-                                      const MeasureHandler& meas_handler, const Walker& walker,
-                                      const ModelBase& model, const LatticeBase& lattice);
+                                      const MeasureContext& ctx);
 
   static void measure_momentum_distribution(Observable::Scalar& momentum_dist,
-                                            const MeasureHandler& meas_handler,
-                                            const Walker& walker, const ModelBase& model,
-                                            const LatticeBase& lattice);
+                                            const MeasureContext& ctx);
 
   static void measure_spin_density_structure_factor(Observable::Scalar& sdw_factor,
-                                                    const MeasureHandler& meas_handler,
-                                                    const Walker& walker, const ModelBase& model,
-                                                    const LatticeBase& lattice);
+                                                    const MeasureContext& ctx);
 
   static void measure_charge_density_structure_factor(Observable::Scalar& cdw_factor,
-                                                      const MeasureHandler& meas_handler,
-                                                      const Walker& walker, const ModelBase& model,
-                                                      const LatticeBase& lattice);
+                                                      const MeasureContext& ctx);
 
   static void measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
-                                          const MeasureHandler& meas_handler, const Walker& walker,
-                                          const ModelBase& model, const LatticeBase& lattice);
+                                          const MeasureContext& ctx);
 
   // Dynamical Measurements:
   //    1. Dynamical green's functions in momentum space: G(k,t) = < c(k,t) *
@@ -99,24 +68,18 @@ class Methods {
   //    experiments, 1/T1 = \sum q < Sz(q,t) Sz(q,0) >
 
   static void measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
-                                          const MeasureHandler& meas_handler, const Walker& walker,
-                                          const ModelBase& model, const LatticeBase& lattice);
+                                          const MeasureContext& ctx);
 
   static void measure_greens_functions(Observable::Matrix& greens_functions,
-                                       const MeasureHandler& meas_handler, const Walker& walker,
-                                       const ModelBase& model, const LatticeBase& lattice);
+                                       const MeasureContext& ctx);
 
   static void measure_density_of_states(Observable::Vector& density_of_states,
-                                        const MeasureHandler& meas_handler, const Walker& walker,
-                                        const ModelBase& model, const LatticeBase& lattice);
+                                        const MeasureContext& ctx);
 
   static void measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffness,
-                                           const MeasureHandler& meas_handler, const Walker& walker,
-                                           const ModelBase& model, const LatticeBase& lattice);
+                                           const MeasureContext& ctx);
 
   static void measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_spin_susceptibility,
-                                                  const MeasureHandler& meas_handler,
-                                                  const Walker& walker, const ModelBase& model,
-                                                  const LatticeBase& lattice);
+                                                  const MeasureContext& ctx);
 };
 }  // namespace Measure

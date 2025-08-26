@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "measure/measure_context.h"
 #include "utils/assert.h"
 
 // forward declaration
@@ -123,8 +124,7 @@ class Observable : public ObservableBase {
   using ModelBase = Model::ModelBase;
   using LatticeBase = Lattice::LatticeBase;
   using MeasureHandler = Measure::MeasureHandler;
-  using Method = void(Observable<DataType>&, const MeasureHandler&, const Walker&, const ModelBase&,
-                      const LatticeBase&);
+  using Method = void(Observable<DataType>&, const Measure::MeasureContext&);
 
   DataType m_mean_value{};  // statistical mean value
   DataType m_error_bar{};   // estimated error bar
@@ -175,7 +175,8 @@ class Observable : public ObservableBase {
   // perform one step of measurement
   void measure(const MeasureHandler& meas_handler, const Walker& walker, const ModelBase& model,
                const LatticeBase& lattice) {
-    this->m_method(*this, meas_handler, walker, model, lattice);
+    Measure::MeasureContext ctx(meas_handler, walker, model, lattice);
+    this->m_method(*this, ctx);
   }
 
   // allocate memory
