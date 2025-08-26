@@ -1,9 +1,9 @@
 #include "model/attractive_hubbard.h"
 
 #include <Eigen/Core>
-#include <sstream>
 #include <format>
 #include <random>
+#include <sstream>
 #include <string>
 #include <unsupported/Eigen/MatrixFunctions>
 
