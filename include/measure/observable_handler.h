@@ -61,9 +61,6 @@ class ObservableHandler {
   DynamicVector m_dynamic_vector_obs{};
   DynamicMatrix m_dynamic_matrix_obs{};
 
-  ptrScalar m_equaltime_sign{};
-  ptrScalar m_dynamic_sign{};
-
   // Central registry of all supported observables and their properties.
   static const std::map<std::string, ObservableProperties> m_supported_observables;
 

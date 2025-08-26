@@ -27,12 +27,14 @@ const std::map<std::string, ObservableHandler::ObservableProperties> ObservableH
     {"spin_density_structure_factor",  {"SDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_spin_density_structure_factor)}},
     {"charge_density_structure_factor",{"CDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_charge_density_structure_factor)}},
     {"s_wave_pairing_corr",            {"S-wave pairing correlation",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_s_wave_pairing_corr)}},
+    {"equaltime_sign",                 {"Averaged sign (equal-time)",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_equaltime_config_sign)}},
 
     // --- Dynamic Observables ---
     {"greens_functions",               {"Green's functions",           ObsTimeType::Dynamic,   ObsDataType::Matrix, make_observable<Matrix>(Measure::Methods::measure_greens_functions)}},
     {"density_of_states",              {"Density of states",           ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_density_of_states)}},
     {"superfluid_stiffness",           {"Superfluid stiffness",        ObsTimeType::Dynamic,   ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_superfluid_stiffness)}},
     {"dynamic_spin_susceptibility",    {"Dynamic Spin Susceptibility", ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_dynamic_spin_susceptibility)}},
+    {"dynamic_sign",                   {"Averaged sign (dynamical)",   ObsTimeType::Dynamic,   ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_dynamic_config_sign)}},
 };
 // clang-format on
 
@@ -81,19 +83,33 @@ void ObservableHandler::deallocate() {
   this->m_dynamic_scalar_obs.shrink_to_fit();
   this->m_dynamic_vector_obs.shrink_to_fit();
   this->m_dynamic_matrix_obs.shrink_to_fit();
-
-  if (this->m_equaltime_sign) {
-    this->m_equaltime_sign.reset();
-  }
-  if (this->m_dynamic_sign) {
-    this->m_dynamic_sign.reset();
-  }
 }
 
 void ObservableHandler::initial(const ObsNameList& obs_list_in) {
   this->deallocate();
 
   ObsNameList obs_list = obs_list_in;
+
+  // Automatically add sign observables if there are equal-time or dynamic observables
+  bool has_eqtime = false;
+  bool has_dynamic = false;
+
+  for (const auto& obs_name : obs_list) {
+    if (this->is_eqtime(obs_name)) {
+      has_eqtime = true;
+    } else if (this->is_dynamic(obs_name)) {
+      has_dynamic = true;
+    }
+  }
+
+  if (has_eqtime) {
+    obs_list.push_back("equaltime_sign");
+  }
+
+  if (has_dynamic) {
+    obs_list.push_back("dynamic_sign");
+  }
+
   std::sort(obs_list.begin(), obs_list.end());
   obs_list.erase(std::unique(obs_list.begin(), obs_list.end()), obs_list.end());
 
@@ -134,25 +150,6 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
           break;
       }
     }
-  }
-
-  // adding measurements of configuration signs manually to keep track of the
-  // sign problem
-  if (!this->m_eqtime_scalar_obs.empty() || !this->m_eqtime_vector_obs.empty() ||
-      !this->m_eqtime_matrix_obs.empty()) {
-    ptrScalar equaltime_sign =
-        std::make_shared<Scalar>("equaltime_sign", "Averaged sign (equal-time)",
-                                 Measure::Methods::measure_equaltime_config_sign);
-    this->m_equaltime_sign = equaltime_sign;
-    this->m_obs_map["equaltime_sign"] = equaltime_sign;
-  }
-
-  if (!this->m_dynamic_scalar_obs.empty() || !this->m_dynamic_vector_obs.empty() ||
-      !this->m_dynamic_matrix_obs.empty()) {
-    ptrScalar dynamic_sign = std::make_shared<Scalar>(
-        "dynamic_sign", "Averaged sign (dynamical)", Measure::Methods::measure_dynamic_config_sign);
-    this->m_dynamic_sign = dynamic_sign;
-    this->m_obs_map["dynamic_sign"] = dynamic_sign;
   }
 }
 

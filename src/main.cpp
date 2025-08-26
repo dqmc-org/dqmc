@@ -318,13 +318,5 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  // handle sign observables that are added automatically
-  if (auto obs = meas_handler->find<Observable::Scalar>("equaltime_sign")) {
-    output_observable_files(obs, "equaltime_sign");
-  }
-  if (auto obs = meas_handler->find<Observable::Scalar>("dynamic_sign")) {
-    output_observable_files(obs, "dynamic_sign");
-  }
-
   return 0;
 }
