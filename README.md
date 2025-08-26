@@ -21,7 +21,7 @@ Currently, simulations of the fermionic Hubbard model with both attractive and r
 
 1. Configure the build with CMake:
    ```shell
-   cmake -S . -B build -G Ninja -DCMAKE_BUILD_TYPE=Debug
+   cmake -S . -B build -G Ninja
    ```
 
 2. Build the project:
@@ -29,9 +29,19 @@ Currently, simulations of the fermionic Hubbard model with both attractive and r
    cmake --build build
    ```
 
-### Usages ###
+### Usage ###
 
-To be accomplished
+Run the simulation with default parameters:
+```shell
+./build/main
+```
+
+Or use command-line options:
+```shell
+./build/main --help  # See all available options
+```
+
+For detailed configuration options and examples, see [example/README.md](example/README.md).
 
 <!-- 1. Download the source code from github.
     ``` shell
