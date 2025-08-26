@@ -1,5 +1,5 @@
 # dqmc-framework
-![workflow](https://github.com/JefferyWangSH/dqmc-framework/actions/workflows/make.yml/badge.svg?branch=master)
+![workflow](https://github.com/dqmc-org/dqmc/actions/workflows/ci.yml/badge.svg?branch=master)
 
 **This is a fork of the original [dqmc-framework](https://github.com/JefferyWangSH/dqmc-framework) by JefferyWangSH.**
 
