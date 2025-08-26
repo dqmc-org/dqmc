@@ -30,10 +30,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   //                                      Parse the Model module
   // --------------------------------------------------------------------------------------------------
   if (config.model_type == "RepulsiveHubbard") {
-    if (model) {
-      model.reset();
-    }
-
     model = std::make_unique<Model::RepulsiveHubbard>();
     model->set_model_params(config.hopping_t, config.onsite_u, config.chemical_potential);
   }
@@ -41,10 +37,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   // -----------------------------------  Attractive Hubbard model
   // -----------------------------------
   else if (config.model_type == "AttractiveHubbard") {
-    if (model) {
-      model.reset();
-    }
-
     model = std::make_unique<Model::AttractiveHubbard>();
     model->set_model_params(config.hopping_t, config.onsite_u, config.chemical_potential);
   }
@@ -62,10 +54,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
     DQMC_ASSERT(config.lattice_size.size() == 2);
 
     // create 2d square lattice object
-    if (lattice) {
-      lattice.reset();
-    }
-
     lattice = std::make_unique<Lattice::Square>();
     lattice->set_lattice_params(config.lattice_size);
 
@@ -79,9 +67,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
     DQMC_ASSERT(config.lattice_size.size() == 3);
 
     // create 3d cubic lattice object
-    if (lattice) {
-      lattice.reset();
-    }
     lattice = std::make_unique<Lattice::Cubic>();
     lattice->set_lattice_params(config.lattice_size);
 
@@ -109,10 +94,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   // note that the checkerboard method is currently only implemented for 2d
   // square lattice
 
-  if (checkerboard) {
-    checkerboard.reset();
-  }
-
   if (config.enable_checkerboard) {
     if (config.lattice_type == "Square"sv) {
       checkerboard = std::make_unique<CheckerBoard::Square>();
@@ -128,10 +109,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   //                                   Parse the Walker module
   // --------------------------------------------------------------------------------------------------
   // create dqmc walker and set up parameters
-  if (walker) {
-    walker.reset();
-  }
-
   walker = std::make_unique<Walker>();
   walker->set_physical_params(config.beta, config.time_size);
   walker->set_stabilization_pace(config.stabilization_pace);
@@ -150,10 +127,6 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   }
 
   // create measure handler and set up parameters
-  if (meas_handler) {
-    meas_handler.reset();
-  }
-
   meas_handler = std::make_unique<Measure::MeasureHandler>();
 
   // send measuring tasks to a set of processes
