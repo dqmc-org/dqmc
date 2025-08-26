@@ -75,7 +75,8 @@ void Walker::allocate_greens_functions() {
   }
 }
 
-void Walker::initial_svd_stacks(const LatticeBase& lattice, const ModelBase& model) {
+void Walker::initial_svd_stacks([[maybe_unused]] const LatticeBase& lattice,
+                                const ModelBase& model) {
   // initialize udv stacks for sweep use
   // sweep process will start from 0 to beta, so we initialize svd_stack_right
   // here. stabilize the process every stabilization_pace steps

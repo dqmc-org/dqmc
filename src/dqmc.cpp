@@ -71,7 +71,7 @@ void Dqmc::sweep_forth_and_back(Walker& walker, ModelBase& model, LatticeBase& l
   }
 }
 
-void Dqmc::thermalize(Walker& walker, ModelBase& model, LatticeBase& lattice,
+void Dqmc::thermalize(Walker& walker, ModelBase& model, [[maybe_unused]] LatticeBase& lattice,
                       MeasureHandler& meas_handler, std::default_random_engine& rng) {
   if (meas_handler.isWarmUp()) {
     // create progress bar

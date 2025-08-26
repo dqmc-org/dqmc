@@ -310,7 +310,7 @@ void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice, Walker
 }
 
 void Initializer::initial_dqmc(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                               MeasureHandler& meas_handler) {
+                               [[maybe_unused]] MeasureHandler& meas_handler) {
   // this subroutine should be called after the initial
   // configuration of the bosonic fields have been determined,
   // either randomly initialized or read from a input config file.

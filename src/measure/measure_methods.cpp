@@ -20,9 +20,10 @@ using VectorType = Eigen::VectorXd;
 // The sign of the bosonic field configurations for equal-time measurements,
 // useful for reweighting
 void Methods::measure_equaltime_config_sign(Observable::Scalar& equaltime_sign,
-                                            const MeasureHandler& meas_handler,
-                                            const Walker& walker, const ModelBase& model,
-                                            const LatticeBase& lattice) {
+                                            [[maybe_unused]] const MeasureHandler& meas_handler,
+                                            const Walker& walker,
+                                            [[maybe_unused]] const ModelBase& model,
+                                            [[maybe_unused]] const LatticeBase& lattice) {
   equaltime_sign.tmp_value() += walker.vecConfigSign().sum();
   equaltime_sign += walker.TimeSize();
 }
@@ -30,8 +31,9 @@ void Methods::measure_equaltime_config_sign(Observable::Scalar& equaltime_sign,
 // Filling number defined as \sum i ( n_up + n_dn )(i)
 // which represents the total number of electrons
 void Methods::measure_filling_number(Observable::Scalar& filling_number,
-                                     const MeasureHandler& meas_handler, const Walker& walker,
-                                     const ModelBase& model, const LatticeBase& lattice) {
+                                     [[maybe_unused]] const MeasureHandler& meas_handler,
+                                     const Walker& walker, [[maybe_unused]] const ModelBase& model,
+                                     const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
   const double inv_space_size = 1.0 / static_cast<double>(space_size);
@@ -57,8 +59,10 @@ void Methods::measure_filling_number(Observable::Scalar& filling_number,
 // which quantizes the possibility that two electrons with opposite spin occupy
 // the same site
 void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
-                                       const MeasureHandler& meas_handler, const Walker& walker,
-                                       const ModelBase& model, const LatticeBase& lattice) {
+                                       [[maybe_unused]] const MeasureHandler& meas_handler,
+                                       const Walker& walker,
+                                       [[maybe_unused]] const ModelBase& model,
+                                       const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
 
@@ -84,8 +88,9 @@ void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
 // which measures the hoppings between two sites, e.g. hoppings between nearest
 // neighbours
 void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
-                                     const MeasureHandler& meas_handler, const Walker& walker,
-                                     const ModelBase& model, const LatticeBase& lattice) {
+                                     [[maybe_unused]] const MeasureHandler& meas_handler,
+                                     const Walker& walker, const ModelBase& model,
+                                     const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
   const double prefactor = model.HoppingT() / space_size;
@@ -114,8 +119,9 @@ void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
 // (n_up - n_dn)(0,0) > which measure the correlations of spins between two
 // space-time points. the local correlations are the limit of i = 0 and t = 0.
 void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
-                                      const MeasureHandler& meas_handler, const Walker& walker,
-                                      const ModelBase& model, const LatticeBase& lattice) {
+                                      [[maybe_unused]] const MeasureHandler& meas_handler,
+                                      const Walker& walker, [[maybe_unused]] const ModelBase& model,
+                                      const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
   const double prefactor = 1.0 / space_size;
@@ -145,8 +151,9 @@ void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
 // )(k) measured for one specific momentum point todo: scan the momentum space
 void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
                                             const MeasureHandler& meas_handler,
-                                            const Walker& walker, const ModelBase& model,
-                                            const LatticeBase& lattice) {
+                                            const Walker& walker,
+                                            [[maybe_unused]] const ModelBase& model,
+                                            [[maybe_unused]] const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
   const int K_vector = meas_handler.Momentum();
@@ -178,8 +185,9 @@ void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
 // where Q is the wave momentum of sdw.
 void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_factor,
                                                     const MeasureHandler& meas_handler,
-                                                    const Walker& walker, const ModelBase& model,
-                                                    const LatticeBase& lattice) {
+                                                    const Walker& walker,
+                                                    [[maybe_unused]] const ModelBase& model,
+                                                    [[maybe_unused]] const LatticeBase& lattice) {
   const int space_size = lattice.SpaceSize();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
   const int K_vector = meas_handler.Momentum();
@@ -220,8 +228,9 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
 // where Q is the wave momentum of cdw.
 void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_factor,
                                                       const MeasureHandler& meas_handler,
-                                                      const Walker& walker, const ModelBase& model,
-                                                      const LatticeBase& lattice) {
+                                                      const Walker& walker,
+                                                      [[maybe_unused]] const ModelBase& model,
+                                                      [[maybe_unused]] const LatticeBase& lattice) {
   const int space_size = lattice.SpaceSize();
   const int time_size = walker.TimeSize();
   const int K_vector = meas_handler.Momentum();
@@ -271,8 +280,10 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
 // an extensive quantity. Note the 1/2 prefactor in definition of Ps cancels the
 // duplicated countings of ij.
 void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
-                                          const MeasureHandler& meas_handler, const Walker& walker,
-                                          const ModelBase& model, const LatticeBase& lattice) {
+                                          [[maybe_unused]] const MeasureHandler& meas_handler,
+                                          const Walker& walker,
+                                          [[maybe_unused]] const ModelBase& model,
+                                          [[maybe_unused]] const LatticeBase& lattice) {
   const int space_size = lattice.SpaceSize();
 
   MatrixType guc(space_size, space_size);
@@ -311,8 +322,10 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
 
 // The sign of the bosonic field configurations for dynamic measurements
 void Methods::measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
-                                          const MeasureHandler& meas_handler, const Walker& walker,
-                                          const ModelBase& model, const LatticeBase& lattice) {
+                                          [[maybe_unused]] const MeasureHandler& meas_handler,
+                                          const Walker& walker,
+                                          [[maybe_unused]] const ModelBase& model,
+                                          [[maybe_unused]] const LatticeBase& lattice) {
   dynamic_sign.tmp_value() += walker.ConfigSign();
   ++dynamic_sign;
 }
@@ -322,7 +335,8 @@ void Methods::measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
 // G(k,t)  =  1/N \sum ij exp( -i k*(rj-ri) ) * ( c_j(t) * c^+_i(0) )
 void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
                                        const MeasureHandler& meas_handler, const Walker& walker,
-                                       const ModelBase& model, const LatticeBase& lattice) {
+                                       [[maybe_unused]] const ModelBase& model,
+                                       [[maybe_unused]] const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
   const int num_momenta = meas_handler.MomentumList().size();
@@ -359,8 +373,10 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
 // whose fourier transformations are exactly the usual density of states
 // D(omega).
 void Methods::measure_density_of_states(Observable::Vector& density_of_states,
-                                        const MeasureHandler& meas_handler, const Walker& walker,
-                                        const ModelBase& model, const LatticeBase& lattice) {
+                                        [[maybe_unused]] const MeasureHandler& meas_handler,
+                                        const Walker& walker,
+                                        [[maybe_unused]] const ModelBase& model,
+                                        [[maybe_unused]] const LatticeBase& lattice) {
   const int time_size = walker.TimeSize();
   const int space_size = lattice.SpaceSize();
   const auto& config_sign = walker.ConfigSign();
@@ -391,8 +407,10 @@ void Methods::measure_density_of_states(Observable::Vector& density_of_states,
 // the KT transition temperature of 2d superconducting phase transition. see
 // more information in 10.1103/PhysRevB.69.184501
 void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffness,
-                                           const MeasureHandler& meas_handler, const Walker& walker,
-                                           const ModelBase& model, const LatticeBase& lattice) {
+                                           [[maybe_unused]] const MeasureHandler& meas_handler,
+                                           const Walker& walker,
+                                           [[maybe_unused]] const ModelBase& model,
+                                           [[maybe_unused]] const LatticeBase& lattice) {
   DQMC_ASSERT(dynamic_cast<const Lattice::Square*>(&lattice) != nullptr);
   DQMC_ASSERT(lattice.SideLength() % 2 == 0);
 
@@ -462,10 +480,10 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
 //
 //      1/T1 = 1/N \sum q < Sz(q,t) Sz(q,0) > = 1/N \sim i < Sz(i,t) Sz(i,0) >
 //
-void Methods::measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_spin_susceptibility,
-                                                  const MeasureHandler& meas_handler,
-                                                  const Walker& walker, const ModelBase& model,
-                                                  const LatticeBase& lattice) {
+void Methods::measure_dynamic_spin_susceptibility(
+    Observable::Vector& dynamic_spin_susceptibility,
+    [[maybe_unused]] const MeasureHandler& meas_handler, const Walker& walker,
+    [[maybe_unused]] const ModelBase& model, [[maybe_unused]] const LatticeBase& lattice) {
   const int space_size = lattice.SpaceSize();
   const int time_size = walker.TimeSize();
   const double config_sign = walker.ConfigSign();
