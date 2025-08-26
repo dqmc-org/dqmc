@@ -22,7 +22,7 @@ class Walker;
 
 namespace Measure {
 
-using ObsList = std::vector<std::string_view>;
+using ObsList = std::vector<std::string>;
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
 using Walker = DQMC::Walker;

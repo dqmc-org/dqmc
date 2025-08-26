@@ -48,13 +48,13 @@ class Initializer {
  public:
   struct Config {
     // Model
-    std::string_view model_type;
+    std::string model_type;
     double hopping_t;
     double onsite_u;
     double chemical_potential;
 
     // Lattice
-    std::string_view lattice_type;
+    std::string lattice_type;
     std::vector<int> lattice_size;
 
     // Checkerboard
@@ -72,11 +72,11 @@ class Initializer {
     int sweeps_between_bins;
 
     // Observables
-    std::vector<std::string_view> observables;
+    std::vector<std::string> observables;
 
     // Momentum parameters
-    std::string_view momentum;
-    std::string_view momentum_list;
+    std::string momentum;
+    std::string momentum_list;
   };
 
   // parse parmameters from the config struct

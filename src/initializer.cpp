@@ -50,7 +50,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   // --------------------------------------------------------------------------------------------------
   //                                    Parse the Lattice module
   // --------------------------------------------------------------------------------------------------
-  if (config.lattice_type == "Square"sv) {
+  if (config.lattice_type == "Square") {
     DQMC_ASSERT(config.lattice_size.size() == 2);
 
     // create 2d square lattice object
@@ -63,7 +63,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
     }
   }
 
-  else if (config.lattice_type == "Cubic"sv) {
+  else if (config.lattice_type == "Cubic") {
     DQMC_ASSERT(config.lattice_size.size() == 3);
 
     // create 3d cubic lattice object
@@ -78,7 +78,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
 
   // ------------------------------------  2D Honeycomb lattice
   // --------------------------------------
-  else if (config.lattice_type == "Honeycomb"sv) {
+  else if (config.lattice_type == "Honeycomb") {
     throw std::runtime_error("Honeycomb lattice is not supported.");
   }
 
@@ -95,7 +95,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   // square lattice
 
   if (config.enable_checkerboard) {
-    if (config.lattice_type == "Square"sv) {
+    if (config.lattice_type == "Square") {
       checkerboard = std::make_unique<CheckerBoard::Square>();
     } else {
       throw std::runtime_error(
@@ -119,8 +119,8 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
 
   // special observables, e.g. superfluid stiffness, are only supported for
   // specific lattice type.
-  if (config.lattice_type != "Square"sv) {
-    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness"sv) !=
+  if (config.lattice_type != "Square") {
+    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness") !=
         config.observables.end()) {
       throw std::runtime_error("superfluid_stiffness is only supported for Square lattice");
     }
@@ -141,7 +141,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   // --------------------------------------------------------------------------------------------------
   // make sure that the lattice module is initialized ahead
   if (lattice->InitialStatus()) {
-    if (config.lattice_type == "Square"sv) {
+    if (config.lattice_type == "Square") {
       // covert base class pointer to that of the derived square lattice class
       if (const auto square_lattice = dynamic_cast<const Lattice::Square*>(lattice.get())) {
         if (config.momentum == "GammaPoint") {
@@ -182,7 +182,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
       }
     }
 
-    if (config.lattice_type == "Cubic"sv) {
+    if (config.lattice_type == "Cubic") {
       // covert base class pointer to that of the derived cubic lattice class
       if (const auto cubic_lattice = dynamic_cast<const Lattice::Cubic*>(lattice.get())) {
         if (config.momentum == "GammaPoint") {
@@ -227,7 +227,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
       }
     }
 
-    if (config.lattice_type == "Honeycomb"sv) {
+    if (config.lattice_type == "Honeycomb") {
       throw std::runtime_error("Honeycomb lattice is not supported.");
     }
   }

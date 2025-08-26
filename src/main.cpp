@@ -180,12 +180,12 @@ int main(int argc, char* argv[]) {
   DQMC::Initializer::Config config{};
 
   // Populate config from program options
-  config.model_type = vm["model.type"].as<std::string>();
+  config.model_type = std::move(vm["model.type"].as<std::string>());
   config.hopping_t = vm["model.hopping_t"].as<double>();
   config.onsite_u = vm["model.onsite_u"].as<double>();
   config.chemical_potential = vm["model.chemical_potential"].as<double>();
 
-  config.lattice_type = vm["lattice.type"].as<std::string>();
+  config.lattice_type = std::move(vm["lattice.type"].as<std::string>());
   config.lattice_size = vm["lattice.size"].as<std::vector<int>>();
 
   config.enable_checkerboard = vm["checkerboard.enable"].as<bool>();
@@ -199,17 +199,10 @@ int main(int argc, char* argv[]) {
   config.bin_size = vm["measure.bin_size"].as<int>();
   config.sweeps_between_bins = vm["measure.sweeps_between_bins"].as<int>();
 
-  // Convert string vector to string_view vector for observables
-  auto obs_strings = vm["observables"].as<std::vector<std::string>>();
-  std::vector<std::string_view> observables;
-  observables.reserve(obs_strings.size());
-  for (const auto& obs : obs_strings) {
-    observables.emplace_back(obs);
-  }
-  config.observables = std::move(observables);
+  config.observables = std::move(vm["observables"].as<std::vector<std::string>>());
 
-  config.momentum = vm["momentum.point"].as<std::string>();
-  config.momentum_list = vm["momentum.list"].as<std::string>();
+  config.momentum = std::move(vm["momentum.point"].as<std::string>());
+  config.momentum_list = std::move(vm["momentum.list"].as<std::string>());
 
   // parse parameters from the config
   DQMC::Initializer::parse_config(config, 1, model, lattice, walker, meas_handler, checkerboard);
