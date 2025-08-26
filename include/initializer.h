@@ -82,25 +82,23 @@ class Initializer {
   // parse parmameters from the config struct
   // create modules and setup module parameters according to the input
   // configurations
-  static void parse_config(const Config& config, int world_size,
-                           ModelBasePtr& model, LatticeBasePtr& lattice,
-                           WalkerPtr& walker, MeasureHandlerPtr& meas_handler,
-                           CheckerBoardBasePtr& checkerboard);
+  static void parse_config(const Config& config, int world_size, ModelBasePtr& model,
+                           LatticeBasePtr& lattice, WalkerPtr& walker,
+                           MeasureHandlerPtr& meas_handler, CheckerBoardBasePtr& checkerboard);
 
   // initialize modules including Lattice, Model, Walker and MeasureHandler
   // without checkerboard breakups.
-  static void initial_modules(ModelBase& model, LatticeBase& lattice,
-                              Walker& walker, MeasureHandler& meas_handler);
+  static void initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
+                              MeasureHandler& meas_handler);
 
   // initialize modules including Lattice, Model, Walker and MeasureHandler
   // with checkerboard breakups.
-  static void initial_modules(ModelBase& model, LatticeBase& lattice,
-                              Walker& walker, MeasureHandler& meas_handler,
-                              CheckerBoardBase& checkerboard);
+  static void initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
+                              MeasureHandler& meas_handler, CheckerBoardBase& checkerboard);
 
   // prepare for the dqmc simulation,
   // especially initializing the greens functions and SVD stacks
-  static void initial_dqmc(ModelBase& model, LatticeBase& lattice,
-                           Walker& walker, MeasureHandler& meas_handler);
+  static void initial_dqmc(ModelBase& model, LatticeBase& lattice, Walker& walker,
+                           MeasureHandler& meas_handler);
 };
 }  // namespace DQMC

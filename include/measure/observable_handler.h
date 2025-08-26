@@ -65,8 +65,7 @@ class ObservableHandler {
   ptrScalar m_dynamic_sign{};
 
   // Central registry of all supported observables and their properties.
-  static const std::map<std::string_view, ObservableProperties>
-      m_supported_observables;
+  static const std::map<std::string_view, ObservableProperties> m_supported_observables;
 
  public:
   ObservableHandler() = default;

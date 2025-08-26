@@ -8,8 +8,7 @@
 
 namespace CheckerBoard {
 
-void Square::set_checkerboard_params(const LatticeBase &lattice,
-                                     const ModelBase &model,
+void Square::set_checkerboard_params(const LatticeBase &lattice, const ModelBase &model,
                                      const Walker &walker) {
   // make sure that the lattice class is of type Lattice::Square
   DQMC_ASSERT(dynamic_cast<const Lattice::Square *>(&lattice) != nullptr);
@@ -28,22 +27,18 @@ void Square::initial() {
 
   ch = cosh(this->m_time_interval * this->m_hopping_t);
   sh = sinh(this->m_time_interval * this->m_hopping_t);
-  reduced_hopping_mat << ch * ch, ch * sh, ch * sh, sh * sh, ch * sh, ch * ch,
-      sh * sh, ch * sh, ch * sh, sh * sh, ch * ch, ch * sh, sh * sh, ch * sh,
-      ch * sh, ch * ch;
+  reduced_hopping_mat << ch * ch, ch * sh, ch * sh, sh * sh, ch * sh, ch * ch, sh * sh, ch * sh,
+      ch * sh, sh * sh, ch * ch, ch * sh, sh * sh, ch * sh, ch * sh, ch * ch;
   // factor 0.5 comes from the double counting of sites
   this->m_expK_plaquette =
-      exp(0.5 * this->m_time_interval * this->m_chemical_potential) *
-      reduced_hopping_mat;
+      exp(0.5 * this->m_time_interval * this->m_chemical_potential) * reduced_hopping_mat;
 
   ch = cosh(-this->m_time_interval * this->m_hopping_t);
   sh = sinh(-this->m_time_interval * this->m_hopping_t);
-  reduced_hopping_mat << ch * ch, ch * sh, ch * sh, sh * sh, ch * sh, ch * ch,
-      sh * sh, ch * sh, ch * sh, sh * sh, ch * ch, ch * sh, sh * sh, ch * sh,
-      ch * sh, ch * ch;
+  reduced_hopping_mat << ch * ch, ch * sh, ch * sh, sh * sh, ch * sh, ch * ch, sh * sh, ch * sh,
+      ch * sh, sh * sh, ch * ch, ch * sh, sh * sh, ch * sh, ch * sh, ch * ch;
   this->m_inv_expK_plaquette =
-      exp(-0.5 * this->m_time_interval * this->m_chemical_potential) *
-      reduced_hopping_mat;
+      exp(-0.5 * this->m_time_interval * this->m_chemical_potential) * reduced_hopping_mat;
 }
 
 // Ref: Max H. Gerlach, 2017
@@ -59,100 +54,72 @@ void Square::initial() {
 //   1.0, 0.0, 0.0, 1.0,
 //   0.0, 1.0, 1.0, 0.0.
 
-void Square::mult_expK_plaquette_from_left(Matrix &matrix,
-                                           const Site &site) const {
-  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
-              matrix.cols() == this->m_space_size);
+void Square::mult_expK_plaquette_from_left(Matrix &matrix, const Site &site) const {
+  DQMC_ASSERT(matrix.rows() == this->m_space_size && matrix.cols() == this->m_space_size);
   DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
-  const int index_xy = (x % this->m_side_length) +
-                       this->m_side_length * (y % this->m_side_length);
-  const int index_xy_right = ((x + 1) % this->m_side_length) +
-                             this->m_side_length * (y % this->m_side_length);
+  const int index_xy = (x % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
+  const int index_xy_right =
+      ((x + 1) % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
   const int index_xy_down =
-      (x % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      (x % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
   const int index_xy_diagonal =
-      ((x + 1) % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      ((x + 1) % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
 
-  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down,
-                                      index_xy_diagonal};
-  matrix(indexes, Eigen::all) =
-      this->m_expK_plaquette * matrix(indexes, Eigen::all);
+  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down, index_xy_diagonal};
+  matrix(indexes, Eigen::all) = this->m_expK_plaquette * matrix(indexes, Eigen::all);
 }
 
-void Square::mult_inv_expK_plaquette_from_left(Matrix &matrix,
-                                               const Site &site) const {
-  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
-              matrix.cols() == this->m_space_size);
+void Square::mult_inv_expK_plaquette_from_left(Matrix &matrix, const Site &site) const {
+  DQMC_ASSERT(matrix.rows() == this->m_space_size && matrix.cols() == this->m_space_size);
   DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
-  const int index_xy = (x % this->m_side_length) +
-                       this->m_side_length * (y % this->m_side_length);
-  const int index_xy_right = ((x + 1) % this->m_side_length) +
-                             this->m_side_length * (y % this->m_side_length);
+  const int index_xy = (x % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
+  const int index_xy_right =
+      ((x + 1) % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
   const int index_xy_down =
-      (x % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      (x % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
   const int index_xy_diagonal =
-      ((x + 1) % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      ((x + 1) % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
 
-  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down,
-                                      index_xy_diagonal};
-  matrix(indexes, Eigen::all) =
-      this->m_inv_expK_plaquette * matrix(indexes, Eigen::all);
+  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down, index_xy_diagonal};
+  matrix(indexes, Eigen::all) = this->m_inv_expK_plaquette * matrix(indexes, Eigen::all);
 }
 
-void Square::mult_expK_plaquette_from_right(Matrix &matrix,
-                                            const Site &site) const {
-  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
-              matrix.cols() == this->m_space_size);
+void Square::mult_expK_plaquette_from_right(Matrix &matrix, const Site &site) const {
+  DQMC_ASSERT(matrix.rows() == this->m_space_size && matrix.cols() == this->m_space_size);
   DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
-  const int index_xy = (x % this->m_side_length) +
-                       this->m_side_length * (y % this->m_side_length);
-  const int index_xy_right = ((x + 1) % this->m_side_length) +
-                             this->m_side_length * (y % this->m_side_length);
+  const int index_xy = (x % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
+  const int index_xy_right =
+      ((x + 1) % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
   const int index_xy_down =
-      (x % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      (x % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
   const int index_xy_diagonal =
-      ((x + 1) % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      ((x + 1) % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
 
-  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down,
-                                      index_xy_diagonal};
-  matrix(Eigen::all, indexes) =
-      matrix(Eigen::all, indexes) * this->m_expK_plaquette;
+  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down, index_xy_diagonal};
+  matrix(Eigen::all, indexes) = matrix(Eigen::all, indexes) * this->m_expK_plaquette;
 }
 
-void Square::mult_inv_expK_plaquette_from_right(Matrix &matrix,
-                                                const Site &site) const {
-  DQMC_ASSERT(matrix.rows() == this->m_space_size &&
-              matrix.cols() == this->m_space_size);
+void Square::mult_inv_expK_plaquette_from_right(Matrix &matrix, const Site &site) const {
+  DQMC_ASSERT(matrix.rows() == this->m_space_size && matrix.cols() == this->m_space_size);
   DQMC_ASSERT(site.size() == 2);
   const int x = site[0];
   const int y = site[1];
-  const int index_xy = (x % this->m_side_length) +
-                       this->m_side_length * (y % this->m_side_length);
-  const int index_xy_right = ((x + 1) % this->m_side_length) +
-                             this->m_side_length * (y % this->m_side_length);
+  const int index_xy = (x % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
+  const int index_xy_right =
+      ((x + 1) % this->m_side_length) + this->m_side_length * (y % this->m_side_length);
   const int index_xy_down =
-      (x % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      (x % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
   const int index_xy_diagonal =
-      ((x + 1) % this->m_side_length) +
-      this->m_side_length * ((y + 1) % this->m_side_length);
+      ((x + 1) % this->m_side_length) + this->m_side_length * ((y + 1) % this->m_side_length);
 
-  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down,
-                                      index_xy_diagonal};
-  matrix(Eigen::all, indexes) =
-      matrix(Eigen::all, indexes) * this->m_inv_expK_plaquette;
+  const std::array<int, 4> indexes = {index_xy, index_xy_right, index_xy_down, index_xy_diagonal};
+  matrix(Eigen::all, indexes) = matrix(Eigen::all, indexes) * this->m_inv_expK_plaquette;
 }
 
 void Square::mult_expK_from_left(Matrix &matrix) const {

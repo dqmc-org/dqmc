@@ -13,22 +13,17 @@ LatticeInt Square::XPointIndex() const { return this->m_x_point_index; }
 
 LatticeInt Square::MPointIndex() const { return this->m_m_point_index; }
 
-const LatticeIntVec& Square::DeltaLineIndex() const {
-  return this->m_delta_line_index;
-}
+const LatticeIntVec& Square::DeltaLineIndex() const { return this->m_delta_line_index; }
 
 const LatticeIntVec& Square::ZLineIndex() const { return this->m_z_line_index; }
 
-const LatticeIntVec& Square::SigmaLineIndex() const {
-  return this->m_sigma_line_index;
-}
+const LatticeIntVec& Square::SigmaLineIndex() const { return this->m_sigma_line_index; }
 
 const LatticeIntVec& Square::Gamma2X2M2GammaLoopIndex() const {
   return this->m_gamma2x2m2gamma_loop_index;
 }
 
-void Square::output_lattice_info(std::ostream& ostream,
-                                 int momentum_index) const {
+void Square::output_lattice_info(std::ostream& ostream, int momentum_index) const {
   auto fmt_str = [](std::string_view desc, std::string_view value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
@@ -60,9 +55,7 @@ void Square::set_lattice_params(const LatticeIntVec& side_length_vec) {
   this->m_space_size = side_length_vec[0] * side_length_vec[1];
 }
 
-int Square::site_to_index(int x, int y) const {
-  return x + this->m_side_length * y;
-}
+int Square::site_to_index(int x, int y) const { return x + this->m_side_length * y; }
 
 std::array<int, 2> Square::index_to_site(int index) const {
   return {index % this->m_side_length, index / this->m_side_length};
@@ -82,8 +75,8 @@ void Square::initial_index2momentum_table() {
   // k stars (inequivalent momentum points) in 2d square lattice
   // locate in the zone surrounded by loop (0,0) -> (pi,0) -> (pi,pi) ->
   // (0,0). note that the point group of 2d sqaure lattice is C4v
-  this->m_num_k_stars = (std::floor(this->m_side_length / 2.0) + 1) *
-                        (std::floor(this->m_side_length / 2.0) + 2) / 2;
+  this->m_num_k_stars =
+      (std::floor(this->m_side_length / 2.0) + 1) * (std::floor(this->m_side_length / 2.0) + 2) / 2;
 
   // initialize indices of k stars
   this->m_k_stars_index.reserve(this->m_num_k_stars);
@@ -94,8 +87,7 @@ void Square::initial_index2momentum_table() {
   // initialize index2momentum table
   this->m_index2momentum_table.resize(this->m_num_k_stars, this->m_space_dim);
   int count = 0;
-  for (auto i = std::ceil(this->m_side_length / 2.0); i <= this->m_side_length;
-       ++i) {
+  for (auto i = std::ceil(this->m_side_length / 2.0); i <= this->m_side_length; ++i) {
     for (auto j = std::ceil(this->m_side_length / 2.0); j <= i; ++j) {
       this->m_index2momentum_table.row(count) =
           Eigen::Vector2d((double)i / this->m_side_length * 2 * M_PI - M_PI,
@@ -109,28 +101,23 @@ void Square::initial_nearest_neighbour_table() {
   // the coordination number for 2d square lattice is 4
   // correspondense between the table index and the direction of displacement
   // : 0: (x+1, y)    1: (x, y+1) 2: (x-1, y)    3: (x, y-1)
-  this->m_nearest_neighbour_table.resize(this->m_space_size,
-                                         this->m_coordination_number);
+  this->m_nearest_neighbour_table.resize(this->m_space_size, this->m_coordination_number);
   int L = this->m_side_length;
   for (int i = 0; i < L; ++i) {
     for (int j = 0; j < L; ++j) {
       int site_index = this->site_to_index(i, j);
 
       // Direction 0: (x+1, y)
-      this->m_nearest_neighbour_table(site_index, 0) =
-          this->site_to_index((i + 1) % L, j);
+      this->m_nearest_neighbour_table(site_index, 0) = this->site_to_index((i + 1) % L, j);
 
       // Direction 1: (x, y+1)
-      this->m_nearest_neighbour_table(site_index, 1) =
-          this->site_to_index(i, (j + 1) % L);
+      this->m_nearest_neighbour_table(site_index, 1) = this->site_to_index(i, (j + 1) % L);
 
       // Direction 2: (x-1, y)
-      this->m_nearest_neighbour_table(site_index, 2) =
-          this->site_to_index((i - 1 + L) % L, j);
+      this->m_nearest_neighbour_table(site_index, 2) = this->site_to_index((i - 1 + L) % L, j);
 
       // Direction 3: (x, y-1)
-      this->m_nearest_neighbour_table(site_index, 3) =
-          this->site_to_index(i, (j - 1 + L) % L);
+      this->m_nearest_neighbour_table(site_index, 3) = this->site_to_index(i, (j - 1 + L) % L);
     }
   }
 }
@@ -156,8 +143,7 @@ void Square::initial_symmetry_points() {
   // X point:      (pi, 0)
   // M point:      (pi, pi)
   this->m_gamma_point_index = 0;
-  this->m_x_point_index =
-      this->m_num_k_stars - std::floor(this->m_side_length / 2.0) - 1;
+  this->m_x_point_index = this->m_num_k_stars - std::floor(this->m_side_length / 2.0) - 1;
   this->m_m_point_index = this->m_num_k_stars - 1;
 
   // high symmetry lines of 2d square lattice
@@ -200,8 +186,7 @@ void Square::initial_fourier_factor_table() {
       // k
       auto [xi, yi] = index_to_site(i);
       this->m_fourier_factor_table(i, k) =
-          cos((-xi * this->m_index2momentum_table(k, 0) -
-               yi * this->m_index2momentum_table(k, 1)));
+          cos((-xi * this->m_index2momentum_table(k, 0) - yi * this->m_index2momentum_table(k, 1)));
     }
   }
 }

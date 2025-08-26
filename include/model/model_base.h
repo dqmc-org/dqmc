@@ -135,14 +135,11 @@ class ModelBase {
 
   // initialize the model class for specific lattice and Walker
   virtual void initial(const LatticeBase& lattice, const Walker& walker) = 0;
-  virtual void initial_params(const LatticeBase& lattice,
-                              const Walker& walker) = 0;
-  virtual void initial_KV_matrices(const LatticeBase& lattice,
-                                   const Walker& walker) = 0;
+  virtual void initial_params(const LatticeBase& lattice, const Walker& walker) = 0;
+  virtual void initial_KV_matrices(const LatticeBase& lattice, const Walker& walker) = 0;
 
   // randomize the bosonic fields, which is model-dependent
-  virtual void set_bosonic_fields_to_random(
-      std::default_random_engine& rng) = 0;
+  virtual void set_bosonic_fields_to_random(std::default_random_engine& rng) = 0;
 
   // ------------------------------------------ Linking methods
   // ------------------------------------------------
@@ -160,8 +157,7 @@ class ModelBase {
   // ----------------------------------------------
 
   // perform one local dqmc update
-  virtual void update_bosonic_field(TimeIndex time_index,
-                                    SpaceIndex space_index) = 0;
+  virtual void update_bosonic_field(TimeIndex time_index, SpaceIndex space_index) = 0;
 
   // return the updating ratio of one step of the local dqmc update
   // which is model-dependent
@@ -202,16 +198,11 @@ class ModelBase {
   // functions and B matrices which are frequently called when we wrap the
   // green's functions to differnet imaginary-time slices. Caution: these are
   // perfermance-important steps.
-  virtual void mult_B_from_left(GreensFunc& green, TimeIndex time_index,
-                                Spin spin) const = 0;
-  virtual void mult_B_from_right(GreensFunc& green, TimeIndex time_index,
-                                 Spin spin) const = 0;
-  virtual void mult_invB_from_left(GreensFunc& green, TimeIndex time_index,
-                                   Spin spin) const = 0;
-  virtual void mult_invB_from_right(GreensFunc& green, TimeIndex time_index,
-                                    Spin spin) const = 0;
-  virtual void mult_transB_from_left(GreensFunc& green, TimeIndex time_index,
-                                     Spin spin) const = 0;
+  virtual void mult_B_from_left(GreensFunc& green, TimeIndex time_index, Spin spin) const = 0;
+  virtual void mult_B_from_right(GreensFunc& green, TimeIndex time_index, Spin spin) const = 0;
+  virtual void mult_invB_from_left(GreensFunc& green, TimeIndex time_index, Spin spin) const = 0;
+  virtual void mult_invB_from_right(GreensFunc& green, TimeIndex time_index, Spin spin) const = 0;
+  virtual void mult_transB_from_left(GreensFunc& green, TimeIndex time_index, Spin spin) const = 0;
 
  private:
   // naive implementation of multplying exponent of K matrices to the greens

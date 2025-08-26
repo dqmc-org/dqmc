@@ -29,8 +29,7 @@ void Walker::set_stabilization_pace(int stabilization_pace) {
   this->m_stabilization_pace = stabilization_pace;
 }
 
-void Walker::initial(const LatticeBase& lattice,
-                     const MeasureHandler& meas_handler) {
+void Walker::initial(const LatticeBase& lattice, const MeasureHandler& meas_handler) {
   this->m_space_size = lattice.SpaceSize();
   this->m_current_time_slice = 0;
   this->m_wrap_error = 0.0;
@@ -53,10 +52,10 @@ void Walker::allocate_greens_functions() {
   this->m_green_tt_dn = GreensFunc(this->m_space_size, this->m_space_size);
 
   if (this->m_is_equaltime || this->m_is_dynamic) {
-    this->m_vec_green_tt_up = GreensFuncVec(
-        this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_tt_dn = GreensFuncVec(
-        this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
+    this->m_vec_green_tt_up =
+        GreensFuncVec(this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
+    this->m_vec_green_tt_dn =
+        GreensFuncVec(this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
   }
 
   if (this->m_is_dynamic) {
@@ -65,19 +64,18 @@ void Walker::allocate_greens_functions() {
     this->m_green_0t_up = GreensFunc(this->m_space_size, this->m_space_size);
     this->m_green_0t_dn = GreensFunc(this->m_space_size, this->m_space_size);
 
-    this->m_vec_green_t0_up = GreensFuncVec(
-        this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_t0_dn = GreensFuncVec(
-        this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_0t_up = GreensFuncVec(
-        this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
-    this->m_vec_green_0t_dn = GreensFuncVec(
-        this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
+    this->m_vec_green_t0_up =
+        GreensFuncVec(this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
+    this->m_vec_green_t0_dn =
+        GreensFuncVec(this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
+    this->m_vec_green_0t_up =
+        GreensFuncVec(this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
+    this->m_vec_green_0t_dn =
+        GreensFuncVec(this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
   }
 }
 
-void Walker::initial_svd_stacks(const LatticeBase& lattice,
-                                const ModelBase& model) {
+void Walker::initial_svd_stacks(const LatticeBase& lattice, const ModelBase& model) {
   // initialize udv stacks for sweep use
   // sweep process will start from 0 to beta, so we initialize svd_stack_right
   // here. stabilize the process every stabilization_pace steps
@@ -85,10 +83,8 @@ void Walker::initial_svd_stacks(const LatticeBase& lattice,
   // allocate memory
   this->allocate_svd_stacks();
 
-  Matrix tmp_stack_up =
-      Matrix::Identity(this->m_space_size, this->m_space_size);
-  Matrix tmp_stack_dn =
-      Matrix::Identity(this->m_space_size, this->m_space_size);
+  Matrix tmp_stack_up = Matrix::Identity(this->m_space_size, this->m_space_size);
+  Matrix tmp_stack_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
 
   // initial svd stacks for sweeping usages
   for (auto t = this->m_time_size; t >= 1; --t) {
@@ -112,11 +108,9 @@ void Walker::initial_greens_functions() {
   // compute greens function at time slice t = 0
   // which corresponds to imaginary-time tau = beta
   // the svd stacks should be initialized correctly ahead of time
-  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
-                                            this->m_svd_stack_right_up,
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up, this->m_svd_stack_right_up,
                                             this->m_green_tt_up);
-  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                            this->m_svd_stack_right_dn,
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn, this->m_svd_stack_right_dn,
                                             this->m_green_tt_dn);
 }
 
@@ -129,10 +123,7 @@ void Walker::initial_config_sign() {
 
   // initialize the sign of the initial bosonic configurations
   this->m_config_sign =
-      (this->m_green_tt_up.determinant() * this->m_green_tt_dn.determinant() >=
-       0)
-          ? +1.0
-          : -1.0;
+      (this->m_green_tt_up.determinant() * this->m_green_tt_dn.determinant() >= 0) ? +1.0 : -1.0;
 }
 
 /*
@@ -141,8 +132,7 @@ void Walker::initial_config_sign() {
  *  perform a in-place update of the green's functions.
  *  Record the updated green's function at the life-end of this function.
  */
-void Walker::metropolis_update(ModelBase& model, TimeIndex t,
-                               std::default_random_engine& rng) {
+void Walker::metropolis_update(ModelBase& model, TimeIndex t, std::default_random_engine& rng) {
   DQMC_ASSERT(this->m_current_time_slice == t);
   DQMC_ASSERT(t >= 0 && t <= this->m_time_size);
 
@@ -151,8 +141,7 @@ void Walker::metropolis_update(ModelBase& model, TimeIndex t,
     // obtain the ratio of flipping the bosonic field at (i,l)
     const auto update_ratio = model.get_update_ratio(*this, eff_t, i);
 
-    if (std::bernoulli_distribution(std::min(1.0, std::abs(update_ratio)))(
-            rng)) {
+    if (std::bernoulli_distribution(std::min(1.0, std::abs(update_ratio)))(rng)) {
       // if accepted
       // update the greens functions
       model.update_greens_function(*this, eff_t, i);
@@ -161,8 +150,7 @@ void Walker::metropolis_update(ModelBase& model, TimeIndex t,
       model.update_bosonic_field(eff_t, i);
 
       // keep track of sign problem
-      this->m_config_sign =
-          (update_ratio >= 0) ? +this->m_config_sign : -this->m_config_sign;
+      this->m_config_sign = (update_ratio >= 0) ? +this->m_config_sign : -this->m_config_sign;
     }
   }
 }
@@ -206,8 +194,7 @@ void Walker::wrap_from_beta_to_0(const ModelBase& model, TimeIndex t) {
  *  For t = 1,2...,ts , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void Walker::sweep_from_0_to_beta(ModelBase& model,
-                                  std::default_random_engine& rng) {
+void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& rng) {
   this->m_current_time_slice++;
 
   [[maybe_unused]] const int stack_length =
@@ -215,8 +202,7 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
   DQMC_ASSERT(this->m_current_time_slice == 1);
-  DQMC_ASSERT(this->m_svd_stack_left_up.empty() &&
-              this->m_svd_stack_left_dn.empty());
+  DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_dn.empty());
   DQMC_ASSERT(this->m_svd_stack_right_up.StackLength() == stack_length &&
               this->m_svd_stack_right_dn.StackLength() == stack_length);
 
@@ -260,20 +246,17 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
       // stack_left*stack_right^T )^-1 stack_left = B(t-1) * ... * B(0)
       // stack_right = B(t)^T * ... * B(ts-1)^T
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
-                                                this->m_svd_stack_right_up,
-                                                tmp_green_tt_up);
+                                                this->m_svd_stack_right_up, tmp_green_tt_up);
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                                this->m_svd_stack_right_dn,
-                                                tmp_green_tt_dn);
+                                                this->m_svd_stack_right_dn, tmp_green_tt_dn);
 
       // compute wrapping errors
-      NumericalStable::matrix_compare_error(
-          tmp_green_tt_up, this->m_green_tt_up, tmp_wrap_error_tt_up);
-      NumericalStable::matrix_compare_error(
-          tmp_green_tt_dn, this->m_green_tt_dn, tmp_wrap_error_tt_dn);
+      NumericalStable::matrix_compare_error(tmp_green_tt_up, this->m_green_tt_up,
+                                            tmp_wrap_error_tt_up);
+      NumericalStable::matrix_compare_error(tmp_green_tt_dn, this->m_green_tt_dn,
+                                            tmp_wrap_error_tt_dn);
       this->m_wrap_error =
-          std::max(this->m_wrap_error,
-                   std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
+          std::max(this->m_wrap_error, std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
 
       this->m_green_tt_up = tmp_green_tt_up;
       this->m_green_tt_dn = tmp_green_tt_dn;
@@ -303,8 +286,7 @@ void Walker::sweep_from_0_to_beta(ModelBase& model,
  *  For l = ts,ts-1,...,1 , attempt to update fields and propagate the greens
  * functions Perform the stabilization every 'stabilization_pace' time slices
  */
-void Walker::sweep_from_beta_to_0(ModelBase& model,
-                                  std::default_random_engine& rng) {
+void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& rng) {
   this->m_current_time_slice--;
 
   [[maybe_unused]] const int stack_length =
@@ -312,8 +294,7 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
   DQMC_ASSERT(this->m_current_time_slice == this->m_time_size);
-  DQMC_ASSERT(this->m_svd_stack_right_up.empty() &&
-              this->m_svd_stack_right_dn.empty());
+  DQMC_ASSERT(this->m_svd_stack_right_up.empty() && this->m_svd_stack_right_dn.empty());
   DQMC_ASSERT(this->m_svd_stack_left_up.StackLength() == stack_length &&
               this->m_svd_stack_left_dn.StackLength() == stack_length);
 
@@ -340,20 +321,17 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
       double tmp_wrap_error_tt_dn = 0.0;
 
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
-                                                this->m_svd_stack_right_up,
-                                                tmp_green_tt_up);
+                                                this->m_svd_stack_right_up, tmp_green_tt_up);
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                                this->m_svd_stack_right_dn,
-                                                tmp_green_tt_dn);
+                                                this->m_svd_stack_right_dn, tmp_green_tt_dn);
 
       // compute the wrapping errors
-      NumericalStable::matrix_compare_error(
-          tmp_green_tt_up, this->m_green_tt_up, tmp_wrap_error_tt_up);
-      NumericalStable::matrix_compare_error(
-          tmp_green_tt_dn, this->m_green_tt_dn, tmp_wrap_error_tt_dn);
+      NumericalStable::matrix_compare_error(tmp_green_tt_up, this->m_green_tt_up,
+                                            tmp_wrap_error_tt_up);
+      NumericalStable::matrix_compare_error(tmp_green_tt_dn, this->m_green_tt_dn,
+                                            tmp_wrap_error_tt_dn);
       this->m_wrap_error =
-          std::max(this->m_wrap_error,
-                   std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
+          std::max(this->m_wrap_error, std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
 
       this->m_green_tt_up = tmp_green_tt_up;
       this->m_green_tt_dn = tmp_green_tt_dn;
@@ -384,11 +362,9 @@ void Walker::sweep_from_beta_to_0(ModelBase& model,
   this->m_svd_stack_right_up.push(tmp_mat_up);
   this->m_svd_stack_right_dn.push(tmp_mat_dn);
 
-  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
-                                            this->m_svd_stack_right_up,
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up, this->m_svd_stack_right_up,
                                             this->m_green_tt_up);
-  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                            this->m_svd_stack_right_dn,
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn, this->m_svd_stack_right_dn,
                                             this->m_green_tt_dn);
 
   // end with fresh greens functions
@@ -414,8 +390,7 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
             ? this->m_time_size / this->m_stabilization_pace
             : this->m_time_size / this->m_stabilization_pace + 1;
     DQMC_ASSERT(this->m_current_time_slice == 1);
-    DQMC_ASSERT(this->m_svd_stack_left_up.empty() &&
-                this->m_svd_stack_left_dn.empty());
+    DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_dn.empty());
     DQMC_ASSERT(this->m_svd_stack_right_up.StackLength() == stack_length &&
                 this->m_svd_stack_right_dn.StackLength() == stack_length);
 
@@ -423,17 +398,13 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
     this->m_green_t0_up = this->m_green_tt_up;
     this->m_green_t0_dn = this->m_green_tt_dn;
     this->m_green_0t_up =
-        this->m_green_tt_up -
-        Matrix::Identity(this->m_space_size, this->m_space_size);
+        this->m_green_tt_up - Matrix::Identity(this->m_space_size, this->m_space_size);
     this->m_green_0t_dn =
-        this->m_green_tt_dn -
-        Matrix::Identity(this->m_space_size, this->m_space_size);
+        this->m_green_tt_dn - Matrix::Identity(this->m_space_size, this->m_space_size);
 
     // temporary matrices
-    Matrix tmp_mat_up =
-        Matrix::Identity(this->m_space_size, this->m_space_size);
-    Matrix tmp_mat_dn =
-        Matrix::Identity(this->m_space_size, this->m_space_size);
+    Matrix tmp_mat_up = Matrix::Identity(this->m_space_size, this->m_space_size);
+    Matrix tmp_mat_dn = Matrix::Identity(this->m_space_size, this->m_space_size);
     Matrix tmp_green_t0_up(this->m_space_size, this->m_space_size);
     Matrix tmp_green_t0_dn(this->m_space_size, this->m_space_size);
     Matrix tmp_green_0t_up(this->m_space_size, this->m_space_size);
@@ -485,34 +456,30 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
         // equal time green's function are re-evaluated for current field
         // configurations
         NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
-                                                  this->m_svd_stack_right_up,
-                                                  this->m_green_tt_up);
+                                                  this->m_svd_stack_right_up, this->m_green_tt_up);
         NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                                  this->m_svd_stack_right_dn,
-                                                  this->m_green_tt_dn);
-        NumericalStable::compute_dynamic_greens(
-            this->m_svd_stack_left_up, this->m_svd_stack_right_up,
-            tmp_green_t0_up, tmp_green_0t_up);
-        NumericalStable::compute_dynamic_greens(
-            this->m_svd_stack_left_dn, this->m_svd_stack_right_dn,
-            tmp_green_t0_dn, tmp_green_0t_dn);
+                                                  this->m_svd_stack_right_dn, this->m_green_tt_dn);
+        NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_up,
+                                                this->m_svd_stack_right_up, tmp_green_t0_up,
+                                                tmp_green_0t_up);
+        NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_dn,
+                                                this->m_svd_stack_right_dn, tmp_green_t0_dn,
+                                                tmp_green_0t_dn);
 
         // compute wrapping errors
-        NumericalStable::matrix_compare_error(
-            tmp_green_t0_up, this->m_green_t0_up, tmp_wrap_error_t0_up);
-        NumericalStable::matrix_compare_error(
-            tmp_green_t0_dn, this->m_green_t0_dn, tmp_wrap_error_t0_dn);
+        NumericalStable::matrix_compare_error(tmp_green_t0_up, this->m_green_t0_up,
+                                              tmp_wrap_error_t0_up);
+        NumericalStable::matrix_compare_error(tmp_green_t0_dn, this->m_green_t0_dn,
+                                              tmp_wrap_error_t0_dn);
         this->m_wrap_error =
-            std::max(this->m_wrap_error,
-                     std::max(tmp_wrap_error_t0_up, tmp_wrap_error_t0_dn));
+            std::max(this->m_wrap_error, std::max(tmp_wrap_error_t0_up, tmp_wrap_error_t0_dn));
 
-        NumericalStable::matrix_compare_error(
-            tmp_green_0t_up, this->m_green_0t_up, tmp_wrap_error_0t_up);
-        NumericalStable::matrix_compare_error(
-            tmp_green_0t_dn, this->m_green_0t_dn, tmp_wrap_error_0t_dn);
+        NumericalStable::matrix_compare_error(tmp_green_0t_up, this->m_green_0t_up,
+                                              tmp_wrap_error_0t_up);
+        NumericalStable::matrix_compare_error(tmp_green_0t_dn, this->m_green_0t_dn,
+                                              tmp_wrap_error_0t_dn);
         this->m_wrap_error =
-            std::max(this->m_wrap_error,
-                     std::max(tmp_wrap_error_0t_up, tmp_wrap_error_0t_dn));
+            std::max(this->m_wrap_error, std::max(tmp_wrap_error_0t_up, tmp_wrap_error_0t_dn));
 
         this->m_green_t0_up = tmp_green_t0_up;
         this->m_green_t0_dn = tmp_green_t0_dn;
@@ -549,17 +516,15 @@ void Walker::output_montecarlo_info(std::ostream& ostream) const {
           << fmt_double("Inverse temperature"sv, this->Beta())
           << fmt_int("Imaginary-time length"sv, this->TimeSize())
           << fmt_double("Imaginary-time interval"sv, this->TimeInterval())
-          << fmt_int("Stabilization pace"sv, this->StabilizationPace())
-          << std::endl;
+          << fmt_int("Stabilization pace"sv, this->StabilizationPace()) << std::endl;
 }
 
 void Walker::output_imaginary_time_grids(std::ostream& ostream) const {
   // output the imaginary-time grids
-  ostream << std::format("{:>20d}{:>20.5f}{:>20.5f}\n", this->TimeSize(),
-                         this->Beta(), this->TimeInterval());
+  ostream << std::format("{:>20d}{:>20.5f}{:>20.5f}\n", this->TimeSize(), this->Beta(),
+                         this->TimeInterval());
   for (auto t = 0; t < this->TimeSize(); ++t) {
-    ostream << std::format("{:>20d}{:>20.10f}\n", t,
-                           (t * this->TimeInterval()));
+    ostream << std::format("{:>20d}{:>20.10f}\n", t, (t * this->TimeInterval()));
   }
 }
 

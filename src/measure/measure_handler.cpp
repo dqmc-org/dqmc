@@ -9,8 +9,8 @@
 using namespace std::literals;
 
 namespace Measure {
-void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num,
-                                        int bin_size, int sweeps_between_bins) {
+void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num, int bin_size,
+                                        int sweeps_between_bins) {
   DQMC_ASSERT(sweeps_warmup >= 0);
   DQMC_ASSERT(bin_num >= 0);
   DQMC_ASSERT(bin_size >= 0);
@@ -21,16 +21,13 @@ void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num,
   this->m_sweeps_between_bins = sweeps_between_bins;
 }
 
-void MeasureHandler::set_observables(ObsList obs_list) {
-  this->m_obs_list = obs_list;
-}
+void MeasureHandler::set_observables(ObsList obs_list) { this->m_obs_list = obs_list; }
 
 void MeasureHandler::set_measured_momentum(MomentumIndex momentum_index) {
   this->m_momentum = momentum_index;
 }
 
-void MeasureHandler::set_measured_momentum_list(
-    const MomentumIndexList& momentum_index_list) {
+void MeasureHandler::set_measured_momentum_list(const MomentumIndexList& momentum_index_list) {
   this->m_momentum_list = momentum_index_list;
 }
 
@@ -40,11 +37,9 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
 
   this->m_is_warmup = (this->m_sweeps_warmup != 0);
   this->m_is_equaltime = (!this->m_eqtime_scalar_obs.empty() ||
-                          !this->m_eqtime_vector_obs.empty() ||
-                          !this->m_eqtime_matrix_obs.empty());
+                          !this->m_eqtime_vector_obs.empty() || !this->m_eqtime_matrix_obs.empty());
   this->m_is_dynamic = (!this->m_dynamic_scalar_obs.empty() ||
-                        !this->m_dynamic_vector_obs.empty() ||
-                        !this->m_dynamic_matrix_obs.empty());
+                        !this->m_dynamic_vector_obs.empty() || !this->m_dynamic_matrix_obs.empty());
 
   // set up parameters for the observables
   // for equal-time observables
@@ -68,8 +63,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
       // specialize dimensions for certain observables if needed
-      matrix_obs->set_zero_element(
-          MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
+      matrix_obs->set_zero_element(MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
       matrix_obs->set_number_of_bins(this->m_bin_num);
       matrix_obs->allocate();
     }
@@ -104,8 +98,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
         matrix_obs->allocate();
       } else {
         // otherwise initialize by default
-        matrix_obs->set_zero_element(
-            MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
+        matrix_obs->set_zero_element(MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       }
@@ -113,8 +106,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
   }
 }
 
-void MeasureHandler::equaltime_measure(const Walker& walker,
-                                       const ModelBase& model,
+void MeasureHandler::equaltime_measure(const Walker& walker, const ModelBase& model,
                                        const LatticeBase& lattice) {
   for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
     scalar_obs->measure(*this, walker, model, lattice);
@@ -128,8 +120,7 @@ void MeasureHandler::equaltime_measure(const Walker& walker,
   this->m_equaltime_sign->measure(*this, walker, model, lattice);
 }
 
-void MeasureHandler::dynamic_measure(const Walker& walker,
-                                     const ModelBase& model,
+void MeasureHandler::dynamic_measure(const Walker& walker, const ModelBase& model,
                                      const LatticeBase& lattice) {
   for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
     scalar_obs->measure(*this, walker, model, lattice);
@@ -150,21 +141,17 @@ void MeasureHandler::normalize_stats() {
 
     // normalize observables by the countings and the mean value of the sign
     for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
-      scalar_obs->tmp_value() /=
-          scalar_obs->counts() * this->m_equaltime_sign->tmp_value();
+      scalar_obs->tmp_value() /= scalar_obs->counts() * this->m_equaltime_sign->tmp_value();
     }
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
-      vector_obs->tmp_value() /=
-          vector_obs->counts() * this->m_equaltime_sign->tmp_value();
+      vector_obs->tmp_value() /= vector_obs->counts() * this->m_equaltime_sign->tmp_value();
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
-      matrix_obs->tmp_value() /=
-          matrix_obs->counts() * this->m_equaltime_sign->tmp_value();
+      matrix_obs->tmp_value() /= matrix_obs->counts() * this->m_equaltime_sign->tmp_value();
     }
 
     // record the absolute value of sign
-    this->m_equaltime_sign->tmp_value() =
-        std::abs(this->m_equaltime_sign->tmp_value());
+    this->m_equaltime_sign->tmp_value() = std::abs(this->m_equaltime_sign->tmp_value());
   }
 
   if (this->m_is_dynamic) {
@@ -172,21 +159,17 @@ void MeasureHandler::normalize_stats() {
     this->m_dynamic_sign->tmp_value() /= this->m_dynamic_sign->counts();
 
     for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
-      scalar_obs->tmp_value() /=
-          scalar_obs->counts() * this->m_dynamic_sign->tmp_value();
+      scalar_obs->tmp_value() /= scalar_obs->counts() * this->m_dynamic_sign->tmp_value();
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
-      vector_obs->tmp_value() /=
-          vector_obs->counts() * this->m_dynamic_sign->tmp_value();
+      vector_obs->tmp_value() /= vector_obs->counts() * this->m_dynamic_sign->tmp_value();
     }
     for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
-      matrix_obs->tmp_value() /=
-          matrix_obs->counts() * this->m_dynamic_sign->tmp_value();
+      matrix_obs->tmp_value() /= matrix_obs->counts() * this->m_dynamic_sign->tmp_value();
     }
 
     // record the absolute value of sign
-    this->m_dynamic_sign->tmp_value() =
-        std::abs(this->m_dynamic_sign->tmp_value());
+    this->m_dynamic_sign->tmp_value() = std::abs(this->m_dynamic_sign->tmp_value());
   }
 }
 
@@ -277,8 +260,7 @@ void MeasureHandler::clear_temporary() {
   }
 }
 
-void MeasureHandler::output_measuring_info(std::ostream& ostream,
-                                           int world_size) const {
+void MeasureHandler::output_measuring_info(std::ostream& ostream, int world_size) const {
   auto fmt_str = [](std::string_view desc, std::string_view value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
@@ -292,14 +274,12 @@ void MeasureHandler::output_measuring_info(std::ostream& ostream,
   ostream << "   Measuring Params:\n"
           << fmt_str("Warm up"sv, bool_to_str(this->isWarmUp()))
           << fmt_str("Equal-time measure"sv, bool_to_str(this->isEqualTime()))
-          << fmt_str("Dynamical measure"sv, bool_to_str(this->isDynamic()))
-          << std::endl;
+          << fmt_str("Dynamical measure"sv, bool_to_str(this->isDynamic())) << std::endl;
 
   ostream << fmt_int("Sweeps for warmup"sv, this->WarmUpSweeps())
           << fmt_int("Number of bins"sv, this->BinsNum() * world_size)
           << fmt_int("Sweeps per bin"sv, this->BinsSize())
-          << fmt_int("Sweeps between bins"sv, this->SweepsBetweenBins())
-          << std::endl;
+          << fmt_int("Sweeps between bins"sv, this->SweepsBetweenBins()) << std::endl;
 }
 
 }  // namespace Measure

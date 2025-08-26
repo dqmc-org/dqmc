@@ -41,11 +41,9 @@ namespace detail {
 
 template <typename DataType, typename = void>
 struct error_bar_calculator {
-  static void calculate(DataType&, const DataType&,
-                        const std::vector<DataType>&, int) {
-    static_assert(
-        sizeof(DataType) == 0,
-        "Observable::calculate_error_bar(): Unsupported observable type.");
+  static void calculate(DataType&, const DataType&, const std::vector<DataType>&, int) {
+    static_assert(sizeof(DataType) == 0,
+                  "Observable::calculate_error_bar(): Unsupported observable type.");
   }
 };
 
@@ -57,15 +55,13 @@ struct error_bar_calculator<ScalarType> {
       error_bar += std::pow(data, 2);
     }
     error_bar /= bin_num;
-    error_bar =
-        std::sqrt(error_bar - std::pow(mean_value, 2)) / std::sqrt(bin_num - 1);
+    error_bar = std::sqrt(error_bar - std::pow(mean_value, 2)) / std::sqrt(bin_num - 1);
   }
 };
 
 template <typename EigenType>
 struct error_bar_calculator<
-    EigenType, std::enable_if_t<
-                   std::is_base_of_v<Eigen::DenseBase<EigenType>, EigenType>>> {
+    EigenType, std::enable_if_t<std::is_base_of_v<Eigen::DenseBase<EigenType>, EigenType>>> {
   static void calculate(EigenType& error_bar, const EigenType& mean_value,
                         const std::vector<EigenType>& bin_data, int bin_num) {
     for (const auto& data : bin_data) {
@@ -73,8 +69,7 @@ struct error_bar_calculator<
     }
     error_bar /= bin_num;
     error_bar =
-        (error_bar.array() - mean_value.array().square()).sqrt().matrix() /
-        std::sqrt(bin_num - 1);
+        (error_bar.array() - mean_value.array().square()).sqrt().matrix() / std::sqrt(bin_num - 1);
   }
 };
 }  // namespace detail
@@ -128,8 +123,8 @@ class Observable : public ObservableBase {
   using ModelBase = Model::ModelBase;
   using LatticeBase = Lattice::LatticeBase;
   using MeasureHandler = Measure::MeasureHandler;
-  using Method = void(Observable<DataType>&, const MeasureHandler&,
-                      const Walker&, const ModelBase&, const LatticeBase&);
+  using Method = void(Observable<DataType>&, const MeasureHandler&, const Walker&, const ModelBase&,
+                      const LatticeBase&);
 
   DataType m_mean_value{};  // statistical mean value
   DataType m_error_bar{};   // estimated error bar
@@ -172,16 +167,14 @@ class Observable : public ObservableBase {
   // ---------------------------------  Set up parameters and methods
   // ------------------------------------
 
-  void set_zero_element(const DataType& zero_elem) {
-    this->m_zero_elem = zero_elem;
-  }
+  void set_zero_element(const DataType& zero_elem) { this->m_zero_elem = zero_elem; }
 
   // -------------------------------------  Other member functions
   // ---------------------------------------
 
   // perform one step of measurement
-  void measure(const MeasureHandler& meas_handler, const Walker& walker,
-               const ModelBase& model, const LatticeBase& lattice) {
+  void measure(const MeasureHandler& meas_handler, const Walker& walker, const ModelBase& model,
+               const LatticeBase& lattice) {
     this->m_method(*this, meas_handler, walker, model, lattice);
   }
 
@@ -227,16 +220,15 @@ class Observable : public ObservableBase {
  private:
   // calculating mean value of the measurement
   void calculate_mean_value() {
-    this->m_mean_value = std::accumulate(
-        this->m_bin_data.begin(), this->m_bin_data.end(), this->m_zero_elem);
+    this->m_mean_value =
+        std::accumulate(this->m_bin_data.begin(), this->m_bin_data.end(), this->m_zero_elem);
     this->m_mean_value /= this->bin_num();
   }
 
   // estimate error bar of the measurement
   void calculate_error_bar() {
-    detail::error_bar_calculator<DataType>::calculate(
-        this->m_error_bar, this->m_mean_value, this->m_bin_data,
-        this->bin_num());
+    detail::error_bar_calculator<DataType>::calculate(this->m_error_bar, this->m_mean_value,
+                                                      this->m_bin_data, this->bin_num());
   }
 };
 

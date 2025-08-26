@@ -112,24 +112,12 @@ class Walker {
   const GreensFunc& GreenttUp() const { return this->m_green_tt_up; }
   const GreensFunc& GreenttDn() const { return this->m_green_tt_dn; }
 
-  const GreensFunc& GreenttUp(int t) const {
-    return this->m_vec_green_tt_up[t];
-  }
-  const GreensFunc& GreenttDn(int t) const {
-    return this->m_vec_green_tt_dn[t];
-  }
-  const GreensFunc& Greent0Up(int t) const {
-    return this->m_vec_green_t0_up[t];
-  }
-  const GreensFunc& Greent0Dn(int t) const {
-    return this->m_vec_green_t0_dn[t];
-  }
-  const GreensFunc& Green0tUp(int t) const {
-    return this->m_vec_green_0t_up[t];
-  }
-  const GreensFunc& Green0tDn(int t) const {
-    return this->m_vec_green_0t_dn[t];
-  }
+  const GreensFunc& GreenttUp(int t) const { return this->m_vec_green_tt_up[t]; }
+  const GreensFunc& GreenttDn(int t) const { return this->m_vec_green_tt_dn[t]; }
+  const GreensFunc& Greent0Up(int t) const { return this->m_vec_green_t0_up[t]; }
+  const GreensFunc& Greent0Dn(int t) const { return this->m_vec_green_t0_dn[t]; }
+  const GreensFunc& Green0tUp(int t) const { return this->m_vec_green_0t_up[t]; }
+  const GreensFunc& Green0tDn(int t) const { return this->m_vec_green_0t_dn[t]; }
 
   const GreensFuncVec& vecGreenttUp() const { return this->m_vec_green_tt_up; }
   const GreensFuncVec& vecGreenttDn() const { return this->m_vec_green_tt_dn; }
@@ -199,8 +187,7 @@ class Walker {
 
  private:
   // update the bosonic fields at time slice t using Metropolis algorithm
-  void metropolis_update(ModelBase& model, TimeIndex t,
-                         std::default_random_engine& rng);
+  void metropolis_update(ModelBase& model, TimeIndex t, std::default_random_engine& rng);
 
   // wrap the equal-time greens functions from time slice t to t+1
   void wrap_from_0_to_beta(const ModelBase& model, TimeIndex t);

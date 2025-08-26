@@ -32,15 +32,14 @@ class LinearAlgebra {
    *  @param s -> eigenvalues s of type Eigen::VectorXd, descending sorted.
    *  @param v -> v matrix of type Eigen::MatrixXd, `col` * `col`.
    */
-  static void dgesvd(const Eigen::MatrixXd& mat, Eigen::MatrixXd& u,
-                     Eigen::VectorXd& s, Eigen::MatrixXd& v) {
+  static void dgesvd(const Eigen::MatrixXd& mat, Eigen::MatrixXd& u, Eigen::VectorXd& s,
+                     Eigen::MatrixXd& v) {
     // BUG: Eigen Jacobi is not compatible with LAPACK dgesvd, make sure to
     // enable EIGEN_USE_BLAS and EIGEN_USE_LAPACKE. BDCSVD lowers to JacobiSVD
     // for sizes below or equal to 16. For more details:
     // https://eigen.tuxfamily.org/dox-devel/TopicUsingBlasLapack.html
 
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(
-        mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::JacobiSVD<Eigen::MatrixXd> svd(mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
     if (svd.info() != Eigen::Success) {
       throw std::runtime_error(
@@ -65,8 +64,7 @@ class LinearAlgebra {
    *  @param s -> diagonal eigen matrix.
    *  @param t -> rotation matrix, whose columns are corresponding eigenstates.
    */
-  static void dsyev(const Eigen::MatrixXd& mat, Eigen::VectorXd& s,
-                    Eigen::MatrixXd& t) {
+  static void dsyev(const Eigen::MatrixXd& mat, Eigen::VectorXd& s, Eigen::MatrixXd& t) {
     DQMC_ASSERT(mat.rows() == mat.cols());
     DQMC_ASSERT(mat.isApprox(mat.transpose(), 1e-12));
 

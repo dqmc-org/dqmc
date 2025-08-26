@@ -40,8 +40,7 @@ class IO {
   // output the information of dqmc initialization,
   // including initialization status and simulation parameters.
   // the behavior of this function depends on specific model and lattice types.
-  static void output_init_info(std::ostream& ostream, int world_size,
-                               const ModelBase& model,
+  static void output_init_info(std::ostream& ostream, int world_size, const ModelBase& model,
                                const LatticeBase& lattice, const Walker& walker,
                                const MeasureHandler& meas_handler,
                                const CheckerBoardBasePtr& checkerboard);
@@ -52,35 +51,32 @@ class IO {
 
   // output observable to console
   template <typename ObsType>
-  static void output_observable_to_console(
-      std::ostream& ostream, const Observable::Observable<ObsType>& obs);
+  static void output_observable_to_console(std::ostream& ostream,
+                                           const Observable::Observable<ObsType>& obs);
 
   // output observable to file
   template <typename ObsType>
-  static void output_observable_to_file(
-      std::ofstream& ostream, const Observable::Observable<ObsType>& obs);
+  static void output_observable_to_file(std::ofstream& ostream,
+                                        const Observable::Observable<ObsType>& obs);
 
   // output the bin data of one specific observable
   template <typename ObsType>
-  static void output_observable_in_bins_to_file(
-      std::ofstream& ostream, const Observable::Observable<ObsType>& obs);
+  static void output_observable_in_bins_to_file(std::ofstream& ostream,
+                                                const Observable::Observable<ObsType>& obs);
 
   // output list of inequivalent momentum points ( k stars )
   static void output_k_stars(std::ostream& ostream, const LatticeBase& lattice);
 
   // output imgainary-time grids
-  static void output_imaginary_time_grids(std::ostream& ostream,
-                                          const Walker& walker);
+  static void output_imaginary_time_grids(std::ostream& ostream, const Walker& walker);
 
   // output the current configuration the bosonic fields,
   // depending on specific model type
-  static void output_bosonic_fields(std::ostream& ostream,
-                                    const ModelBase& model);
+  static void output_bosonic_fields(std::ostream& ostream, const ModelBase& model);
 
   // read the configuration of the bosonic fields from input file
   // depending on specific model type
-  static void read_bosonic_fields_from_file(const std::string& filename,
-                                            ModelBase& model);
+  static void read_bosonic_fields_from_file(const std::string& filename, ModelBase& model);
 };
 
 // -------------------------------------------------------------------------------------------------------
@@ -88,8 +84,8 @@ class IO {
 // -------------------------------------------------------------------------------------------------------
 
 template <typename ObsType>
-void IO::output_observable_to_console(
-    std::ostream& ostream, const Observable::Observable<ObsType>& obs) {
+void IO::output_observable_to_console(std::ostream& ostream,
+                                      const Observable::Observable<ObsType>& obs) {
   if (!ostream) {
     throw std::runtime_error(
         "DQMC::IO::output_observable_to_console(): "
@@ -98,9 +94,8 @@ void IO::output_observable_to_console(
 
   // for scalar observables
   if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
-    ostream << std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}\n",
-                           obs.description(), "->", obs.mean_value(),
-                           obs.error_bar());
+    ostream << std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}\n", obs.description(), "->",
+                           obs.mean_value(), obs.error_bar());
   }
 
   // // todo: currently not used
@@ -135,22 +130,20 @@ void IO::output_observable_to_file(std::ofstream& ostream,
   if constexpr (std::is_same_v<ObsType, Observable::ScalarType>) {
     // for specfic scalar observable, output the mean value, error bar and
     // relative error in order.
-    ostream << std::format("{:>20.10f}{:>20.10f}{:>20.10f}\n", obs.mean_value(),
-                           obs.error_bar(), obs.error_bar() / obs.mean_value());
+    ostream << std::format("{:>20.10f}{:>20.10f}{:>20.10f}\n", obs.mean_value(), obs.error_bar(),
+                           obs.error_bar() / obs.mean_value());
   }
 
   // for vector observables
   else if constexpr (std::is_same_v<ObsType, Observable::VectorType>) {
     // output vector observable
     const int size = obs.mean_value().size();
-    const auto relative_error =
-        (obs.error_bar().array() / obs.mean_value().array()).matrix();
+    const auto relative_error = (obs.error_bar().array() / obs.mean_value().array()).matrix();
     ostream << std::format("{:>20d}", size) << std::endl;
     for (auto i = 0; i < size; ++i) {
       // output the mean value, error bar and relative error in order.
-      ostream << std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i,
-                             obs.mean_value()(i), obs.error_bar()(i),
-                             relative_error(i));
+      ostream << std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i, obs.mean_value()(i),
+                             obs.error_bar()(i), relative_error(i));
     }
   }
 
@@ -159,15 +152,13 @@ void IO::output_observable_to_file(std::ofstream& ostream,
     // output matrix observable
     const int row = obs.mean_value().rows();
     const int col = obs.mean_value().cols();
-    const auto relative_error =
-        (obs.error_bar().array() / obs.mean_value().array()).matrix();
+    const auto relative_error = (obs.error_bar().array() / obs.mean_value().array()).matrix();
     ostream << std::format("{:>20d}{:>20d}", row, col) << std::endl;
     for (auto i = 0; i < row; ++i) {
       for (auto j = 0; j < col; ++j) {
         // output the mean value, error bar and relative error in order.
-        ostream << std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n",
-                               i, j, obs.mean_value()(i, j),
-                               obs.error_bar()(i, j), relative_error(i, j));
+        ostream << std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i, j,
+                               obs.mean_value()(i, j), obs.error_bar()(i, j), relative_error(i, j));
       }
     }
   }
@@ -181,12 +172,11 @@ void IO::output_observable_to_file(std::ofstream& ostream,
 }
 
 template <typename ObsType>
-void IO::output_observable_in_bins_to_file(
-    std::ofstream& ostream, const Observable::Observable<ObsType>& obs) {
+void IO::output_observable_in_bins_to_file(std::ofstream& ostream,
+                                           const Observable::Observable<ObsType>& obs) {
   if (!ostream) {
     std::cerr << "DQMC::IO::output_observable_in_bins(): "
-              << "the ostream failed to work, please check the input."
-              << std::endl;
+              << "the ostream failed to work, please check the input." << std::endl;
     exit(1);
   } else {
     // for scalar observables
@@ -207,8 +197,7 @@ void IO::output_observable_in_bins_to_file(
       ostream << std::format("{:>20d}{:>20d}\n", number_of_bins, size);
       for (auto bin = 0; bin < number_of_bins; ++bin) {
         for (auto i = 0; i < size; ++i) {
-          ostream << std::format("{:>20d}{:>20d}{:>20.10f}\n", bin, i,
-                                 obs.bin_data(bin)(i));
+          ostream << std::format("{:>20d}{:>20d}{:>20.10f}\n", bin, i, obs.bin_data(bin)(i));
         }
       }
     }
@@ -219,13 +208,12 @@ void IO::output_observable_in_bins_to_file(
       const int number_of_bins = obs.bin_num();
       const int row = obs.mean_value().rows();
       const int col = obs.mean_value().cols();
-      ostream << std::format("{:>20d}{:>20d}{:>20d}\n", number_of_bins, row,
-                             col);
+      ostream << std::format("{:>20d}{:>20d}{:>20d}\n", number_of_bins, row, col);
       for (auto bin = 0; bin < number_of_bins; ++bin) {
         for (auto i = 0; i < row; ++i) {
           for (auto j = 0; j < col; ++j) {
-            ostream << std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}\n", bin, i,
-                                   j, obs.bin_data(bin)(i, j));
+            ostream << std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}\n", bin, i, j,
+                                   obs.bin_data(bin)(i, j));
           }
         }
       }
@@ -233,8 +221,8 @@ void IO::output_observable_in_bins_to_file(
 
     // other observable types, raising errors
     else {
-      std::cerr << "DQMC::IO::output_observable_in_bins(): "
-                << "undefined observable type." << std::endl;
+      std::cerr << "DQMC::IO::output_observable_in_bins(): " << "undefined observable type."
+                << std::endl;
       exit(1);
     }
   }

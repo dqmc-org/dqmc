@@ -43,8 +43,7 @@ class SvdClass {
   SvdClass() = default;
 
   // Initialize with specified matrix dimension
-  explicit SvdClass(int dim)
-      : m_u_mat(dim, dim), m_s_vec(dim), m_v_mat(dim, dim) {}
+  explicit SvdClass(int dim) : m_u_mat(dim, dim), m_s_vec(dim), m_v_mat(dim, dim) {}
 
   // Access to the SVD components
   uMat& MatrixU() { return this->m_u_mat; }
@@ -98,7 +97,7 @@ class SvdStack {
   // These represent the decomposition of the entire matrix chain
   const Vector& SingularValues() const;  // Current singular values
   const Matrix& MatrixU() const;         // Current U matrix
-  const Matrix& MatrixV() const;  // Accumulated V matrix across all operations
+  const Matrix& MatrixV() const;         // Accumulated V matrix across all operations
 
   // Reset the stack to empty state (memory remains allocated for reuse)
   void clear();

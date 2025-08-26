@@ -37,8 +37,7 @@ class CheckerBoardBase {
   virtual ~CheckerBoardBase() = default;
 
   // initialize from lattice, model and dqmcWalker
-  virtual void set_checkerboard_params(const LatticeBase &lattice,
-                                       const ModelBase &model,
+  virtual void set_checkerboard_params(const LatticeBase &lattice, const ModelBase &model,
                                        const Walker &walker) = 0;
   virtual void initial() = 0;
 

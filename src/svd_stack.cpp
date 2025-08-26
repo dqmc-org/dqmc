@@ -43,14 +43,12 @@ void SvdStack::clear() {
 // Add a matrix to the product from the left: Product = matrix * Product
 // This is the core of the numerical stabilization algorithm
 void SvdStack::push(const Matrix& matrix) {
-  DQMC_ASSERT(matrix.rows() == this->m_mat_dim &&
-              matrix.cols() == this->m_mat_dim);
+  DQMC_ASSERT(matrix.rows() == this->m_mat_dim && matrix.cols() == this->m_mat_dim);
 
   SvdClass svd(this->m_mat_dim);
   if (this->m_stack.empty()) {
     // First matrix: just compute its SVD directly
-    Utils::LinearAlgebra::dgesvd(matrix, svd.MatrixU(), svd.SingularValues(),
-                                 svd.MatrixV());
+    Utils::LinearAlgebra::dgesvd(matrix, svd.MatrixU(), svd.SingularValues(), svd.MatrixV());
     this->m_prefix_v.push_back(svd.MatrixV());
   } else {
     // Subsequent matrices: multiply with existing decomposition
@@ -59,10 +57,8 @@ void SvdStack::push(const Matrix& matrix) {
     // 1. First multiply matrix * U (preserves orthogonality)
     // 2. Then scale by singular values S
     // 3. Finally compute SVD of the combined result
-    Matrix tmp =
-        (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
-    Utils::LinearAlgebra::dgesvd(tmp, svd.MatrixU(), svd.SingularValues(),
-                                 svd.MatrixV());
+    Matrix tmp = (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
+    Utils::LinearAlgebra::dgesvd(tmp, svd.MatrixU(), svd.SingularValues(), svd.MatrixV());
     this->m_prefix_v.push_back(this->m_prefix_v.back() * svd.MatrixV());
   }
   this->m_stack.push_back(std::move(svd));

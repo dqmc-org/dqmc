@@ -39,9 +39,9 @@ class MeasureHandler : public Observable::ObservableHandler {
   bool m_is_equaltime{};  // whether to perform equal-time measurements or not
   bool m_is_dynamic{};    // whether to perform dynamic measurements or not
 
-  int m_sweeps_warmup{};  // number of the MC sweeps for the warm-up process
-  int m_bin_num{};        // number of measuring bins
-  int m_bin_size{};       // number of samples in one measuring bin
+  int m_sweeps_warmup{};        // number of the MC sweeps for the warm-up process
+  int m_bin_num{};              // number of measuring bins
+  int m_bin_size{};             // number of samples in one measuring bin
   int m_sweeps_between_bins{};  // number of the MC sweeps between two adjoining
                                 // bins
 
@@ -57,8 +57,7 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ---------------------------  Set up measuring params and observables
   // ------------------------------
 
-  void set_measure_params(int sweeps_warmup, int bin_num, int bin_size,
-                          int sweeps_between_bins);
+  void set_measure_params(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins);
 
   void set_observables(ObsList obs_list);
 
@@ -88,9 +87,7 @@ class MeasureHandler : public Observable::ObservableHandler {
 
   MomentumIndex Momentum() const { return this->m_momentum; }
 
-  const MomentumIndexList& MomentumList() const {
-    return this->m_momentum_list;
-  }
+  const MomentumIndexList& MomentumList() const { return this->m_momentum_list; }
 
   MomentumIndex MomentumList(const int i) const {
     DQMC_ASSERT(i >= 0 && i < (int)this->m_momentum_list.size());
@@ -103,10 +100,8 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ---------------------------------
 
   // perform one step of sampling for the measurements
-  void equaltime_measure(const Walker& walker, const ModelBase& model,
-                         const LatticeBase& lattice);
-  void dynamic_measure(const Walker& walker, const ModelBase& model,
-                       const LatticeBase& lattice);
+  void equaltime_measure(const Walker& walker, const ModelBase& model, const LatticeBase& lattice);
+  void dynamic_measure(const Walker& walker, const ModelBase& model, const LatticeBase& lattice);
 
   // normalize the observable samples
   void normalize_stats();

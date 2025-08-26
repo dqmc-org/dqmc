@@ -26,8 +26,7 @@ class NumericalStable {
    *  Subroutine to return the maximum difference of two matrices with the same
    * size. Input: umat, vmat Output: the maximum difference -> error
    */
-  static void matrix_compare_error(const Matrix& umat, const Matrix& vmat,
-                                   double& error) {
+  static void matrix_compare_error(const Matrix& umat, const Matrix& vmat, double& error) {
     DQMC_ASSERT(umat.rows() == vmat.rows());
     DQMC_ASSERT(umat.cols() == vmat.cols());
     DQMC_ASSERT(umat.rows() == umat.cols());
@@ -54,8 +53,8 @@ class NumericalStable {
    *  Input: vmat, dvec, umat
    *  Output: zmat
    */
-  static void mult_v_invd_u(const Matrix& vmat, const Vector& dvec,
-                            const Matrix& umat, Matrix& zmat) {
+  static void mult_v_invd_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat,
+                            Matrix& zmat) {
     DQMC_ASSERT(vmat.cols() == umat.cols());
     DQMC_ASSERT(vmat.cols() == zmat.cols());
     DQMC_ASSERT(vmat.rows() == umat.rows());
@@ -70,8 +69,7 @@ class NumericalStable {
    *  Input: vmat, dvec, umat
    *  Output: zmat
    */
-  static void mult_v_d_u(const Matrix& vmat, const Vector& dvec,
-                         const Matrix& umat, Matrix& zmat) {
+  static void mult_v_d_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat, Matrix& zmat) {
     DQMC_ASSERT(vmat.cols() == umat.cols());
     DQMC_ASSERT(vmat.cols() == zmat.cols());
     DQMC_ASSERT(vmat.rows() == umat.rows());
@@ -88,8 +86,7 @@ class NumericalStable {
    *  Input: S
    *  Output: Sbi, Ss
    */
-  static void computeSbiSs(const Eigen::VectorXd& S, Eigen::VectorXd& Sbi,
-                           Eigen::VectorXd& Ss) {
+  static void computeSbiSs(const Eigen::VectorXd& S, Eigen::VectorXd& Sbi, Eigen::VectorXd& Ss) {
     DQMC_ASSERT((S.array() >= 0).all());
     DQMC_ASSERT(Sbi.size() == S.size());
     DQMC_ASSERT(Ss.size() == S.size());
@@ -108,9 +105,8 @@ class NumericalStable {
    *  Input/Output: Atmp, Btmp
    *  Input: dlmax, drmax, dlmin, drmin
    */
-  static void scale_Atmp_Btmp_dl_dr(Matrix& Atmp, Matrix& Btmp,
-                                    const Vector& dlmax, const Vector& drmax,
-                                    const Vector& dlmin, const Vector& drmin) {
+  static void scale_Atmp_Btmp_dl_dr(Matrix& Atmp, Matrix& Btmp, const Vector& dlmax,
+                                    const Vector& drmax, const Vector& dlmin, const Vector& drmin) {
     DQMC_ASSERT(Atmp.rows() == dlmax.size());
     DQMC_ASSERT(Atmp.cols() == drmax.size());
     DQMC_ASSERT(Btmp.rows() == dlmin.size());
@@ -136,9 +132,8 @@ class NumericalStable {
    *  Input/Output: Xtmp, Ytmp
    *  Input: drmax, dlmax, drmin, dlmin
    */
-  static void scale_Xtmp_Ytmp_dl_dr(Matrix& Xtmp, Matrix& Ytmp,
-                                    const Vector& drmax, const Vector& dlmax,
-                                    const Vector& drmin, const Vector& dlmin) {
+  static void scale_Xtmp_Ytmp_dl_dr(Matrix& Xtmp, Matrix& Ytmp, const Vector& drmax,
+                                    const Vector& dlmax, const Vector& drmin, const Vector& dlmin) {
     DQMC_ASSERT(Xtmp.rows() == drmax.size());
     DQMC_ASSERT(Xtmp.cols() == dlmax.size());
     DQMC_ASSERT(Ytmp.rows() == drmin.size());
@@ -157,8 +152,7 @@ class NumericalStable {
    *  return (1 + USV^T)^-1, with method of QR decomposition
    *  to obtain equal-time Green's functions G(t,t)
    */
-  static void compute_greens_00_bb(const Matrix& U, const Vector& S,
-                                   const Matrix& V, Matrix& gtt) {
+  static void compute_greens_00_bb(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gtt) {
     // split S = Sbi^-1 * Ss
     Vector Sbi(S.size());
     Vector Ss(S.size());
@@ -167,8 +161,7 @@ class NumericalStable {
     // compute (1 + USV^T)^-1 in a stable manner
     // note that H is good conditioned, which only contains information of small
     // scale.
-    Matrix H =
-        Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
+    Matrix H = Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
 
     // compute gtt using QR decomposition
     gtt = H.colPivHouseholderQr().solve(Sbi.asDiagonal() * U.transpose());
@@ -178,8 +171,7 @@ class NumericalStable {
    *  return (1 + USV^T)^-1 * USV^T, with method of QR decomposition
    *  to obtain time-displaced Green's functions G(beta, 0)
    */
-  static void compute_greens_b0(const Matrix& U, const Vector& S,
-                                const Matrix& V, Matrix& gt0) {
+  static void compute_greens_b0(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gt0) {
     // split S = Sbi^-1 * Ss
     Vector Sbi(S.size());
     Vector Ss(S.size());
@@ -188,8 +180,7 @@ class NumericalStable {
     // compute (1 + USV^T)^-1 * USV^T in a stable manner
     // note that H is good conditioned, which only contains information of small
     // scale.
-    Matrix H =
-        Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
+    Matrix H = Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
 
     // compute gtt using QR decomposition
     gt0 = H.colPivHouseholderQr().solve(Ss.asDiagonal() * V.transpose());
@@ -200,22 +191,19 @@ class NumericalStable {
    * factorization note: (1 + left * right^T)^-1 = (1 + (USV^T)_left *
    * (VSU^T)_right)^-1
    */
-  static void compute_equaltime_greens(const SvdStack& left,
-                                       const SvdStack& right, Matrix& gtt) {
+  static void compute_equaltime_greens(const SvdStack& left, const SvdStack& right, Matrix& gtt) {
     DQMC_ASSERT(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
 
     // at time slice t = 0
     if (left.empty()) {
-      compute_greens_00_bb(right.MatrixV(), right.SingularValues(),
-                           right.MatrixU(), gtt);
+      compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gtt);
       return;
     }
 
     // at time slice t = nt (beta)
     if (right.empty()) {
-      compute_greens_00_bb(left.MatrixU(), left.SingularValues(),
-                           left.MatrixV(), gtt);
+      compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), gtt);
       return;
     }
 
@@ -257,8 +245,7 @@ class NumericalStable {
    *  return time-displaced Green's function in a stable manner,
    *  with the method of MGS factorization
    */
-  static void compute_dynamic_greens(const SvdStack& left,
-                                     const SvdStack& right, Matrix& gt0,
+  static void compute_dynamic_greens(const SvdStack& left, const SvdStack& right, Matrix& gt0,
                                      Matrix& g0t) {
     DQMC_ASSERT(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
@@ -266,8 +253,7 @@ class NumericalStable {
     // at time slice t = 0
     if (left.empty()) {
       // gt0 = gtt at t = 0
-      compute_greens_00_bb(right.MatrixV(), right.SingularValues(),
-                           right.MatrixU(), gt0);
+      compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gt0);
 
       // g0t = - ( 1 - gtt ）at t = 0, and this is a natural extension of g0t
       // for t = 0. however from the physical point of view, g0t should
@@ -279,12 +265,10 @@ class NumericalStable {
     // at time slice t = nt (beta)
     if (right.empty()) {
       // gt0 = ( 1 + B(beta, 0) )^-1 * B(beta, 0)
-      compute_greens_b0(left.MatrixU(), left.SingularValues(), left.MatrixV(),
-                        gt0);
+      compute_greens_b0(left.MatrixU(), left.SingularValues(), left.MatrixV(), gt0);
 
       // g0t = -gtt at t = beta
-      compute_greens_00_bb(left.MatrixU(), left.SingularValues(),
-                           left.MatrixV(), g0t);
+      compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), g0t);
       g0t = -g0t;
       return;
     }

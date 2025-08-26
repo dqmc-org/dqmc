@@ -10,8 +10,7 @@ namespace Observable {
 namespace {
 template <typename ObsType, typename MethodFunc>
 auto make_observable(MethodFunc method) {
-  return [method](const ObsName& name,
-                  std::string_view desc) -> std::shared_ptr<ObservableBase> {
+  return [method](const ObsName& name, std::string_view desc) -> std::shared_ptr<ObservableBase> {
     return std::make_shared<ObsType>(name, desc, method);
   };
 }
@@ -50,21 +49,18 @@ std::vector<std::string_view> ObservableHandler::get_all_observable_names() {
 
 bool ObservableHandler::is_eqtime(const ObsName& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
-  return it != m_supported_observables.end() &&
-         it->second.time_type == ObsTimeType::EqualTime;
+  return it != m_supported_observables.end() && it->second.time_type == ObsTimeType::EqualTime;
 }
 
 bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
-  return it != m_supported_observables.end() &&
-         it->second.time_type == ObsTimeType::Dynamic;
+  return it != m_supported_observables.end() && it->second.time_type == ObsTimeType::Dynamic;
 }
 
 bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {
   for (const auto& obs : obs_list) {
     if (m_supported_observables.find(obs) == m_supported_observables.end()) {
-      std::string error_message =
-          std::format("Error: observable '{}' is not supported.", obs);
+      std::string error_message = std::format("Error: observable '{}' is not supported.", obs);
       throw std::runtime_error(error_message);
     }
   }
@@ -118,31 +114,25 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
     if (props.time_type == ObsTimeType::EqualTime) {
       switch (props.data_type) {
         case ObsDataType::Scalar:
-          m_eqtime_scalar_obs.push_back(
-              std::static_pointer_cast<Scalar>(obs_base));
+          m_eqtime_scalar_obs.push_back(std::static_pointer_cast<Scalar>(obs_base));
           break;
         case ObsDataType::Vector:
-          m_eqtime_vector_obs.push_back(
-              std::static_pointer_cast<Vector>(obs_base));
+          m_eqtime_vector_obs.push_back(std::static_pointer_cast<Vector>(obs_base));
           break;
         case ObsDataType::Matrix:
-          m_eqtime_matrix_obs.push_back(
-              std::static_pointer_cast<Matrix>(obs_base));
+          m_eqtime_matrix_obs.push_back(std::static_pointer_cast<Matrix>(obs_base));
           break;
       }
     } else {  // ObsTimeType::Dynamic
       switch (props.data_type) {
         case ObsDataType::Scalar:
-          m_dynamic_scalar_obs.push_back(
-              std::static_pointer_cast<Scalar>(obs_base));
+          m_dynamic_scalar_obs.push_back(std::static_pointer_cast<Scalar>(obs_base));
           break;
         case ObsDataType::Vector:
-          m_dynamic_vector_obs.push_back(
-              std::static_pointer_cast<Vector>(obs_base));
+          m_dynamic_vector_obs.push_back(std::static_pointer_cast<Vector>(obs_base));
           break;
         case ObsDataType::Matrix:
-          m_dynamic_matrix_obs.push_back(
-              std::static_pointer_cast<Matrix>(obs_base));
+          m_dynamic_matrix_obs.push_back(std::static_pointer_cast<Matrix>(obs_base));
           break;
       }
     }
@@ -150,22 +140,20 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
 
   // adding measurements of configuration signs manually to keep track of the
   // sign problem
-  if (!this->m_eqtime_scalar_obs.empty() ||
-      !this->m_eqtime_vector_obs.empty() ||
+  if (!this->m_eqtime_scalar_obs.empty() || !this->m_eqtime_vector_obs.empty() ||
       !this->m_eqtime_matrix_obs.empty()) {
-    ptrScalar equaltime_sign = std::make_shared<Scalar>(
-        "equaltime_sign"sv, "Averaged sign (equal-time)"sv,
-        Measure::Methods::measure_equaltime_config_sign);
+    ptrScalar equaltime_sign =
+        std::make_shared<Scalar>("equaltime_sign"sv, "Averaged sign (equal-time)"sv,
+                                 Measure::Methods::measure_equaltime_config_sign);
     this->m_equaltime_sign = equaltime_sign;
     this->m_obs_map["equaltime_sign"sv] = equaltime_sign;
   }
 
-  if (!this->m_dynamic_scalar_obs.empty() ||
-      !this->m_dynamic_vector_obs.empty() ||
+  if (!this->m_dynamic_scalar_obs.empty() || !this->m_dynamic_vector_obs.empty() ||
       !this->m_dynamic_matrix_obs.empty()) {
-    ptrScalar dynamic_sign = std::make_shared<Scalar>(
-        "dynamic_sign"sv, "Averaged sign (dynamical)"sv,
-        Measure::Methods::measure_dynamic_config_sign);
+    ptrScalar dynamic_sign =
+        std::make_shared<Scalar>("dynamic_sign"sv, "Averaged sign (dynamical)"sv,
+                                 Measure::Methods::measure_dynamic_config_sign);
     this->m_dynamic_sign = dynamic_sign;
     this->m_obs_map["dynamic_sign"sv] = dynamic_sign;
   }

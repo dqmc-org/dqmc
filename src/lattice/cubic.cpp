@@ -15,33 +15,24 @@ LatticeInt Cubic::MPointIndex() const { return this->m_m_point_index; }
 
 LatticeInt Cubic::RPointIndex() const { return this->m_r_point_index; }
 
-const LatticeIntVec& Cubic::DeltaLineIndex() const {
-  return this->m_delta_line_index;
-}
+const LatticeIntVec& Cubic::DeltaLineIndex() const { return this->m_delta_line_index; }
 
 const LatticeIntVec& Cubic::ZLineIndex() const { return this->m_z_line_index; }
 
-const LatticeIntVec& Cubic::SigmaLineIndex() const {
-  return this->m_sigma_line_index;
-}
+const LatticeIntVec& Cubic::SigmaLineIndex() const { return this->m_sigma_line_index; }
 
-const LatticeIntVec& Cubic::LambdaLineIndex() const {
-  return this->m_lambda_line_index;
-}
+const LatticeIntVec& Cubic::LambdaLineIndex() const { return this->m_lambda_line_index; }
 
 const LatticeIntVec& Cubic::SLineIndex() const { return this->m_s_line_index; }
 
 const LatticeIntVec& Cubic::TLineIndex() const { return this->m_t_line_index; }
 
-void Cubic::output_lattice_info(std::ostream& ostream,
-                                int momentum_index) const {
+void Cubic::output_lattice_info(std::ostream& ostream, int momentum_index) const {
   auto fmt_str = [](std::string_view desc, std::string_view value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
 
-  auto fmt_cell = [](int side) {
-    return std::format("{} * {} * {}", side, side, side);
-  };
+  auto fmt_cell = [](int side) { return std::format("{} * {} * {}", side, side, side); };
 
   auto fmt_momentum = [](double px, double py, double pz) {
     return std::format("({:.2f}, {:.2f}, {:.2f}) pi", px, py, pz);
@@ -53,8 +44,7 @@ void Cubic::output_lattice_info(std::ostream& ostream,
 
   ostream << "   Lattice: Cubic lattice\n"
           << fmt_str("Size of cell"sv, fmt_cell(this->m_side_length))
-          << fmt_str("Momentum point"sv, fmt_momentum(px, py, pz))
-          << std::flush;
+          << fmt_str("Momentum point"sv, fmt_momentum(px, py, pz)) << std::flush;
 }
 
 void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {
@@ -68,8 +58,7 @@ void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {
   this->m_space_dim = 3;
   this->m_coordination_number = 6;
   this->m_side_length = side_length_vec[0];
-  this->m_space_size =
-      side_length_vec[0] * side_length_vec[1] * side_length_vec[2];
+  this->m_space_size = side_length_vec[0] * side_length_vec[1] * side_length_vec[2];
 }
 
 int Cubic::site_to_index(int x, int y, int z) const {
@@ -100,9 +89,9 @@ void Cubic::initial_index2momentum_table() {
   // (0,0,0), (pi,0,0), (pi,pi,0) and (pi,pi,pi).
   // note that the point group of 3d cubic lattice is Oh
   const auto half_side_length = std::floor(this->m_side_length / 2.0) + 1;
-  this->m_num_k_stars = half_side_length * (half_side_length + 1) *
-                            (2 * half_side_length + 1) / 12 +
-                        half_side_length * (half_side_length + 1) / 4;
+  this->m_num_k_stars =
+      half_side_length * (half_side_length + 1) * (2 * half_side_length + 1) / 12 +
+      half_side_length * (half_side_length + 1) / 4;
 
   // initialize indices of k stars
   this->m_k_stars_index.reserve(this->m_num_k_stars);
@@ -114,8 +103,7 @@ void Cubic::initial_index2momentum_table() {
   this->m_index2momentum_table.resize(this->m_num_k_stars, this->m_space_dim);
   int count = 0;
   // index of grids along z axis
-  for (auto k = std::ceil(this->m_side_length / 2.0); k <= this->m_side_length;
-       ++k) {
+  for (auto k = std::ceil(this->m_side_length / 2.0); k <= this->m_side_length; ++k) {
     // index of grids along x axis
     for (auto i = k; i <= this->m_side_length; ++i) {
       // index of grids along y axis
@@ -135,8 +123,7 @@ void Cubic::initial_nearest_neighbour_table() {
   // correspondense between the table index and the direction of displacement
   // : 0: (x+1, y, z)    1: (x, y+1, z)    2: (x, y, z+1) 3: (x-1, y, z)    4:
   // (x, y-1, z)    5: (x, y, z-1)
-  this->m_nearest_neighbour_table.resize(this->m_space_size,
-                                         this->m_coordination_number);
+  this->m_nearest_neighbour_table.resize(this->m_space_size, this->m_coordination_number);
   int L = this->m_side_length;
   for (int i = 0; i < L; ++i) {
     for (int j = 0; j < L; ++j) {
@@ -144,28 +131,22 @@ void Cubic::initial_nearest_neighbour_table() {
         int site_index = this->site_to_index(i, j, k);
 
         // Direction 0: (x+1, y, z)
-        this->m_nearest_neighbour_table(site_index, 0) =
-            this->site_to_index((i + 1) % L, j, k);
+        this->m_nearest_neighbour_table(site_index, 0) = this->site_to_index((i + 1) % L, j, k);
 
         // Direction 1: (x, y+1, z)
-        this->m_nearest_neighbour_table(site_index, 1) =
-            this->site_to_index(i, (j + 1) % L, k);
+        this->m_nearest_neighbour_table(site_index, 1) = this->site_to_index(i, (j + 1) % L, k);
 
         // Direction 2: (x, y, z+1)
-        this->m_nearest_neighbour_table(site_index, 2) =
-            this->site_to_index(i, j, (k + 1) % L);
+        this->m_nearest_neighbour_table(site_index, 2) = this->site_to_index(i, j, (k + 1) % L);
 
         // Direction 3: (x-1, y, z)
-        this->m_nearest_neighbour_table(site_index, 3) =
-            this->site_to_index((i - 1 + L) % L, j, k);
+        this->m_nearest_neighbour_table(site_index, 3) = this->site_to_index((i - 1 + L) % L, j, k);
 
         // Direction 4: (x, y-1, z)
-        this->m_nearest_neighbour_table(site_index, 4) =
-            this->site_to_index(i, (j - 1 + L) % L, k);
+        this->m_nearest_neighbour_table(site_index, 4) = this->site_to_index(i, (j - 1 + L) % L, k);
 
         // Direction 5: (x, y, z-1)
-        this->m_nearest_neighbour_table(site_index, 5) =
-            this->site_to_index(i, j, (k - 1 + L) % L);
+        this->m_nearest_neighbour_table(site_index, 5) = this->site_to_index(i, j, (k - 1 + L) % L);
       }
     }
   }
@@ -196,8 +177,7 @@ void Cubic::initial_symmetry_points() {
   this->m_m_point_index = (std::floor(this->m_side_length / 2.0) + 1) *
                               (std::floor(this->m_side_length / 2.0) + 2) / 2 -
                           1;
-  this->m_x_point_index =
-      this->m_m_point_index - std::floor(this->m_side_length / 2.0);
+  this->m_x_point_index = this->m_m_point_index - std::floor(this->m_side_length / 2.0);
   this->m_r_point_index = this->m_num_k_stars - 1;
 
   // high symmetry lines of 3d cubic lattice
@@ -217,19 +197,17 @@ void Cubic::initial_symmetry_points() {
       this->m_s_line_index.emplace_back(this->m_x_point_index);
       this->m_t_line_index.emplace_back(this->m_m_point_index);
     } else {
-      this->m_lambda_line_index.emplace_back(
-          this->m_lambda_line_index.back() +
-          (std::floor(this->m_side_length / 2.0) + 2 - i) *
-              (std::floor(this->m_side_length / 2.0) + 3 - i) / 2);
-      this->m_s_line_index.emplace_back(
-          this->m_s_line_index.back() +
-          (std::floor(this->m_side_length / 2.0) + 1 - i) *
-              (std::floor(this->m_side_length / 2.0) + 2 - i) / 2 +
-          1);
-      this->m_t_line_index.emplace_back(
-          this->m_t_line_index.back() +
-          (std::floor(this->m_side_length / 2.0) + 1 - i) *
-              (std::floor(this->m_side_length / 2.0) + 2 - i) / 2);
+      this->m_lambda_line_index.emplace_back(this->m_lambda_line_index.back() +
+                                             (std::floor(this->m_side_length / 2.0) + 2 - i) *
+                                                 (std::floor(this->m_side_length / 2.0) + 3 - i) /
+                                                 2);
+      this->m_s_line_index.emplace_back(this->m_s_line_index.back() +
+                                        (std::floor(this->m_side_length / 2.0) + 1 - i) *
+                                            (std::floor(this->m_side_length / 2.0) + 2 - i) / 2 +
+                                        1);
+      this->m_t_line_index.emplace_back(this->m_t_line_index.back() +
+                                        (std::floor(this->m_side_length / 2.0) + 1 - i) *
+                                            (std::floor(this->m_side_length / 2.0) + 2 - i) / 2);
     }
   }
 }
@@ -244,8 +222,7 @@ void Cubic::initial_fourier_factor_table() {
       // k
       auto [xi, yi, zi] = index_to_site(i);
       this->m_fourier_factor_table(i, k) =
-          cos((-xi * this->m_index2momentum_table(k, 0) -
-               yi * this->m_index2momentum_table(k, 1) -
+          cos((-xi * this->m_index2momentum_table(k, 0) - yi * this->m_index2momentum_table(k, 1) -
                zi * this->m_index2momentum_table(k, 2)));
     }
   }

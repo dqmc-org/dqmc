@@ -6,32 +6,27 @@
 namespace Model {
 
 void ModelBase::mult_expK_from_left(GreensFunc& green) const {
-  DQMC_ASSERT(green.rows() == this->m_space_size &&
-              green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
   green = this->m_expK_mat * green;
 }
 
 void ModelBase::mult_expK_from_right(GreensFunc& green) const {
-  DQMC_ASSERT(green.rows() == this->m_space_size &&
-              green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
   green = green * this->m_expK_mat;
 }
 
 void ModelBase::mult_inv_expK_from_left(GreensFunc& green) const {
-  DQMC_ASSERT(green.rows() == this->m_space_size &&
-              green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
   green = this->m_inv_expK_mat * green;
 }
 
 void ModelBase::mult_inv_expK_from_right(GreensFunc& green) const {
-  DQMC_ASSERT(green.rows() == this->m_space_size &&
-              green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
   green = green * this->m_inv_expK_mat;
 }
 
 void ModelBase::mult_trans_expK_from_left(GreensFunc& green) const {
-  DQMC_ASSERT(green.rows() == this->m_space_size &&
-              green.cols() == this->m_space_size);
+  DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
   green = this->m_trans_expK_mat * green;
 }
 
@@ -49,10 +44,8 @@ void ModelBase::link(const CheckerBoardBase& checkerboard) {
   this->m_mult_expK_from_left_ptr = &ModelBase::mult_expK_from_left_cb;
   this->m_mult_expK_from_right_ptr = &ModelBase::mult_expK_from_right_cb;
   this->m_mult_inv_expK_from_left_ptr = &ModelBase::mult_inv_expK_from_left_cb;
-  this->m_mult_inv_expK_from_right_ptr =
-      &ModelBase::mult_inv_expK_from_right_cb;
-  this->m_mult_trans_expK_from_left_ptr =
-      &ModelBase::mult_trans_expK_from_left_cb;
+  this->m_mult_inv_expK_from_right_ptr = &ModelBase::mult_inv_expK_from_right_cb;
+  this->m_mult_trans_expK_from_left_ptr = &ModelBase::mult_trans_expK_from_left_cb;
   this->m_use_checkerboard = true;
   this->m_checkerboard_ptr = &checkerboard;
 }

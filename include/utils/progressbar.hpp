@@ -16,27 +16,23 @@ class ProgressBar {
   std::size_t bar_width;
   char complete_char = '=';
   char incomplete_char = ' ';
-  std::chrono::steady_clock::time_point start_time =
-      std::chrono::steady_clock::now();
+  std::chrono::steady_clock::time_point start_time = std::chrono::steady_clock::now();
 
  public:
-  ProgressBar(std::size_t total, std::size_t width, char complete,
-              char incomplete)
+  ProgressBar(std::size_t total, std::size_t width, char complete, char incomplete)
       : total_ticks{total},
         bar_width{width},
         complete_char{complete},
         incomplete_char{incomplete} {}
 
-  ProgressBar(std::size_t total, std::size_t width)
-      : total_ticks{total}, bar_width{width} {}
+  ProgressBar(std::size_t total, std::size_t width) : total_ticks{total}, bar_width{width} {}
 
   std::size_t operator++() { return ++ticks; }
 
   void display() const {
     float progress = static_cast<float>(ticks) / total_ticks;
     int pos = static_cast<int>(bar_width * progress);
-    std::chrono::steady_clock::time_point now =
-        std::chrono::steady_clock::now();
+    std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now();
     std::chrono::duration<double> time_elapsed = now - start_time;
 
     std::string bar_str;
@@ -54,8 +50,7 @@ class ProgressBar {
     }
     bar_str += ']';
 
-    std::cout << std::format("{} {:>3}% {:.3f}s\r", bar_str,
-                             static_cast<int>(progress * 100.0),
+    std::cout << std::format("{} {:>3}% {:.3f}s\r", bar_str, static_cast<int>(progress * 100.0),
                              time_elapsed.count());
     std::cout.flush();
   }

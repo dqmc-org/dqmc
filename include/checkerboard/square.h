@@ -27,8 +27,8 @@ class Square : public CheckerBoardBase {
 
  public:
   // set up parameters
-  void set_checkerboard_params(const LatticeBase &lattice,
-                               const ModelBase &model, const Walker &walker);
+  void set_checkerboard_params(const LatticeBase &lattice, const ModelBase &model,
+                               const Walker &walker);
 
   // initialization
   void initial();
@@ -44,9 +44,7 @@ class Square : public CheckerBoardBase {
   // multiply hopping matrix K within single plaquette, labeled by site vector
   void mult_expK_plaquette_from_left(Matrix &matrix, const Site &site) const;
   void mult_expK_plaquette_from_right(Matrix &matrix, const Site &site) const;
-  void mult_inv_expK_plaquette_from_left(Matrix &matrix,
-                                         const Site &site) const;
-  void mult_inv_expK_plaquette_from_right(Matrix &matrix,
-                                          const Site &site) const;
+  void mult_inv_expK_plaquette_from_left(Matrix &matrix, const Site &site) const;
+  void mult_inv_expK_plaquette_from_right(Matrix &matrix, const Site &site) const;
 };
 }  // namespace CheckerBoard

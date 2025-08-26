@@ -23,11 +23,9 @@ using namespace std::literals;
 
 namespace DQMC {
 
-void Initializer::parse_config(const Config& config, int world_size,
-                               ModelBasePtr& model, LatticeBasePtr& lattice,
-                               WalkerPtr& walker,
-                               MeasureHandlerPtr& meas_handler,
-                               CheckerBoardBasePtr& checkerboard) {
+void Initializer::parse_config(const Config& config, int world_size, ModelBasePtr& model,
+                               LatticeBasePtr& lattice, WalkerPtr& walker,
+                               MeasureHandlerPtr& meas_handler, CheckerBoardBasePtr& checkerboard) {
   // --------------------------------------------------------------------------------------------------
   //                                      Parse the Model module
   // --------------------------------------------------------------------------------------------------
@@ -37,8 +35,7 @@ void Initializer::parse_config(const Config& config, int world_size,
     }
 
     model = std::make_unique<Model::RepulsiveHubbard>();
-    model->set_model_params(config.hopping_t, config.onsite_u,
-                            config.chemical_potential);
+    model->set_model_params(config.hopping_t, config.onsite_u, config.chemical_potential);
   }
 
   // -----------------------------------  Attractive Hubbard model
@@ -49,8 +46,7 @@ void Initializer::parse_config(const Config& config, int world_size,
     }
 
     model = std::make_unique<Model::AttractiveHubbard>();
-    model->set_model_params(config.hopping_t, config.onsite_u,
-                            config.chemical_potential);
+    model->set_model_params(config.hopping_t, config.onsite_u, config.chemical_potential);
   }
 
   else {
@@ -147,10 +143,9 @@ void Initializer::parse_config(const Config& config, int world_size,
   // special observables, e.g. superfluid stiffness, are only supported for
   // specific lattice type.
   if (config.lattice_type != "Square"sv) {
-    if (std::find(config.observables.begin(), config.observables.end(),
-                  "superfluid_stiffness"sv) != config.observables.end()) {
-      throw std::runtime_error(
-          "superfluid_stiffness is only supported for Square lattice");
+    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness"sv) !=
+        config.observables.end()) {
+      throw std::runtime_error("superfluid_stiffness is only supported for Square lattice");
     }
   }
 
@@ -162,11 +157,10 @@ void Initializer::parse_config(const Config& config, int world_size,
   meas_handler = std::make_unique<Measure::MeasureHandler>();
 
   // send measuring tasks to a set of processes
-  const int bins_per_proc = (config.bin_num % world_size == 0)
-                                ? config.bin_num / world_size
-                                : config.bin_num / world_size + 1;
-  meas_handler->set_measure_params(config.sweeps_warmup, bins_per_proc,
-                                   config.bin_size, config.sweeps_between_bins);
+  const int bins_per_proc = (config.bin_num % world_size == 0) ? config.bin_num / world_size
+                                                               : config.bin_num / world_size + 1;
+  meas_handler->set_measure_params(config.sweeps_warmup, bins_per_proc, config.bin_size,
+                                   config.sweeps_between_bins);
   meas_handler->set_observables(config.observables);
 
   // --------------------------------------------------------------------------------------------------
@@ -176,42 +170,33 @@ void Initializer::parse_config(const Config& config, int world_size,
   if (lattice->InitialStatus()) {
     if (config.lattice_type == "Square"sv) {
       // covert base class pointer to that of the derived square lattice class
-      if (const auto square_lattice =
-              dynamic_cast<const Lattice::Square*>(lattice.get())) {
+      if (const auto square_lattice = dynamic_cast<const Lattice::Square*>(lattice.get())) {
         if (config.momentum == "GammaPoint") {
-          meas_handler->set_measured_momentum(
-              square_lattice->GammaPointIndex());
+          meas_handler->set_measured_momentum(square_lattice->GammaPointIndex());
         } else if (config.momentum == "MPoint") {
           meas_handler->set_measured_momentum(square_lattice->MPointIndex());
         } else if (config.momentum == "XPoint") {
           meas_handler->set_measured_momentum(square_lattice->XPointIndex());
         } else {
-          std::cerr << "DQMC::Initializer::parse_config(): "
-                    << "undefined momentum \'" << config.momentum
-                    << "\' for 2d square lattice, "
-                    << "please check the config." << std::endl;
+          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum \'"
+                    << config.momentum << "\' for 2d square lattice, " << "please check the config."
+                    << std::endl;
           exit(1);
         }
 
         if (config.momentum_list == "KstarsAll") {
-          meas_handler->set_measured_momentum_list(
-              square_lattice->kStarsIndex());
+          meas_handler->set_measured_momentum_list(square_lattice->kStarsIndex());
         } else if (config.momentum_list == "DeltaLine") {
-          meas_handler->set_measured_momentum_list(
-              square_lattice->DeltaLineIndex());
+          meas_handler->set_measured_momentum_list(square_lattice->DeltaLineIndex());
         } else if (config.momentum_list == "ZLine") {
-          meas_handler->set_measured_momentum_list(
-              square_lattice->ZLineIndex());
+          meas_handler->set_measured_momentum_list(square_lattice->ZLineIndex());
         } else if (config.momentum_list == "SigmaLine") {
-          meas_handler->set_measured_momentum_list(
-              square_lattice->SigmaLineIndex());
+          meas_handler->set_measured_momentum_list(square_lattice->SigmaLineIndex());
         } else if (config.momentum_list == "Gamma2X2M2GammaLoop") {
-          meas_handler->set_measured_momentum_list(
-              square_lattice->Gamma2X2M2GammaLoopIndex());
+          meas_handler->set_measured_momentum_list(square_lattice->Gamma2X2M2GammaLoopIndex());
         } else {
-          std::cerr << "DQMC::Initializer::parse_config(): "
-                    << "undefined momentum list \'" << config.momentum_list
-                    << "\' for 2d square lattice, "
+          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum list \'"
+                    << config.momentum_list << "\' for 2d square lattice, "
                     << "please check the config." << std::endl;
           exit(1);
         }
@@ -226,8 +211,7 @@ void Initializer::parse_config(const Config& config, int world_size,
 
     if (config.lattice_type == "Cubic"sv) {
       // covert base class pointer to that of the derived cubic lattice class
-      if (const auto cubic_lattice =
-              dynamic_cast<const Lattice::Cubic*>(lattice.get())) {
+      if (const auto cubic_lattice = dynamic_cast<const Lattice::Cubic*>(lattice.get())) {
         if (config.momentum == "GammaPoint") {
           meas_handler->set_measured_momentum(cubic_lattice->GammaPointIndex());
         } else if (config.momentum == "MPoint") {
@@ -237,43 +221,35 @@ void Initializer::parse_config(const Config& config, int world_size,
         } else if (config.momentum == "RPoint") {
           meas_handler->set_measured_momentum(cubic_lattice->RPointIndex());
         } else {
-          std::cerr << "DQMC::Initializer::parse_config(): "
-                    << "undefined momentum \'" << config.momentum
-                    << "\' for 3d cubic lattice, " << "please check the config."
+          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum \'"
+                    << config.momentum << "\' for 3d cubic lattice, " << "please check the config."
                     << std::endl;
           exit(1);
         }
 
         if (config.momentum_list == "KstarsAll") {
-          meas_handler->set_measured_momentum_list(
-              cubic_lattice->kStarsIndex());
+          meas_handler->set_measured_momentum_list(cubic_lattice->kStarsIndex());
         } else if (config.momentum_list == "DeltaLine") {
-          meas_handler->set_measured_momentum_list(
-              cubic_lattice->DeltaLineIndex());
+          meas_handler->set_measured_momentum_list(cubic_lattice->DeltaLineIndex());
         } else if (config.momentum_list == "ZLine") {
           meas_handler->set_measured_momentum_list(cubic_lattice->ZLineIndex());
         } else if (config.momentum_list == "SigmaLine") {
-          meas_handler->set_measured_momentum_list(
-              cubic_lattice->SigmaLineIndex());
+          meas_handler->set_measured_momentum_list(cubic_lattice->SigmaLineIndex());
         } else if (config.momentum_list == "LambdaLine") {
-          meas_handler->set_measured_momentum_list(
-              cubic_lattice->LambdaLineIndex());
+          meas_handler->set_measured_momentum_list(cubic_lattice->LambdaLineIndex());
         } else if (config.momentum_list == "SLine") {
           meas_handler->set_measured_momentum_list(cubic_lattice->SLineIndex());
         } else if (config.momentum_list == "TLine") {
           meas_handler->set_measured_momentum_list(cubic_lattice->TLineIndex());
         } else {
-          std::cerr << "DQMC::Initializer::parse_config(): "
-                    << "undefined momentum list \'" << config.momentum_list
-                    << "\' for 3d cubic lattice, " << "please check the config."
-                    << std::endl;
+          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum list \'"
+                    << config.momentum_list << "\' for 3d cubic lattice, "
+                    << "please check the config." << std::endl;
           exit(1);
         }
       } else {
-        std::cerr
-            << "DQMC::Initializer::parse_config(): "
-            << "fail to convert \'Lattice::LatticeBase\' to \'Lattice::Cubic\'."
-            << std::endl;
+        std::cerr << "DQMC::Initializer::parse_config(): "
+                  << "fail to convert \'Lattice::LatticeBase\' to \'Lattice::Cubic\'." << std::endl;
         exit(1);
       }
     }
@@ -284,8 +260,7 @@ void Initializer::parse_config(const Config& config, int world_size,
   }
 }
 
-void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice,
-                                  Walker& walker,
+void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
                                   MeasureHandler& meas_handler) {
   // make sure that the module objects have been created,
   // and the parameters are setup correctly in advance.
@@ -308,9 +283,8 @@ void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice,
   model.link();
 }
 
-void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice,
-                                  Walker& walker, MeasureHandler& meas_handler,
-                                  CheckerBoardBase& checkerboard) {
+void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
+                                  MeasureHandler& meas_handler, CheckerBoardBase& checkerboard) {
   // make sure that the module objects have been created,
   // and the parameters are setup correctly in advance.
   // notice that the orders of initializations below are important.
@@ -335,8 +309,8 @@ void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice,
   model.link(checkerboard);
 }
 
-void Initializer::initial_dqmc(ModelBase& model, LatticeBase& lattice,
-                               Walker& walker, MeasureHandler& meas_handler) {
+void Initializer::initial_dqmc(ModelBase& model, LatticeBase& lattice, Walker& walker,
+                               MeasureHandler& meas_handler) {
   // this subroutine should be called after the initial
   // configuration of the bosonic fields have been determined,
   // either randomly initialized or read from a input config file.

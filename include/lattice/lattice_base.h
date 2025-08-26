@@ -33,8 +33,7 @@ class LatticeBase {
   LatticeInt m_side_length{};          // side length of the lattice
   LatticeInt m_space_size{};           // total number of lattice sites
   LatticeInt m_coordination_number{};  // coordination number of the lattice
-  LatticeInt
-      m_num_k_stars{};  // number of k stars ( inequivalent momentum points )
+  LatticeInt m_num_k_stars{};          // number of k stars ( inequivalent momentum points )
 
   // hopping matrix, depending only on the topology of lattice
   // hopping constants are normalized to 1.0 .
@@ -95,26 +94,21 @@ class LatticeBase {
 
   const MatrixDouble& HoppingMatrix() const { return this->m_hopping_matrix; }
 
-  const MatrixDouble& FourierFactor() const {
-    return this->m_fourier_factor_table;
-  }
+  const MatrixDouble& FourierFactor() const { return this->m_fourier_factor_table; }
 
-  LatticeInt Displacement(const LatticeInt site1_index,
-                          const LatticeInt site2_index) const {
+  LatticeInt Displacement(const LatticeInt site1_index, const LatticeInt site2_index) const {
     DQMC_ASSERT(site1_index >= 0 && site1_index < this->m_space_size);
     DQMC_ASSERT(site2_index >= 0 && site2_index < this->m_space_size);
     return this->m_displacement_table(site1_index, site2_index);
   }
 
-  LatticeDouble FourierFactor(const LatticeInt site_index,
-                              const LatticeInt momentum_index) const {
+  LatticeDouble FourierFactor(const LatticeInt site_index, const LatticeInt momentum_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     return this->m_fourier_factor_table(site_index, momentum_index);
   }
 
-  LatticeInt NearestNeighbour(const LatticeInt site_index,
-                              const LatticeInt direction) const {
+  LatticeInt NearestNeighbour(const LatticeInt site_index, const LatticeInt direction) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(direction >= 0 && direction < this->m_coordination_number);
     return this->m_nearest_neighbour_table(site_index, direction);
@@ -130,8 +124,7 @@ class LatticeBase {
     return this->m_index2site_table.row(site_index);
   }
 
-  LatticeInt Index2Site(const LatticeInt site_index,
-                        const LatticeInt axis) const {
+  LatticeInt Index2Site(const LatticeInt site_index, const LatticeInt axis) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
     return this->m_index2site_table(site_index, axis);
@@ -142,8 +135,7 @@ class LatticeBase {
     return this->m_index2momentum_table.row(momentum_index);
   }
 
-  LatticeDouble Index2Momentum(const LatticeInt momentum_index,
-                               const LatticeInt axis) const {
+  LatticeDouble Index2Momentum(const LatticeInt momentum_index, const LatticeInt axis) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
     return this->m_index2momentum_table(momentum_index, axis);
@@ -162,8 +154,7 @@ class LatticeBase {
   virtual void initial_fourier_factor_table() = 0;
 
   // Output lattice information - self-documenting interface
-  virtual void output_lattice_info(std::ostream& ostream,
-                                   int momentum_index) const = 0;
+  virtual void output_lattice_info(std::ostream& ostream, int momentum_index) const = 0;
 
   // Output list of inequivalent momentum points (k stars)
   void output_k_points(std::ostream& ostream) const;

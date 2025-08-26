@@ -42,8 +42,7 @@ class Dqmc {
   static void show_progress_bar(bool show_progress_bar);
 
   // set up the format of the progress bar
-  static void progress_bar_format(unsigned int width, char complete,
-                                  char incomplete);
+  static void progress_bar_format(unsigned int width, char complete, char incomplete);
 
   // set up the rate of refreshing the progress bar
   static void set_refresh_rate(unsigned int refresh_rate);
@@ -64,13 +63,11 @@ class Dqmc {
 
   // thermalization of the field configurations
   static void thermalize(Walker& walker, ModelBase& model, LatticeBase& lattice,
-                         MeasureHandler& meas_handler,
-                         std::default_random_engine& rng);
+                         MeasureHandler& meas_handler, std::default_random_engine& rng);
 
   // Monte Carlo updates and measurments
   static void measure(Walker& walker, ModelBase& model, LatticeBase& lattice,
-                      MeasureHandler& meas_handler,
-                      std::default_random_engine& rng);
+                      MeasureHandler& meas_handler, std::default_random_engine& rng);
 
   // analyse the measured data
   static void analyse(MeasureHandler& meas_handler);
@@ -88,9 +85,7 @@ class Dqmc {
   // sweep and update the field configurations
   // from 0 to beta and back from beta to 0
   // do the measurements if needed
-  static void sweep_forth_and_back(Walker& walker, ModelBase& model,
-                                   LatticeBase& lattice,
-                                   MeasureHandler& meas_handler,
-                                   std::default_random_engine& rng);
+  static void sweep_forth_and_back(Walker& walker, ModelBase& model, LatticeBase& lattice,
+                                   MeasureHandler& meas_handler, std::default_random_engine& rng);
 };
 }  // namespace DQMC

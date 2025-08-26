@@ -45,8 +45,7 @@ class Square : public LatticeBase {
   const LatticeIntVec& Gamma2X2M2GammaLoopIndex() const;
 
   // Output lattice information
-  void output_lattice_info(std::ostream& ostream,
-                           int momentum_index) const override;
+  void output_lattice_info(std::ostream& ostream, int momentum_index) const override;
 
  private:
   // private initialization functions
