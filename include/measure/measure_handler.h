@@ -116,6 +116,6 @@ class MeasureHandler : public Observable::ObservableHandler {
   void clear_temporary();
 
   // output measuring parameters in a self-documenting format
-  void output_measuring_info(std::ostream& ostream, int world_size) const;
+  void output_measuring_info(std::ostream& ostream) const;
 };
 }  // namespace Measure

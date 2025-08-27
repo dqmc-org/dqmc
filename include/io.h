@@ -38,14 +38,12 @@ class IO {
   // output the information of dqmc initialization,
   // including initialization status and simulation parameters.
   // the behavior of this function depends on specific model and lattice types.
-  static void output_init_info(std::ostream& ostream, int world_size, const ModelBase& model,
-                               const LatticeBase& lattice, const Walker& walker,
-                               const MeasureHandler& meas_handler,
-                               const CheckerBoardBasePtr& checkerboard);
+  static void output_init_info(std::ostream& ostream, const Dqmc& simulation);
 
   // output the ending information of the simulation,
   // including time cost and wrapping errors
-  static void output_ending_info(std::ostream& ostream, const Walker& walker);
+  static void output_ending_info(std::ostream& ostream, const Walker& walker,
+                                 std::chrono::milliseconds duration);
 
   // output observable to console
   template <typename ObsType>

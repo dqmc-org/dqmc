@@ -220,38 +220,36 @@ int main(int argc, char* argv[]) {
                "shown below :\n"
             << std::endl;
 
+  // Create the simulation object, which takes ownership of the context
+  DQMC::Dqmc simulation(std::move(context));
+
   // output the initialization info
-  DQMC::IO::output_init_info(std::cout, 1, *context.model, *context.lattice, *context.walker,
-                             *context.handler, context.checkerboard);
+  DQMC::IO::output_init_info(std::cout, simulation);
 
   // set up progress bar
-  DQMC::Dqmc::show_progress_bar(true);
-  DQMC::Dqmc::progress_bar_format(60, '=', ' ');
-  DQMC::Dqmc::set_refresh_rate(10);
+  simulation.show_progress_bar(true);
+  simulation.progress_bar_format(60, '=', ' ');
+  simulation.set_refresh_rate(10);
 
   // ---------------------------------  Crucial simulation steps
   // ------------------------------------
 
   // the dqmc simulation start
-  DQMC::Dqmc::timer_begin();
-  DQMC::Dqmc::thermalize(*context.walker, *context.model, *context.lattice, *context.handler, rng);
-  DQMC::Dqmc::measure(*context.walker, *context.model, *context.lattice, *context.handler, rng);
-
-  // perform the analysis
-  DQMC::Dqmc::analyse(*context.handler);
-
-  // end the timer
-  DQMC::Dqmc::timer_end();
+  simulation.timer_begin();
+  simulation.thermalize(rng);
+  simulation.measure(rng);
+  simulation.analyse();
+  simulation.timer_end();
 
   // output the ending info
-  DQMC::IO::output_ending_info(std::cout, *context.walker);
+  DQMC::IO::output_ending_info(std::cout, simulation.walker(), simulation.timer_as_duration());
 
   // ---------------------------------  Output measuring results
   // ------------------------------------
 
   // screen output the results of scalar observables
-  for (const auto& obs_name : context.handler->ObservablesList()) {
-    if (auto obs = context.handler->find<Observable::Scalar>(obs_name)) {
+  for (const auto& obs_name : simulation.handler().ObservablesList()) {
+    if (auto obs = simulation.handler().find<Observable::Scalar>(obs_name)) {
       DQMC::IO::output_observable_to_console(std::cout, *obs);
     }
   }
@@ -264,17 +262,17 @@ int main(int argc, char* argv[]) {
                               ? std::format("{}/bosonic_fields_{}.out", out_path, run_id)
                               : fields_file;
   outfile.open(fields_out, std::ios::trunc);
-  DQMC::IO::output_bosonic_fields(outfile, *context.model);
+  DQMC::IO::output_bosonic_fields(outfile, simulation.model());
   outfile.close();
 
   // output the k stars
   outfile.open(std::format("{}/kstars.out", out_path), std::ios::trunc);
-  DQMC::IO::output_k_stars(outfile, *context.lattice);
+  DQMC::IO::output_k_stars(outfile, simulation.lattice());
   outfile.close();
 
   // output the imaginary-time grids
   outfile.open(std::format("{}/imaginary_time_grids.out", out_path), std::ios::trunc);
-  DQMC::IO::output_imaginary_time_grids(outfile, *context.walker);
+  DQMC::IO::output_imaginary_time_grids(outfile, simulation.walker());
   outfile.close();
 
   // output measuring results of the observables
@@ -293,12 +291,12 @@ int main(int argc, char* argv[]) {
   };
 
   // iterate through all observables and output them
-  for (const auto& obs_name : context.handler->ObservablesList()) {
-    if (auto obs = context.handler->find<Observable::Scalar>(obs_name)) {
+  for (const auto& obs_name : simulation.handler().ObservablesList()) {
+    if (auto obs = simulation.handler().find<Observable::Scalar>(obs_name)) {
       output_observable_files(obs, obs_name);
-    } else if (auto obs = context.handler->find<Observable::Vector>(obs_name)) {
+    } else if (auto obs = simulation.handler().find<Observable::Vector>(obs_name)) {
       output_observable_files(obs, obs_name);
-    } else if (auto obs = context.handler->find<Observable::Matrix>(obs_name)) {
+    } else if (auto obs = simulation.handler().find<Observable::Matrix>(obs_name)) {
       output_observable_files(obs, obs_name);
     }
   }

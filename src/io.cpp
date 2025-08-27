@@ -1,30 +1,26 @@
 #include "io.h"
 
 namespace DQMC {
-void IO::output_init_info(std::ostream& ostream, int world_size, const ModelBase& model,
-                          const LatticeBase& lattice, const Walker& walker,
-                          const MeasureHandler& meas_handler,
-                          const CheckerBoardBasePtr& checkerboard) {
+void IO::output_init_info(std::ostream& ostream, const Dqmc& simulation) {
   if (!ostream) {
     throw std::runtime_error("DQMC::IO::output_init_info(): output stream is not valid.");
   }
 
-  model.output_model_info(ostream);
-  lattice.output_lattice_info(ostream, meas_handler.Momentum());
+  simulation.model().output_model_info(ostream);
+  simulation.lattice().output_lattice_info(ostream, simulation.handler().Momentum());
 
   ostream << std::format("{:>30s}{:>7s}{:>24s}\n\n", "Checkerboard breakups", "->",
-                         checkerboard ? "True" : "False");
+                         simulation.checkerboard() ? "True" : "False");
 
-  walker.output_montecarlo_info(ostream);
-  meas_handler.output_measuring_info(ostream, world_size);
+  simulation.walker().output_montecarlo_info(ostream);
+  simulation.handler().output_measuring_info(ostream);
 }
 
-void IO::output_ending_info(std::ostream& ostream, const Walker& walker) {
+void IO::output_ending_info(std::ostream& ostream, const Walker& walker,
+                            std::chrono::milliseconds duration) {
   if (!ostream) {
     throw std::runtime_error("DQMC::IO::output_ending_info(): output stream is not valid.");
   }
-
-  auto duration = Dqmc::timer_as_duration();
 
   auto d = std::chrono::duration_cast<std::chrono::days>(duration);
   duration -= d;

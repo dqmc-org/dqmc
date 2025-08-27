@@ -71,7 +71,7 @@ class ObservableHandler {
 
   // find observable and return std::optional
   template <typename DataType>
-  std::optional<DataType> find(const std::string& obs_name);
+  std::optional<DataType> find(const std::string& obs_name) const;
 
   // initialize the handler
   void initial(const ObsNameList& obs_list);
@@ -90,7 +90,7 @@ class ObservableHandler {
 
 // implementation of the template member function
 template <typename DataType>
-std::optional<DataType> ObservableHandler::find(const std::string& obs_name) {
+std::optional<DataType> ObservableHandler::find(const std::string& obs_name) const {
   if (auto it = this->m_obs_map.find(obs_name); it != this->m_obs_map.end()) {
     if (auto p = std::dynamic_pointer_cast<DataType>(it->second)) {
       return *p;

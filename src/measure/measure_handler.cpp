@@ -246,7 +246,7 @@ void MeasureHandler::clear_temporary() {
   }
 }
 
-void MeasureHandler::output_measuring_info(std::ostream& ostream, int world_size) const {
+void MeasureHandler::output_measuring_info(std::ostream& ostream) const {
   auto fmt_str = [](const std::string& desc, const std::string& value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
@@ -263,7 +263,7 @@ void MeasureHandler::output_measuring_info(std::ostream& ostream, int world_size
           << fmt_str("Dynamical measure", bool_to_str(this->isDynamic())) << std::endl;
 
   ostream << fmt_int("Sweeps for warmup", this->WarmUpSweeps())
-          << fmt_int("Number of bins", this->BinsNum() * world_size)
+          << fmt_int("Number of bins", this->BinsNum())
           << fmt_int("Sweeps per bin", this->BinsSize())
           << fmt_int("Sweeps between bins", this->SweepsBetweenBins()) << std::endl;
 }
