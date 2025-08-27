@@ -26,7 +26,7 @@ class MeasureHandler;
 namespace DQMC {
 
 // forward declaration
-class Initializer;
+class Dqmc;
 
 using LatticeBase = Lattice::LatticeBase;
 using ModelBase = Model::ModelBase;
@@ -143,6 +143,7 @@ class Walker {
   void output_imaginary_time_grids(std::ostream& ostream) const;
 
   friend class Initializer;
+  friend class Dqmc;
 
   // ------------------------------- Setup of parameters
   // -----------------------------------------

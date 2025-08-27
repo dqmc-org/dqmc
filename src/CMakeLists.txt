@@ -8,7 +8,6 @@ add_library(
   svd_stack.cpp
   checkerboard/cubic.cpp
   checkerboard/square.cpp
-  initializer.cpp
   walker.cpp
   io.cpp
   measure/measure_methods.cpp

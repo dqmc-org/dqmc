@@ -2,7 +2,7 @@
 
 /**
  *  This header file defines the DQMC::Dqmc class, which encapsulates
- *  a complete Determinental Quantum Monte Carlo simulation run.
+ *  a complete Determinantal Quantum Monte Carlo simulation run.
  *  It holds the simulation context (model, lattice, walker, etc.)
  *  and provides methods to run the simulation's phases, such as
  *  thermalization, measurement, and analysis. It also includes
@@ -10,68 +10,117 @@
  */
 
 #include <chrono>
+#include <memory>
 #include <random>
+#include <string>
+#include <vector>
 
-#include "checkerboard/checkerboard_base.h"
-#include "initializer.h"
-#include "lattice/lattice_base.h"
-#include "measure/measure_handler.h"
-#include "model/model_base.h"
 #include "walker.h"
+
+namespace Model {
+class ModelBase;
+}
+namespace Lattice {
+class LatticeBase;
+}
+namespace Measure {
+class MeasureHandler;
+}
+namespace CheckerBoard {
+class CheckerBoardBase;
+}
 
 namespace DQMC {
 
-using ModelBase = Model::ModelBase;
-using LatticeBase = Lattice::LatticeBase;
-using MeasureHandler = Measure::MeasureHandler;
-using CheckerBoardBase = CheckerBoard::CheckerBoardBase;
+struct Config {
+  // General
+  int seed;
+  std::string fields_file;
 
-// --------------------------- The main DQMC simulation class ---------------------------
+  // Model
+  std::string model_type;
+  double hopping_t;
+  double onsite_u;
+  double chemical_potential;
+
+  // Lattice
+  std::string lattice_type;
+  std::vector<int> lattice_size;
+
+  // Checkerboard
+  bool enable_checkerboard;
+
+  // Monte carlo
+  double beta;
+  double time_size;
+  int stabilization_pace;
+
+  // Measure
+  int sweeps_warmup;
+  int bin_num;
+  int bin_size;
+  int sweeps_between_bins;
+
+  // Observables
+  std::vector<std::string> observables;
+
+  // Momentum parameters
+  std::string momentum;
+  std::string momentum_list;
+};
+
+struct Context {
+  std::unique_ptr<Model::ModelBase> model;
+  std::unique_ptr<Lattice::LatticeBase> lattice;
+  std::unique_ptr<Walker> walker;
+  std::unique_ptr<Measure::MeasureHandler> handler;
+  std::unique_ptr<CheckerBoard::CheckerBoardBase> checkerboard;
+
+  Context() = default;
+  ~Context() = default;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
+  Context(Context&&) = default;
+  Context& operator=(Context&&) = default;
+};
+
 class Dqmc {
  public:
-  // Constructor takes ownership of the simulation context.
-  explicit Dqmc(Context&& context);
+  explicit Dqmc(const Config& config);
+
+  void run();
+  void write_results(const std::string& out_path) const;
 
   // ---------------------------------------- Useful tools
-  // ------------------------------------------
-
   void show_progress_bar(bool show);
   void progress_bar_format(unsigned int width, char complete, char incomplete);
   void set_refresh_rate(unsigned int refresh_rate);
-
-  double timer() const;
   std::chrono::milliseconds timer_as_duration() const;
-  void timer_begin();
-  void timer_end();
-
-  // ------------------------------------ Crucial Dqmc routines
-  // -------------------------------------
-
-  // Thermalization of the field configurations
-  void thermalize(std::default_random_engine& rng);
-
-  // Monte Carlo updates and measurements
-  void measure(std::default_random_engine& rng);
-
-  // Analyse the measured data
-  void analyse();
 
   // ------------------------------------ Accessors for I/O
-  // -------------------------------------
-  const ModelBase& model() const { return *context_.model; }
-  const LatticeBase& lattice() const { return *context_.lattice; }
-  const Walker& walker() const { return *context_.walker; }
-  const MeasureHandler& handler() const { return *context_.handler; }
-  const CheckerBoardBase* checkerboard() const { return context_.checkerboard.get(); }
+  const Model::ModelBase& model() const;
+  const Lattice::LatticeBase& lattice() const;
+  const Walker& walker() const;
+  const Measure::MeasureHandler& handler() const;
+  const CheckerBoard::CheckerBoardBase* checkerboard() const;
 
  private:
   // ------------------------------------ Private subroutines
-  // -------------------------------------
-  void sweep_forth_and_back(std::default_random_engine& rng);
+  // Core simulation phases, now private
+  void thermalize();
+  void measure();
+  void analyse();
+  void sweep_forth_and_back();
+
+  // Initialization logic moved from the Initializer class
+  static Context parse_config(const Config& config);
+  static void initial_modules(const Context& context);
+  static void initial_dqmc(const Context& context);
 
   // ------------------------------------ Member Variables
-  // -------------------------------------
-  Context context_;  // Owns all the simulation components
+  Context m_context;
+  std::default_random_engine m_rng;
+  int m_seed;
 
   // Progress bar settings
   bool m_show_progress_bar{true};
