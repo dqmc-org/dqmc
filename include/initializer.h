@@ -7,6 +7,7 @@
  */
 
 #include <memory>
+#include <utility>
 #include <vector>
 
 namespace Lattice {
@@ -40,6 +41,27 @@ using WalkerPtr = std::unique_ptr<Walker>;
 
 using MomentumIndex = int;
 using MomentumIndexList = std::vector<int>;
+
+struct Context {
+  ModelBasePtr model;
+  LatticeBasePtr lattice;
+  WalkerPtr walker;
+  MeasureHandlerPtr handler;
+  CheckerBoardBasePtr checkerboard;
+
+  Context(ModelBasePtr m, LatticeBasePtr l, WalkerPtr w, MeasureHandlerPtr h,
+          CheckerBoardBasePtr cb)
+      : model(std::move(m)),
+        lattice(std::move(l)),
+        walker(std::move(w)),
+        handler(std::move(h)),
+        checkerboard(std::move(cb)) {}
+
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
+  Context(Context&&) = default;
+  Context& operator=(Context&&) = default;
+};
 
 // ----------------------- Interface class DQMC::Initializer
 // ------------------------
@@ -78,26 +100,14 @@ class Initializer {
     std::string momentum_list;
   };
 
-  // parse parmameters from the config struct
-  // create modules and setup module parameters according to the input
-  // configurations
-  static void parse_config(const Config& config, int world_size, ModelBasePtr& model,
-                           LatticeBasePtr& lattice, WalkerPtr& walker,
-                           MeasureHandlerPtr& meas_handler, CheckerBoardBasePtr& checkerboard);
+  // Parses parameters from the config struct, creates all modules,
+  // and returns them in an owning Context object.
+  static Context parse_config(const Config& config);
 
-  // initialize modules including Lattice, Model, Walker and MeasureHandler
-  // without checkerboard breakups.
-  static void initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                              MeasureHandler& meas_handler);
+  // Initializes modules using the provided context.
+  static void initial_modules(const Context& context);
 
-  // initialize modules including Lattice, Model, Walker and MeasureHandler
-  // with checkerboard breakups.
-  static void initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                              MeasureHandler& meas_handler, CheckerBoardBase& checkerboard);
-
-  // prepare for the dqmc simulation,
-  // especially initializing the greens functions and SVD stacks
-  static void initial_dqmc(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                           MeasureHandler& meas_handler);
+  // Prepares for the DQMC simulation (e.g., initializing Green's functions).
+  static void initial_dqmc(const Context& context);
 };
 }  // namespace DQMC

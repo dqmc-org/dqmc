@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <iostream>
 #include <stdexcept>
+#include <utility>
 
 #include "checkerboard/checkerboard_base.h"
 #include "checkerboard/cubic.h"
@@ -21,9 +22,12 @@
 
 namespace DQMC {
 
-void Initializer::parse_config(const Config& config, int world_size, ModelBasePtr& model,
-                               LatticeBasePtr& lattice, WalkerPtr& walker,
-                               MeasureHandlerPtr& meas_handler, CheckerBoardBasePtr& checkerboard) {
+Context Initializer::parse_config(const Config& config) {
+  ModelBasePtr model;
+  LatticeBasePtr lattice;
+  WalkerPtr walker;
+  MeasureHandlerPtr meas_handler;
+  CheckerBoardBasePtr checkerboard;
   // --------------------------------------------------------------------------------------------------
   //                                      Parse the Model module
   // --------------------------------------------------------------------------------------------------
@@ -54,11 +58,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
     // create 2d square lattice object
     lattice = std::make_unique<Lattice::Square>();
     lattice->set_lattice_params(config.lattice_size);
-
-    // initial lattice module in place
-    if (!lattice->InitialStatus()) {
-      lattice->initial();
-    }
+    lattice->initial();
   }
 
   else if (config.lattice_type == "Cubic") {
@@ -67,11 +67,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
     // create 3d cubic lattice object
     lattice = std::make_unique<Lattice::Cubic>();
     lattice->set_lattice_params(config.lattice_size);
-
-    // initial lattice module in place
-    if (!lattice->InitialStatus()) {
-      lattice->initial();
-    }
+    lattice->initial();
   }
 
   // ------------------------------------  2D Honeycomb lattice
@@ -127,10 +123,7 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   // create measure handler and set up parameters
   meas_handler = std::make_unique<Measure::MeasureHandler>();
 
-  // send measuring tasks to a set of processes
-  const int bins_per_proc = (config.bin_num % world_size == 0) ? config.bin_num / world_size
-                                                               : config.bin_num / world_size + 1;
-  meas_handler->set_measure_params(config.sweeps_warmup, bins_per_proc, config.bin_size,
+  meas_handler->set_measure_params(config.sweeps_warmup, config.bin_num, config.bin_size,
                                    config.sweeps_between_bins);
   meas_handler->set_observables(config.observables);
 
@@ -138,158 +131,126 @@ void Initializer::parse_config(const Config& config, int world_size, ModelBasePt
   //                                Parse the input Momentum parmas
   // --------------------------------------------------------------------------------------------------
   // make sure that the lattice module is initialized ahead
-  if (lattice->InitialStatus()) {
-    if (config.lattice_type == "Square") {
-      // covert base class pointer to that of the derived square lattice class
-      if (const auto square_lattice = dynamic_cast<const Lattice::Square*>(lattice.get())) {
-        if (config.momentum == "GammaPoint") {
-          meas_handler->set_measured_momentum(square_lattice->GammaPointIndex());
-        } else if (config.momentum == "MPoint") {
-          meas_handler->set_measured_momentum(square_lattice->MPointIndex());
-        } else if (config.momentum == "XPoint") {
-          meas_handler->set_measured_momentum(square_lattice->XPointIndex());
-        } else {
-          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum \'"
-                    << config.momentum << "\' for 2d square lattice, " << "please check the config."
-                    << std::endl;
-          exit(1);
-        }
+  DQMC_ASSERT(lattice->InitialStatus());
 
-        if (config.momentum_list == "KstarsAll") {
-          meas_handler->set_measured_momentum_list(square_lattice->kStarsIndex());
-        } else if (config.momentum_list == "DeltaLine") {
-          meas_handler->set_measured_momentum_list(square_lattice->DeltaLineIndex());
-        } else if (config.momentum_list == "ZLine") {
-          meas_handler->set_measured_momentum_list(square_lattice->ZLineIndex());
-        } else if (config.momentum_list == "SigmaLine") {
-          meas_handler->set_measured_momentum_list(square_lattice->SigmaLineIndex());
-        } else if (config.momentum_list == "Gamma2X2M2GammaLoop") {
-          meas_handler->set_measured_momentum_list(square_lattice->Gamma2X2M2GammaLoopIndex());
-        } else {
-          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum list \'"
-                    << config.momentum_list << "\' for 2d square lattice, "
-                    << "please check the config." << std::endl;
-          exit(1);
-        }
+  if (config.lattice_type == "Square") {
+    // covert base class pointer to that of the derived square lattice class
+    if (const auto square_lattice = dynamic_cast<const Lattice::Square*>(lattice.get())) {
+      if (config.momentum == "GammaPoint") {
+        meas_handler->set_measured_momentum(square_lattice->GammaPointIndex());
+      } else if (config.momentum == "MPoint") {
+        meas_handler->set_measured_momentum(square_lattice->MPointIndex());
+      } else if (config.momentum == "XPoint") {
+        meas_handler->set_measured_momentum(square_lattice->XPointIndex());
       } else {
-        std::cerr << "DQMC::Initializer::parse_config(): "
-                  << "fail to convert \'Lattice::LatticeBase\' to "
-                     "\'Lattice::Square\'."
+        std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum \'"
+                  << config.momentum << "\' for 2d square lattice, " << "please check the config."
                   << std::endl;
         exit(1);
       }
-    }
 
-    if (config.lattice_type == "Cubic") {
-      // covert base class pointer to that of the derived cubic lattice class
-      if (const auto cubic_lattice = dynamic_cast<const Lattice::Cubic*>(lattice.get())) {
-        if (config.momentum == "GammaPoint") {
-          meas_handler->set_measured_momentum(cubic_lattice->GammaPointIndex());
-        } else if (config.momentum == "MPoint") {
-          meas_handler->set_measured_momentum(cubic_lattice->MPointIndex());
-        } else if (config.momentum == "XPoint") {
-          meas_handler->set_measured_momentum(cubic_lattice->XPointIndex());
-        } else if (config.momentum == "RPoint") {
-          meas_handler->set_measured_momentum(cubic_lattice->RPointIndex());
-        } else {
-          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum \'"
-                    << config.momentum << "\' for 3d cubic lattice, " << "please check the config."
-                    << std::endl;
-          exit(1);
-        }
-
-        if (config.momentum_list == "KstarsAll") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->kStarsIndex());
-        } else if (config.momentum_list == "DeltaLine") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->DeltaLineIndex());
-        } else if (config.momentum_list == "ZLine") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->ZLineIndex());
-        } else if (config.momentum_list == "SigmaLine") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->SigmaLineIndex());
-        } else if (config.momentum_list == "LambdaLine") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->LambdaLineIndex());
-        } else if (config.momentum_list == "SLine") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->SLineIndex());
-        } else if (config.momentum_list == "TLine") {
-          meas_handler->set_measured_momentum_list(cubic_lattice->TLineIndex());
-        } else {
-          std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum list \'"
-                    << config.momentum_list << "\' for 3d cubic lattice, "
-                    << "please check the config." << std::endl;
-          exit(1);
-        }
+      if (config.momentum_list == "KstarsAll") {
+        meas_handler->set_measured_momentum_list(square_lattice->kStarsIndex());
+      } else if (config.momentum_list == "DeltaLine") {
+        meas_handler->set_measured_momentum_list(square_lattice->DeltaLineIndex());
+      } else if (config.momentum_list == "ZLine") {
+        meas_handler->set_measured_momentum_list(square_lattice->ZLineIndex());
+      } else if (config.momentum_list == "SigmaLine") {
+        meas_handler->set_measured_momentum_list(square_lattice->SigmaLineIndex());
+      } else if (config.momentum_list == "Gamma2X2M2GammaLoop") {
+        meas_handler->set_measured_momentum_list(square_lattice->Gamma2X2M2GammaLoopIndex());
       } else {
-        std::cerr << "DQMC::Initializer::parse_config(): "
-                  << "fail to convert \'Lattice::LatticeBase\' to \'Lattice::Cubic\'." << std::endl;
+        std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum list \'"
+                  << config.momentum_list << "\' for 2d square lattice, "
+                  << "please check the config." << std::endl;
         exit(1);
       }
+    } else {
+      std::cerr << "DQMC::Initializer::parse_config(): "
+                << "fail to convert \'Lattice::LatticeBase\' to "
+                   "\'Lattice::Square\'."
+                << std::endl;
+      exit(1);
     }
+  }
 
-    if (config.lattice_type == "Honeycomb") {
-      throw std::runtime_error("Honeycomb lattice is not supported.");
+  if (config.lattice_type == "Cubic") {
+    // covert base class pointer to that of the derived cubic lattice class
+    if (const auto cubic_lattice = dynamic_cast<const Lattice::Cubic*>(lattice.get())) {
+      if (config.momentum == "GammaPoint") {
+        meas_handler->set_measured_momentum(cubic_lattice->GammaPointIndex());
+      } else if (config.momentum == "MPoint") {
+        meas_handler->set_measured_momentum(cubic_lattice->MPointIndex());
+      } else if (config.momentum == "XPoint") {
+        meas_handler->set_measured_momentum(cubic_lattice->XPointIndex());
+      } else if (config.momentum == "RPoint") {
+        meas_handler->set_measured_momentum(cubic_lattice->RPointIndex());
+      } else {
+        std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum \'"
+                  << config.momentum << "\' for 3d cubic lattice, " << "please check the config."
+                  << std::endl;
+        exit(1);
+      }
+
+      if (config.momentum_list == "KstarsAll") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->kStarsIndex());
+      } else if (config.momentum_list == "DeltaLine") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->DeltaLineIndex());
+      } else if (config.momentum_list == "ZLine") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->ZLineIndex());
+      } else if (config.momentum_list == "SigmaLine") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->SigmaLineIndex());
+      } else if (config.momentum_list == "LambdaLine") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->LambdaLineIndex());
+      } else if (config.momentum_list == "SLine") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->SLineIndex());
+      } else if (config.momentum_list == "TLine") {
+        meas_handler->set_measured_momentum_list(cubic_lattice->TLineIndex());
+      } else {
+        std::cerr << "DQMC::Initializer::parse_config(): " << "undefined momentum list \'"
+                  << config.momentum_list << "\' for 3d cubic lattice, "
+                  << "please check the config." << std::endl;
+        exit(1);
+      }
+    } else {
+      std::cerr << "DQMC::Initializer::parse_config(): "
+                << "fail to convert \'Lattice::LatticeBase\' to \'Lattice::Cubic\'." << std::endl;
+      exit(1);
     }
   }
-}
 
-void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                                  MeasureHandler& meas_handler) {
-  // make sure that the module objects have been created,
-  // and the parameters are setup correctly in advance.
-  // notice that the orders of initializations below are important.
-
-  // initialize lattice module
-  if (!lattice.InitialStatus()) {
-    lattice.initial();
+  if (config.lattice_type == "Honeycomb") {
+    throw std::runtime_error("Honeycomb lattice is not supported.");
   }
 
-  // initialize MeasureHandler module
-  meas_handler.initial(lattice, walker);
-
-  // initialize dqmcWalker module
-  walker.initial(lattice, meas_handler);
-
-  // initialize model module
-  // naively link
-  model.initial(lattice, walker);
-  model.link();
+  return Context(std::move(model), std::move(lattice), std::move(walker), std::move(meas_handler),
+                 std::move(checkerboard));
 }
 
-void Initializer::initial_modules(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                                  MeasureHandler& meas_handler, CheckerBoardBase& checkerboard) {
-  // make sure that the module objects have been created,
-  // and the parameters are setup correctly in advance.
-  // notice that the orders of initializations below are important.
+void Initializer::initial_modules(const Context& context) {
+  // NOTE: the order of initializations below are important.
+  DQMC_ASSERT(context.lattice->InitialStatus());
 
-  // initialize lattice module
-  if (!lattice.InitialStatus()) {
-    lattice.initial();
+  context.handler->initial(*context.lattice, *context.walker);
+  context.walker->initial(*context.lattice, *context.handler);
+  context.model->initial(*context.lattice, *context.walker);
+
+  if (context.checkerboard) {
+    context.checkerboard->set_checkerboard_params(*context.lattice, *context.model,
+                                                  *context.walker);
+    context.checkerboard->initial();
+    context.model->link(*context.checkerboard);
+  } else {
+    context.model->link();
   }
-
-  // initialize MeasureHandler module
-  meas_handler.initial(lattice, walker);
-
-  // initialize dqmcWalker module
-  walker.initial(lattice, meas_handler);
-
-  // initialize model module
-  model.initial(lattice, walker);
-
-  // initialize checkerboard module and link to the model class
-  checkerboard.set_checkerboard_params(lattice, model, walker);
-  checkerboard.initial();
-  model.link(checkerboard);
 }
 
-void Initializer::initial_dqmc(ModelBase& model, LatticeBase& lattice, Walker& walker,
-                               [[maybe_unused]] MeasureHandler& meas_handler) {
-  // this subroutine should be called after the initial
-  // configuration of the bosonic fields have been determined,
-  // either randomly initialized or read from a input config file.
-  // SvdStack class are initialized and the greens functions
-  // for the initial bosonic fields are computed in this function.
-  walker.initial_svd_stacks(lattice, model);
-  walker.initial_greens_functions();
-  walker.initial_config_sign();
+void Initializer::initial_dqmc(const Context& context) {
+  // NOTE: this should be called after the initial configuration of the bosonic
+  // fields.
+  context.walker->initial_svd_stacks(*context.lattice, *context.model);
+  context.walker->initial_greens_functions();
+  context.walker->initial_config_sign();
 }
 
 }  // namespace DQMC

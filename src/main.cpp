@@ -167,13 +167,6 @@ int main(int argc, char* argv[]) {
   // -----------------------------------  Initializations
   // ------------------------------------------
 
-  // create dqmc module objects
-  std::unique_ptr<Model::ModelBase> model;
-  std::unique_ptr<Lattice::LatticeBase> lattice;
-  std::unique_ptr<DQMC::Walker> walker;
-  std::unique_ptr<Measure::MeasureHandler> meas_handler;
-  std::unique_ptr<CheckerBoard::CheckerBoardBase> checkerboard;
-
   // Create config from parsed options
   DQMC::Initializer::Config config{};
 
@@ -202,32 +195,25 @@ int main(int argc, char* argv[]) {
   config.momentum = std::move(vm["momentum.point"].as<std::string>());
   config.momentum_list = std::move(vm["momentum.list"].as<std::string>());
 
-  // parse parameters from the config
-  DQMC::Initializer::parse_config(config, 1, model, lattice, walker, meas_handler, checkerboard);
+  // Create and own all modules by parsing the config.
+  auto context = DQMC::Initializer::parse_config(config);
 
-  // initialize modules
-  if (checkerboard) {
-    // using checkerboard break-up
-    DQMC::Initializer::initial_modules(*model, *lattice, *walker, *meas_handler, *checkerboard);
-  } else {
-    // without checkerboard break-up
-    DQMC::Initializer::initial_modules(*model, *lattice, *walker, *meas_handler);
-  }
+  // Initialize modules using the context.
+  DQMC::Initializer::initial_modules(context);
 
   if (fields_file.empty()) {
-    // randomly initialize the bosonic fields if there are no input field
-    // configs
-    model->set_bosonic_fields_to_random(rng);
+    // randomly initialize the bosonic fields if there are no input field configs
+    context.model->set_bosonic_fields_to_random(rng);
     std::cout << ">> Configurations of the bosonic fields set to random.\n" << std::endl;
   } else {
-    DQMC::IO::read_bosonic_fields_from_file(fields_file, *model);
+    DQMC::IO::read_bosonic_fields_from_file(fields_file, *context.model);
     std::cout << ">> Configurations of the bosonic fields read from the "
                  "input config file.\n"
               << std::endl;
   }
 
   // initialize dqmc, preparing for the simulation
-  DQMC::Initializer::initial_dqmc(*model, *lattice, *walker, *meas_handler);
+  DQMC::Initializer::initial_dqmc(context);
 
   std::cout << ">> Initialization finished. \n\n"
             << ">> The simulation is going to get started with parameters "
@@ -235,7 +221,8 @@ int main(int argc, char* argv[]) {
             << std::endl;
 
   // output the initialization info
-  DQMC::IO::output_init_info(std::cout, 1, *model, *lattice, *walker, *meas_handler, checkerboard);
+  DQMC::IO::output_init_info(std::cout, 1, *context.model, *context.lattice, *context.walker,
+                             *context.handler, context.checkerboard);
 
   // set up progress bar
   DQMC::Dqmc::show_progress_bar(true);
@@ -247,24 +234,24 @@ int main(int argc, char* argv[]) {
 
   // the dqmc simulation start
   DQMC::Dqmc::timer_begin();
-  DQMC::Dqmc::thermalize(*walker, *model, *lattice, *meas_handler, rng);
-  DQMC::Dqmc::measure(*walker, *model, *lattice, *meas_handler, rng);
+  DQMC::Dqmc::thermalize(*context.walker, *context.model, *context.lattice, *context.handler, rng);
+  DQMC::Dqmc::measure(*context.walker, *context.model, *context.lattice, *context.handler, rng);
 
   // perform the analysis
-  DQMC::Dqmc::analyse(*meas_handler);
+  DQMC::Dqmc::analyse(*context.handler);
 
   // end the timer
   DQMC::Dqmc::timer_end();
 
   // output the ending info
-  DQMC::IO::output_ending_info(std::cout, *walker);
+  DQMC::IO::output_ending_info(std::cout, *context.walker);
 
   // ---------------------------------  Output measuring results
   // ------------------------------------
 
   // screen output the results of scalar observables
-  for (const auto& obs_name : meas_handler->ObservablesList()) {
-    if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
+  for (const auto& obs_name : context.handler->ObservablesList()) {
+    if (auto obs = context.handler->find<Observable::Scalar>(obs_name)) {
       DQMC::IO::output_observable_to_console(std::cout, *obs);
     }
   }
@@ -273,23 +260,21 @@ int main(int argc, char* argv[]) {
   std::ofstream outfile;
 
   // output the configurations of the bosonic fields
-  // if there exist input file of fields configs, overwrite it.
-  // otherwise the field configs are stored under the output folder.
   const auto fields_out = (fields_file.empty())
                               ? std::format("{}/bosonic_fields_{}.out", out_path, run_id)
                               : fields_file;
   outfile.open(fields_out, std::ios::trunc);
-  DQMC::IO::output_bosonic_fields(outfile, *model);
+  DQMC::IO::output_bosonic_fields(outfile, *context.model);
   outfile.close();
 
   // output the k stars
   outfile.open(std::format("{}/kstars.out", out_path), std::ios::trunc);
-  DQMC::IO::output_k_stars(outfile, *lattice);
+  DQMC::IO::output_k_stars(outfile, *context.lattice);
   outfile.close();
 
   // output the imaginary-time grids
   outfile.open(std::format("{}/imaginary_time_grids.out", out_path), std::ios::trunc);
-  DQMC::IO::output_imaginary_time_grids(outfile, *walker);
+  DQMC::IO::output_imaginary_time_grids(outfile, *context.walker);
   outfile.close();
 
   // output measuring results of the observables
@@ -308,12 +293,12 @@ int main(int argc, char* argv[]) {
   };
 
   // iterate through all observables and output them
-  for (const auto& obs_name : meas_handler->ObservablesList()) {
-    if (auto obs = meas_handler->find<Observable::Scalar>(obs_name)) {
+  for (const auto& obs_name : context.handler->ObservablesList()) {
+    if (auto obs = context.handler->find<Observable::Scalar>(obs_name)) {
       output_observable_files(obs, obs_name);
-    } else if (auto obs = meas_handler->find<Observable::Vector>(obs_name)) {
+    } else if (auto obs = context.handler->find<Observable::Vector>(obs_name)) {
       output_observable_files(obs, obs_name);
-    } else if (auto obs = meas_handler->find<Observable::Matrix>(obs_name)) {
+    } else if (auto obs = context.handler->find<Observable::Matrix>(obs_name)) {
       output_observable_files(obs, obs_name);
     }
   }
