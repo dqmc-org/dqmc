@@ -30,22 +30,7 @@ struct GreensWorkspace {
   GreensWorkspace(GreensWorkspace&&) = default;
   GreensWorkspace& operator=(GreensWorkspace&&) = default;
 
-  void resize(int n) {
-    if (ndim == n) return;
-    ndim = n;
-
-    dlmax.resize(n);
-    dlmin.resize(n);
-    drmax.resize(n);
-    drmin.resize(n);
-
-    Atmp.resize(n, n);
-    Btmp.resize(n, n);
-    Xtmp.resize(n, n);
-    Ytmp.resize(n, n);
-    tmp.resize(n, n);
-    B_for_solve.resize(n, n);
-  }
+  void resize(int n);
 };
 
 // ----------------------------------  Utils::NumericalStable class

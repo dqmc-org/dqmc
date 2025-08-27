@@ -18,6 +18,7 @@ add_library(
   model/attractive_hubbard.cpp
   model/repulsive_hubbard.cpp
   utils/assert.cpp
+  utils/numerical_stable.cpp
 )
 
 target_include_directories(
