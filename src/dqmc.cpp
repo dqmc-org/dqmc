@@ -24,7 +24,7 @@
 
 namespace DQMC {
 
-Dqmc::Dqmc(const Config& config) : m_rng(config.seed), m_seed(config.seed) {
+Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) {
   // 1. Create all modules from config
   m_context = parse_config(config);
 

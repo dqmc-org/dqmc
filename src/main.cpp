@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
     ("help,h",                                                                      "Show help message")
     ("config,c",    po::value<std::string>(&config_file),                           "Configuration file path")
     ("output,o",    po::value<std::string>(&out_path)->default_value("../example"), "Output folder path")
-    ("seed,s",      po::value<int>(&seed)->default_value(42),                       "Random seed for simulation")
+    ("seed,s",      po::value<int>(&seed)->default_value(0),                        "Random seed for simulation")
     ("fields,f",    po::value<std::string>()->default_value(""),                    "Path to auxiliary fields configuration file");
 
   po::options_description model_opts("Model options");
