@@ -7,27 +7,32 @@ namespace Model {
 
 void ModelBase::mult_expK_from_left(GreensFunc& green) const {
   DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
-  green = this->m_expK_mat * green;
+  m_temp_buffer.noalias() = this->m_expK_mat * green;
+  green = m_temp_buffer;
 }
 
 void ModelBase::mult_expK_from_right(GreensFunc& green) const {
   DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
-  green = green * this->m_expK_mat;
+  m_temp_buffer.noalias() = green * this->m_expK_mat;
+  green = m_temp_buffer;
 }
 
 void ModelBase::mult_inv_expK_from_left(GreensFunc& green) const {
   DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
-  green = this->m_inv_expK_mat * green;
+  m_temp_buffer.noalias() = this->m_inv_expK_mat * green;
+  green = m_temp_buffer;
 }
 
 void ModelBase::mult_inv_expK_from_right(GreensFunc& green) const {
   DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
-  green = green * this->m_inv_expK_mat;
+  m_temp_buffer.noalias() = green * this->m_inv_expK_mat;
+  green = m_temp_buffer;
 }
 
 void ModelBase::mult_trans_expK_from_left(GreensFunc& green) const {
   DQMC_ASSERT(green.rows() == this->m_space_size && green.cols() == this->m_space_size);
-  green = this->m_trans_expK_mat * green;
+  m_temp_buffer.noalias() = this->m_trans_expK_mat * green;
+  green = m_temp_buffer;
 }
 
 void ModelBase::link() {

@@ -78,6 +78,7 @@ void AttractiveHubbard::initial_KV_matrices(const LatticeBase& lattice, const Wa
       this->m_chemical_potential * SpaceSpaceMat::Identity(space_size, space_size);
   const SpaceSpaceMat Kmat = -this->m_hopping_t * lattice.HoppingMatrix() + chemical_potential_mat;
 
+  this->m_temp_buffer = Matrix(space_size, space_size);
   this->m_expK_mat = (-time_interval * Kmat).exp();
   this->m_inv_expK_mat = (+time_interval * Kmat).exp();
 
