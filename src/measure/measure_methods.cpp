@@ -388,10 +388,10 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   const double final_prefactor = 0.25 * hopping_t2 / (static_cast<double>(space_size) * space_size);
 
   std::vector<double> uncorrelated_i_vals(space_size);
+  std::vector<double> uncorrelated_j_vals(space_size);
+
   const GreensFunc& g00up = ctx.walker.GreenttUp(time_size - 1);
   const GreensFunc& g00dn = ctx.walker.GreenttDn(time_size - 1);
-
-  std::vector<double> uncorrelated_j_vals(space_size);
 
   for (auto i = 0; i < space_size; ++i) {
     const auto ipx = ctx.lattice.NearestNeighbour(i, 0);
@@ -421,16 +421,21 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
       for (auto j = 0; j < space_size; ++j) {
         const auto jpx = ctx.lattice.NearestNeighbour(j, 0);
 
-        const auto rx = ctx.lattice.Index2Site(ctx.lattice.Displacement(i, j), 0);
-        const auto ry = ctx.lattice.Index2Site(ctx.lattice.Displacement(i, j), 1);
+        const auto displacement = ctx.lattice.Displacement(i, j);
+        const auto rx = ctx.lattice.Index2Site(displacement, 0);
+        const auto ry = ctx.lattice.Index2Site(displacement, 1);
         const auto fourier_factor =
             ctx.lattice.FourierFactor(rx, 1) - ctx.lattice.FourierFactor(ry, 1);
 
-        const double correlated_part =
-            g0tup(ipx, jpx) * gt0up(j, i) + g0tdn(ipx, jpx) * gt0dn(j, i) -
-            g0tup(i, jpx) * gt0up(j, ipx) - g0tdn(i, jpx) * gt0dn(j, ipx) -
-            g0tup(ipx, j) * gt0up(jpx, i) - g0tdn(ipx, j) * gt0dn(jpx, i) +
-            g0tup(i, j) * gt0up(jpx, ipx) + g0tdn(i, j) * gt0dn(jpx, ipx);
+        const double up_contribution =
+            g0tup(ipx, jpx) * gt0up(j, i) - g0tup(i, jpx) * gt0up(j, ipx) -
+            g0tup(ipx, j) * gt0up(jpx, i) + g0tup(i, j) * gt0up(jpx, ipx);
+
+        const double down_contribution =
+            g0tdn(ipx, jpx) * gt0dn(j, i) - g0tdn(i, jpx) * gt0dn(j, ipx) -
+            g0tdn(ipx, j) * gt0dn(jpx, i) + g0tdn(i, j) * gt0dn(jpx, ipx);
+
+        const double correlated_part = up_contribution + down_contribution;
 
         t_slice_sum +=
             fourier_factor * (-uncorrelated_j_vals[j] * uncorrelated_i_vals[i] - correlated_part);
