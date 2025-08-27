@@ -19,8 +19,10 @@ using LatticeInt = int;
 using LatticeDouble = double;
 using LatticeIntVec = std::vector<int>;
 using MatrixDouble = Eigen::MatrixXd;
+using MatrixDoubleRowView = Eigen::MatrixXd::ConstRowXpr;
 using VectorDouble = Eigen::VectorXd;
 using MatrixInt = Eigen::MatrixXi;
+using MatrixIntRowView = Eigen::MatrixXi::ConstRowXpr;
 using VectorInt = Eigen::VectorXi;
 
 // -------------------------- Pure virtual base class Lattice::LatticeBase
@@ -114,12 +116,12 @@ class LatticeBase {
     return this->m_nearest_neighbour_table(site_index, direction);
   }
 
-  VectorInt GetNeighbors(const LatticeInt site_index) const {
+  MatrixIntRowView GetNeighbors(const LatticeInt site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_nearest_neighbour_table.row(site_index);
   }
 
-  VectorInt Index2Site(const LatticeInt site_index) const {
+  MatrixIntRowView Index2Site(const LatticeInt site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_index2site_table.row(site_index);
   }
@@ -130,7 +132,7 @@ class LatticeBase {
     return this->m_index2site_table(site_index, axis);
   }
 
-  VectorDouble Index2Momentum(const LatticeInt momentum_index) const {
+  MatrixDoubleRowView Index2Momentum(const LatticeInt momentum_index) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     return this->m_index2momentum_table.row(momentum_index);
   }
