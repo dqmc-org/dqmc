@@ -85,8 +85,8 @@ class ObservableBase {
  protected:
   std::string m_name;  // name of the observable
   std::string m_desc;  // description of the observable
-  int m_bin_num{0};         // total number of bins
-  int m_count{0};           // countings within a bin
+  int m_bin_num{0};    // total number of bins
+  int m_count{0};      // countings within a bin
 
   ObservableBase() = default;
 

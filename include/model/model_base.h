@@ -94,10 +94,8 @@ class ModelBase {
   Matrix m_trans_expK_mat{};
   Matrix m_trans_expV_mat{};
 
-
   // Temporary buffer for greens function calculations
   mutable Matrix m_temp_buffer{};
-
 
   // function pointers for multiplying exponent of K matrix to a dense matrix
   // these can be redirected to checkerboard methods for acceleration
