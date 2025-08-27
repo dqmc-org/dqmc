@@ -15,6 +15,32 @@
 
 namespace Utils {
 
+struct GreensWorkspace {
+  int ndim = 0;
+
+  Eigen::VectorXd dlmax, dlmin, drmax, drmin;
+  Eigen::MatrixXd Atmp, Btmp, Xtmp, Ytmp, tmp, B_for_solve;
+
+  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr_solver;
+
+  void resize(int n) {
+    if (ndim == n) return;
+    ndim = n;
+
+    dlmax.resize(n);
+    dlmin.resize(n);
+    drmax.resize(n);
+    drmin.resize(n);
+
+    Atmp.resize(n, n);
+    Btmp.resize(n, n);
+    Xtmp.resize(n, n);
+    Ytmp.resize(n, n);
+    tmp.resize(n, n);
+    B_for_solve.resize(n, n);
+  }
+};
+
 // ----------------------------------  Utils::NumericalStable class
 // ------------------------------------ including static subroutines for
 // numerical stabilizations
@@ -188,27 +214,18 @@ class NumericalStable {
   }
 
   /*
-   *  return (1 + left * right^T)^-1 in a stable manner, with method of MGS
-   * factorization note: (1 + left * right^T)^-1 = (1 + (USV^T)_left *
-   * (VSU^T)_right)^-1
+   * Helper for common calculations in both compute_dynamic_greens and compute_equaltime_greens
    */
-  static void compute_equaltime_greens(const SvdStack& left, const SvdStack& right, Matrix& gtt) {
-    DQMC_ASSERT(left.MatDim() == right.MatDim());
-    const int ndim = left.MatDim();
+  static void compute_greens_function_common_part(const SvdStack& left, const SvdStack& right,
+                                                  GreensWorkspace& ws) {
+    auto& dlmax = ws.dlmax;
+    auto& dlmin = ws.dlmin;
+    auto& drmax = ws.drmax;
+    auto& drmin = ws.drmin;
+    auto& Atmp = ws.Atmp;
+    auto& Btmp = ws.Btmp;
+    auto& tmp = ws.tmp;
 
-    // at time slice t = 0
-    if (left.empty()) {
-      compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gtt);
-      return;
-    }
-
-    // at time slice t = nt (beta)
-    if (right.empty()) {
-      compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), gtt);
-      return;
-    }
-
-    // local params
     const Matrix& ul = left.MatrixU();
     const Vector& dl = left.SingularValues();
     const Matrix& vl = left.MatrixV();
@@ -216,31 +233,46 @@ class NumericalStable {
     const Vector& dr = right.SingularValues();
     const Matrix& vr = right.MatrixV();
 
-    Vector dlmax(dl.size()), dlmin(dl.size());
-    Vector drmax(dr.size()), drmin(dr.size());
-
-    Matrix Atmp(ndim, ndim), Btmp(ndim, ndim);
-    Matrix tmp(ndim, ndim);
-
-    // modified Gram-Schmidt (MGS) factorization
-    // perfrom the breakups dr = drmax * drmin , dl = dlmax * dlmin
     div_dvec_max_min(dl, dlmax, dlmin);
     div_dvec_max_min(dr, drmax, drmin);
 
-    // Atmp = ul^T * ur, Btmp = vl^T * vr
-    Atmp = ul.transpose() * ur;
-    Btmp = vl.transpose() * vr;
+    Atmp.noalias() = ul.transpose() * ur;
+    Btmp.noalias() = vl.transpose() * vr;
 
-    // Atmp = dlmax^-1 * (ul^T * ur) * drmax^-1
-    // Btmp = dlmin * (vl^T * vr) * drmin
     scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
 
-    tmp = Atmp + Btmp;
-    // mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
-    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, tmp, ur * drmax.asDiagonal().inverse());
+    tmp.noalias() = Atmp + Btmp;
 
-    // finally obtain gtt
-    mult_v_invd_u(Atmp, dlmax, ul.transpose(), gtt);
+    auto& B_for_solve = ws.B_for_solve;
+    B_for_solve.noalias() = ur * drmax.asDiagonal().inverse();
+
+    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, tmp, B_for_solve, ws.qr_solver);
+  }
+
+  /*
+   *  return (1 + left * right^T)^-1 in a stable manner, with method of MGS
+   * factorization note: (1 + left * right^T)^-1 = (1 + (USV^T)_left *
+   * (VSU^T)_right)^-1
+   */
+  static void compute_equaltime_greens(const SvdStack& left, const SvdStack& right, Matrix& gtt,
+                                       GreensWorkspace& ws) {
+    DQMC_ASSERT(left.MatDim() == right.MatDim());
+    const int ndim = left.MatDim();
+    ws.resize(ndim);
+
+    if (left.empty()) {
+      compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gtt);
+      return;
+    }
+    if (right.empty()) {
+      compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), gtt);
+      return;
+    }
+
+    compute_greens_function_common_part(left, right, ws);
+    auto& Atmp = ws.Atmp;
+
+    mult_v_invd_u(Atmp, ws.dlmax, left.MatrixU().transpose(), gtt);
   }
 
   /*
@@ -248,80 +280,51 @@ class NumericalStable {
    *  with the method of MGS factorization
    */
   static void compute_dynamic_greens(const SvdStack& left, const SvdStack& right, Matrix& gt0,
-                                     Matrix& g0t) {
+                                     Matrix& g0t, GreensWorkspace& ws) {
     DQMC_ASSERT(left.MatDim() == right.MatDim());
     const int ndim = left.MatDim();
+    ws.resize(ndim);
 
-    // at time slice t = 0
     if (left.empty()) {
-      // gt0 = gtt at t = 0
       compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gt0);
 
-      // g0t = - ( 1 - gtt ）at t = 0, and this is a natural extension of g0t
-      // for t = 0. however from the physical point of view, g0t should
-      // degenerate to gtt at t = 0,
-      g0t = -(Matrix::Identity(ndim, ndim) - gt0);
+      g0t.noalias() = gt0;
+      g0t.diagonal().array() -= 1.0;
       return;
     }
 
-    // at time slice t = nt (beta)
     if (right.empty()) {
-      // gt0 = ( 1 + B(beta, 0) )^-1 * B(beta, 0)
       compute_greens_b0(left.MatrixU(), left.SingularValues(), left.MatrixV(), gt0);
-
-      // g0t = -gtt at t = beta
       compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), g0t);
-      g0t = -g0t;
+      g0t *= -1.0;
       return;
     }
 
-    // local params
+    compute_greens_function_common_part(left, right, ws);
+    auto& Atmp = ws.Atmp;
+    mult_v_d_u(Atmp, ws.dlmin, left.MatrixV().transpose(), gt0);
+
+    auto& Xtmp = ws.Xtmp;
+    auto& Ytmp = ws.Ytmp;
+    auto& tmp = ws.tmp;
+
     const Matrix& ul = left.MatrixU();
-    const Vector& dl = left.SingularValues();
     const Matrix& vl = left.MatrixV();
     const Matrix& ur = right.MatrixU();
-    const Vector& dr = right.SingularValues();
     const Matrix& vr = right.MatrixV();
 
-    Vector dlmax(dl.size()), dlmin(dl.size());
-    Vector drmax(dr.size()), drmin(dr.size());
+    Xtmp.noalias() = vr.transpose() * vl;
+    Ytmp.noalias() = ur.transpose() * ul;
 
-    Matrix Atmp(ndim, ndim), Btmp(ndim, ndim);
-    Matrix Xtmp(ndim, ndim), Ytmp(ndim, ndim);
-    Matrix tmp(ndim, ndim);
+    scale_Xtmp_Ytmp_dl_dr(Xtmp, Ytmp, ws.drmax, ws.dlmax, ws.drmin, ws.dlmin);
 
-    // modified Gram-Schmidt (MGS) factorization
-    // perfrom the breakups dr = drmax * drmin , dl = dlmax * dlmin
-    div_dvec_max_min(dl, dlmax, dlmin);
-    div_dvec_max_min(dr, drmax, drmin);
+    tmp.noalias() = Xtmp + Ytmp;
 
-    // compute gt0
-    // Atmp = ul^T * ur, Btmp = vl^T * vr
-    Atmp = ul.transpose() * ur;
-    Btmp = vl.transpose() * vr;
+    auto& B_for_solve = ws.B_for_solve;
+    B_for_solve.noalias() = (-vl) * ws.dlmax.asDiagonal().inverse();
 
-    // Atmp = dlmax^-1 * (ul^T * ur) * drmax^-1
-    // Btmp = dlmin * (vl^T * vr) * drmin
-    scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
-
-    tmp = Atmp + Btmp;
-    // mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
-    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, tmp, ur * drmax.asDiagonal().inverse());
-    mult_v_d_u(Atmp, dlmin, vl.transpose(), gt0);
-
-    // compute g0t
-    // Xtmp = vr^T * vl, Ytmp = ur^T * ul
-    Xtmp = vr.transpose() * vl;
-    Ytmp = ur.transpose() * ul;
-
-    // Xtmp = drmax^-1 * (vr^T * vl) * dlmax^-1
-    // Ytmp = drmin * (ur^T * ul) * dlmin
-    scale_Xtmp_Ytmp_dl_dr(Xtmp, Ytmp, drmax, dlmax, drmin, dlmin);
-
-    tmp = Xtmp + Ytmp;
-    // mult_v_invd_u(-vl, dlmax, tmp.inverse(), Xtmp);
-    Utils::LinearAlgebra::solve_X_times_A_eq_B(Xtmp, tmp, (-vl) * dlmax.asDiagonal().inverse());
-    mult_v_d_u(Xtmp, drmin, ur.transpose(), g0t);
+    Utils::LinearAlgebra::solve_X_times_A_eq_B(Xtmp, tmp, B_for_solve, ws.qr_solver);
+    mult_v_d_u(Xtmp, ws.drmin, ur.transpose(), g0t);
   }
 };
 }  // namespace Utils

@@ -25,7 +25,7 @@ using Vector = Eigen::VectorXd;
 SvdStack::SvdStack(int mat_dim, int stack_length) : m_mat_dim(mat_dim) {
   this->m_stack.reserve(stack_length);
   this->m_prefix_v.reserve(stack_length);
-  this->m_temp_buffer = Matrix(mat_dim, mat_dim);
+  this->m_tmp_buffer = Matrix(mat_dim, mat_dim);
 }
 
 // Basic stack state queries

@@ -81,13 +81,15 @@ class LinearAlgebra {
   }
 
   static void solve_X_times_A_eq_B(Eigen::MatrixXd& X_out, const Eigen::MatrixXd& A_mat,
-                                   const Eigen::MatrixXd& B_mat) {
+                                   const Eigen::MatrixXd& B_mat,
+                                   Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& solver) {
     DQMC_ASSERT(A_mat.rows() == A_mat.cols());
     DQMC_ASSERT(A_mat.rows() == B_mat.cols());
     DQMC_ASSERT(X_out.rows() == B_mat.rows());
     DQMC_ASSERT(X_out.cols() == A_mat.rows());
 
-    X_out.noalias() = A_mat.transpose().colPivHouseholderQr().solve(B_mat.transpose()).transpose();
+    solver.compute(A_mat.transpose());
+    X_out.noalias() = solver.solve(B_mat.transpose()).transpose();
   }
 };
 }  // namespace Utils

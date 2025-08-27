@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "svd_stack.h"
+#include "utils/numerical_stable.hpp"
 
 namespace Model {
 class ModelBase;
@@ -80,6 +81,8 @@ class Walker {
   SvdStack m_svd_stack_left_dn{};
   SvdStack m_svd_stack_right_up{};
   SvdStack m_svd_stack_right_dn{};
+
+  Utils::GreensWorkspace m_greens_workspace{};
 
   // pace of numerical stabilizations
   // or equivalently, the number of consequent wrapping steps of equal-time
