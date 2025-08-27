@@ -90,14 +90,14 @@ class ObservableBase {
 
   ObservableBase() = default;
 
-  explicit ObservableBase(std::string name, std::string_view desc)
+  explicit ObservableBase(const std::string& name, const std::string& desc)
       : m_name(name), m_desc(desc) {}
 
  public:
   virtual ~ObservableBase() = default;
 
-  std::string name() const { return this->m_name; }
-  std::string description() const { return this->m_desc; }
+  const std::string& name() const { return this->m_name; }
+  const std::string& description() const { return this->m_desc; }
   int bin_num() const { return this->m_bin_num; }
   void set_number_of_bins(int bin_num) { this->m_bin_num = bin_num; }
 
@@ -138,7 +138,7 @@ class Observable : public ObservableBase {
  public:
   Observable() = default;
 
-  explicit Observable(std::string name, std::string_view desc,
+  explicit Observable(const std::string& name, const std::string& desc,
                       const std::function<Method>& method)
       : ObservableBase(name, desc), m_method(method) {}
 
