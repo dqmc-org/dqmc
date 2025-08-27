@@ -4,8 +4,6 @@
 
 namespace Lattice {
 
-using namespace std::literals;
-
 // high symmetry points in the reciprocal lattice
 LatticeInt Square::GammaPointIndex() const { return this->m_gamma_point_index; }
 
@@ -24,7 +22,7 @@ const LatticeIntVec& Square::Gamma2X2M2GammaLoopIndex() const {
 }
 
 void Square::output_lattice_info(std::ostream& ostream, int momentum_index) const {
-  auto fmt_str = [](std::string_view desc, std::string_view value) {
+  auto fmt_str = [](const std::string& desc, const std::string& value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
 
@@ -38,8 +36,8 @@ void Square::output_lattice_info(std::ostream& ostream, int momentum_index) cons
   const double py = (this->Index2Momentum(momentum_index, 1) / M_PI);
 
   ostream << "   Lattice: Square lattice\n"
-          << fmt_str("Size of cell"sv, fmt_cell(this->m_side_length))
-          << fmt_str("Momentum point"sv, fmt_momentum(px, py)) << std::flush;
+          << fmt_str("Size of cell", fmt_cell(this->m_side_length))
+          << fmt_str("Momentum point", fmt_momentum(px, py)) << std::flush;
 }
 
 void Square::set_lattice_params(const LatticeIntVec& side_length_vec) {

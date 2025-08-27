@@ -11,8 +11,6 @@
 #include <stdexcept>
 #include <string>
 
-using namespace std::literals;
-
 #include "checkerboard/checkerboard_base.h"
 #include "dqmc.h"
 #include "initializer.h"
@@ -297,7 +295,7 @@ int main(int argc, char* argv[]) {
   // output measuring results of the observables
 
   // helper lambda to output observable to files
-  auto output_observable_files = [&](const auto& obs, const std::string_view& obs_name) {
+  auto output_observable_files = [&](const auto& obs, const std::string& obs_name) {
     // output of means and errors
     outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, run_id), std::ios::trunc);
     DQMC::IO::output_observable_to_file(outfile, *obs);

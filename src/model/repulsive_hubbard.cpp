@@ -16,8 +16,6 @@ using RealScalar = double;
 using SpaceTimeMat = Eigen::MatrixXd;
 using SpaceSpaceMat = Eigen::MatrixXd;
 
-using namespace std::literals;
-
 RealScalar RepulsiveHubbard::HoppingT() const { return this->m_hopping_t; }
 
 RealScalar RepulsiveHubbard::ChemicalPotential() const { return this->m_chemical_potential; }
@@ -25,14 +23,14 @@ RealScalar RepulsiveHubbard::ChemicalPotential() const { return this->m_chemical
 RealScalar RepulsiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
 void RepulsiveHubbard::output_model_info(std::ostream& ostream) const {
-  auto fmt_double = [](std::string_view desc, double value) {
+  auto fmt_double = [](const std::string& desc, double value) {
     return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, "->", value);
   };
 
   ostream << "   Model: Repulsive Hubbard\n"
-          << fmt_double("Hopping constant 't'"sv, HoppingT())
-          << fmt_double("Onsite interaction 'U'"sv, OnSiteU())
-          << fmt_double("Checimcal potential 'mu'"sv, ChemicalPotential()) << std::endl;
+          << fmt_double("Hopping constant 't'", HoppingT())
+          << fmt_double("Onsite interaction 'U'", OnSiteU())
+          << fmt_double("Checimcal potential 'mu'", ChemicalPotential()) << std::endl;
 }
 
 void RepulsiveHubbard::output_configuration(std::ostream& ostream) const {

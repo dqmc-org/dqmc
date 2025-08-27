@@ -6,8 +6,6 @@
 #include "model/model_base.h"
 #include "walker.h"
 
-using namespace std::literals;
-
 namespace Measure {
 void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num, int bin_size,
                                         int sweeps_between_bins) {
@@ -261,25 +259,25 @@ void MeasureHandler::clear_temporary() {
 }
 
 void MeasureHandler::output_measuring_info(std::ostream& ostream, int world_size) const {
-  auto fmt_str = [](std::string_view desc, std::string_view value) {
+  auto fmt_str = [](const std::string& desc, const std::string& value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
 
-  auto fmt_int = [](std::string_view desc, int value) {
+  auto fmt_int = [](const std::string& desc, int value) {
     return std::format("{:>30s}{:>7s}{:>24d}\n", desc, "->", value);
   };
 
-  auto bool_to_str = [](bool b) { return b ? "True"sv : "False"sv; };
+  auto bool_to_str = [](bool b) { return b ? "True" : "False"; };
 
   ostream << "   Measuring Params:\n"
-          << fmt_str("Warm up"sv, bool_to_str(this->isWarmUp()))
-          << fmt_str("Equal-time measure"sv, bool_to_str(this->isEqualTime()))
-          << fmt_str("Dynamical measure"sv, bool_to_str(this->isDynamic())) << std::endl;
+          << fmt_str("Warm up", bool_to_str(this->isWarmUp()))
+          << fmt_str("Equal-time measure", bool_to_str(this->isEqualTime()))
+          << fmt_str("Dynamical measure", bool_to_str(this->isDynamic())) << std::endl;
 
-  ostream << fmt_int("Sweeps for warmup"sv, this->WarmUpSweeps())
-          << fmt_int("Number of bins"sv, this->BinsNum() * world_size)
-          << fmt_int("Sweeps per bin"sv, this->BinsSize())
-          << fmt_int("Sweeps between bins"sv, this->SweepsBetweenBins()) << std::endl;
+  ostream << fmt_int("Sweeps for warmup", this->WarmUpSweeps())
+          << fmt_int("Number of bins", this->BinsNum() * world_size)
+          << fmt_int("Sweeps per bin", this->BinsSize())
+          << fmt_int("Sweeps between bins", this->SweepsBetweenBins()) << std::endl;
 }
 
 }  // namespace Measure

@@ -9,8 +9,6 @@
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
 
-using namespace std::literals;
-
 namespace DQMC {
 
 // alias conventions
@@ -505,19 +503,19 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
 }
 
 void Walker::output_montecarlo_info(std::ostream& ostream) const {
-  auto fmt_double = [](std::string_view desc, double value) {
+  auto fmt_double = [](const std::string& desc, double value) {
     return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, "->", value);
   };
 
-  auto fmt_int = [](std::string_view desc, int value) {
+  auto fmt_int = [](const std::string& desc, int value) {
     return std::format("{:>30s}{:>7s}{:>24d}\n", desc, "->", value);
   };
 
   ostream << "   MonteCarlo Params:\n"
-          << fmt_double("Inverse temperature"sv, this->Beta())
-          << fmt_int("Imaginary-time length"sv, this->TimeSize())
-          << fmt_double("Imaginary-time interval"sv, this->TimeInterval())
-          << fmt_int("Stabilization pace"sv, this->StabilizationPace()) << std::endl;
+          << fmt_double("Inverse temperature", this->Beta())
+          << fmt_int("Imaginary-time length", this->TimeSize())
+          << fmt_double("Imaginary-time interval", this->TimeInterval())
+          << fmt_int("Stabilization pace", this->StabilizationPace()) << std::endl;
 }
 
 void Walker::output_imaginary_time_grids(std::ostream& ostream) const {

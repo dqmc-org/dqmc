@@ -19,8 +19,6 @@
 #include "utils/assert.h"
 #include "walker.h"
 
-using namespace std::literals;
-
 namespace DQMC {
 
 void Initializer::parse_config(const Config& config, int world_size, ModelBasePtr& model,

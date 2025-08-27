@@ -4,8 +4,6 @@
 
 namespace Lattice {
 
-using namespace std::literals;
-
 // high symmetry points in the reciprocal lattice
 LatticeInt Cubic::GammaPointIndex() const { return this->m_gamma_point_index; }
 
@@ -28,7 +26,7 @@ const LatticeIntVec& Cubic::SLineIndex() const { return this->m_s_line_index; }
 const LatticeIntVec& Cubic::TLineIndex() const { return this->m_t_line_index; }
 
 void Cubic::output_lattice_info(std::ostream& ostream, int momentum_index) const {
-  auto fmt_str = [](std::string_view desc, std::string_view value) {
+  auto fmt_str = [](const std::string& desc, const std::string& value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
   };
 
@@ -43,8 +41,8 @@ void Cubic::output_lattice_info(std::ostream& ostream, int momentum_index) const
   const double pz = (this->Index2Momentum(momentum_index, 2) / M_PI);
 
   ostream << "   Lattice: Cubic lattice\n"
-          << fmt_str("Size of cell"sv, fmt_cell(this->m_side_length))
-          << fmt_str("Momentum point"sv, fmt_momentum(px, py, pz)) << std::flush;
+          << fmt_str("Size of cell", fmt_cell(this->m_side_length))
+          << fmt_str("Momentum point", fmt_momentum(px, py, pz)) << std::flush;
 }
 
 void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {

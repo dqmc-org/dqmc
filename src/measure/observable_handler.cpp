@@ -16,8 +16,6 @@ auto make_observable(MethodFunc method) {
 }
 }  // namespace
 
-using namespace std::literals;
-
 // clang-format off
 const std::map<std::string, ObservableHandler::ObservableProperties> ObservableHandler::m_supported_observables = {
     // --- Equal-Time Observables ---

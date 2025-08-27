@@ -82,21 +82,21 @@ struct error_bar_calculator<
  */
 class ObservableBase {
  protected:
-  std::string_view m_name;  // name of the observable
-  std::string_view m_desc;  // description of the observable
+  std::string m_name;  // name of the observable
+  std::string m_desc;  // description of the observable
   int m_bin_num{0};         // total number of bins
   int m_count{0};           // countings within a bin
 
   ObservableBase() = default;
 
-  explicit ObservableBase(std::string_view name, std::string_view desc)
+  explicit ObservableBase(std::string name, std::string_view desc)
       : m_name(name), m_desc(desc) {}
 
  public:
   virtual ~ObservableBase() = default;
 
-  std::string_view name() const { return this->m_name; }
-  std::string_view description() const { return this->m_desc; }
+  std::string name() const { return this->m_name; }
+  std::string description() const { return this->m_desc; }
   int bin_num() const { return this->m_bin_num; }
   void set_number_of_bins(int bin_num) { this->m_bin_num = bin_num; }
 
@@ -138,7 +138,7 @@ class Observable : public ObservableBase {
  public:
   Observable() = default;
 
-  explicit Observable(std::string_view name, std::string_view desc,
+  explicit Observable(std::string name, std::string_view desc,
                       const std::function<Method>& method)
       : ObservableBase(name, desc), m_method(method) {}
 

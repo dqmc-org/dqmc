@@ -16,8 +16,6 @@ using RealScalar = double;
 using SpaceTimeMat = Eigen::MatrixXd;
 using SpaceSpaceMat = Eigen::MatrixXd;
 
-using namespace std::literals;
-
 RealScalar AttractiveHubbard::HoppingT() const { return this->m_hopping_t; }
 
 RealScalar AttractiveHubbard::ChemicalPotential() const { return this->m_chemical_potential; }
@@ -25,14 +23,14 @@ RealScalar AttractiveHubbard::ChemicalPotential() const { return this->m_chemica
 RealScalar AttractiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
 void AttractiveHubbard::output_model_info(std::ostream& ostream) const {
-  auto fmt_double = [](std::string_view desc, double value) {
+  auto fmt_double = [](const std::string& desc, double value) {
     return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, "->", value);
   };
 
   ostream << "   Model: Attractive Hubbard\n"
-          << fmt_double("Hopping constant 't'"sv, HoppingT())
-          << fmt_double("Onsite interaction 'U'"sv, OnSiteU())
-          << fmt_double("Checimcal potential 'mu'"sv, ChemicalPotential()) << std::endl;
+          << fmt_double("Hopping constant 't'", HoppingT())
+          << fmt_double("Onsite interaction 'U'", OnSiteU())
+          << fmt_double("Checimcal potential 'mu'", ChemicalPotential()) << std::endl;
 }
 
 void AttractiveHubbard::output_configuration(std::ostream& ostream) const {
