@@ -81,6 +81,7 @@ class SvdStack {
   VecSvd m_stack{};                  // Stack of SVD decompositions
   int m_mat_dim{};                   // Dimension of matrices (assumed square)
   std::vector<Matrix> m_prefix_v{};  // Prefix multiplication of V matrices
+  Matrix m_tmp_buffer{};             // Temporary buffer
 
  public:
   SvdStack() = default;

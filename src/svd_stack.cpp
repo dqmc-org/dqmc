@@ -25,6 +25,7 @@ using Vector = Eigen::VectorXd;
 SvdStack::SvdStack(int mat_dim, int stack_length) : m_mat_dim(mat_dim) {
   this->m_stack.reserve(stack_length);
   this->m_prefix_v.reserve(stack_length);
+  this->m_temp_buffer = Matrix(mat_dim, mat_dim);
 }
 
 // Basic stack state queries
@@ -57,8 +58,8 @@ void SvdStack::push(const Matrix& matrix) {
     // 1. First multiply matrix * U (preserves orthogonality)
     // 2. Then scale by singular values S
     // 3. Finally compute SVD of the combined result
-    Matrix tmp = (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
-    Utils::LinearAlgebra::dgesvd(tmp, svd.MatrixU(), svd.SingularValues(), svd.MatrixV());
+    m_tmp_buffer.noalias() = (matrix * this->MatrixU()) * this->SingularValues().asDiagonal();
+    Utils::LinearAlgebra::dgesvd(m_tmp_buffer, svd.MatrixU(), svd.SingularValues(), svd.MatrixV());
     this->m_prefix_v.push_back(this->m_prefix_v.back() * svd.MatrixV());
   }
   this->m_stack.push_back(std::move(svd));
