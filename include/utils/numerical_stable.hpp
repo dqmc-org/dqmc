@@ -10,6 +10,7 @@
 #include <Eigen/LU>
 #include <Eigen/QR>
 
+#include "linear_algebra.hpp"
 #include "svd_stack.h"
 
 namespace Utils {
@@ -235,7 +236,8 @@ class NumericalStable {
     scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
 
     tmp = Atmp + Btmp;
-    mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
+    // mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
+    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, tmp, ur * drmax.asDiagonal().inverse());
 
     // finally obtain gtt
     mult_v_invd_u(Atmp, dlmax, ul.transpose(), gtt);
@@ -303,7 +305,8 @@ class NumericalStable {
     scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
 
     tmp = Atmp + Btmp;
-    mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
+    // mult_v_invd_u(ur, drmax, tmp.inverse(), Atmp);
+    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, tmp, ur * drmax.asDiagonal().inverse());
     mult_v_d_u(Atmp, dlmin, vl.transpose(), gt0);
 
     // compute g0t
@@ -316,7 +319,8 @@ class NumericalStable {
     scale_Xtmp_Ytmp_dl_dr(Xtmp, Ytmp, drmax, dlmax, drmin, dlmin);
 
     tmp = Xtmp + Ytmp;
-    mult_v_invd_u(-vl, dlmax, tmp.inverse(), Xtmp);
+    // mult_v_invd_u(-vl, dlmax, tmp.inverse(), Xtmp);
+    Utils::LinearAlgebra::solve_X_times_A_eq_B(Xtmp, tmp, (-vl) * dlmax.asDiagonal().inverse());
     mult_v_d_u(Xtmp, drmin, ur.transpose(), g0t);
   }
 };
