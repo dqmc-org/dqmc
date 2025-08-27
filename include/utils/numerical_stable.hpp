@@ -23,6 +23,13 @@ struct GreensWorkspace {
 
   Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr_solver;
 
+  GreensWorkspace() = default;
+  ~GreensWorkspace() = default;
+  GreensWorkspace(const GreensWorkspace&) = delete;
+  GreensWorkspace& operator=(const GreensWorkspace&) = delete;
+  GreensWorkspace(GreensWorkspace&&) = default;
+  GreensWorkspace& operator=(GreensWorkspace&&) = default;
+
   void resize(int n) {
     if (ndim == n) return;
     ndim = n;
