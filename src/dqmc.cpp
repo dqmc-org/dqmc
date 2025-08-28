@@ -101,7 +101,11 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
     m_model->set_bosonic_fields_to_random(m_rng);
     std::cout << ">> Configurations of the bosonic fields set to random.\n" << std::endl;
   } else {
-    IO::read_bosonic_fields_from_file(config.fields_file, *m_model);
+    std::ifstream infile(config.fields_file, std::ios::in);
+    if (!infile.is_open()) {
+      throw std::runtime_error("Dqmc::Dqmc(): failed to open fields file");
+    }
+    m_model->read_auxiliary_field_from_stream(infile);
     std::cout << ">> Configurations of the bosonic fields read from the input config file.\n"
               << std::endl;
   }

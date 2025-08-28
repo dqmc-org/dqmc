@@ -69,10 +69,6 @@ class IO {
   // output the current configuration the bosonic fields,
   // depending on specific model type
   static void output_bosonic_fields(std::ostream& ostream, const ModelBase& model);
-
-  // read the configuration of the bosonic fields from input file
-  // depending on specific model type
-  static void read_bosonic_fields_from_file(const std::string& filename, ModelBase& model);
 };
 
 // -------------------------------------------------------------------------------------------------------

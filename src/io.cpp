@@ -40,24 +40,6 @@ void IO::output_ending_info(std::ostream& ostream, const Walker& walker,
   ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n", walker.WrapError());
 }
 
-void IO::read_bosonic_fields_from_file(const std::string& filename, ModelBase& model) {
-  std::ifstream infile(filename, std::ios::in);
-
-  if (!infile.is_open()) {
-    throw std::runtime_error("DQMC::IO::read_bosonic_fields_from_file(): fail to open file '" +
-                             filename + "'.");
-  }
-
-  try {
-    model.read_auxiliary_field_from_stream(infile);
-  } catch (const std::exception& e) {
-    infile.close();
-    throw std::runtime_error("DQMC::IO::read_bosonic_fields_from_file(): " + std::string(e.what()));
-  }
-
-  infile.close();
-}
-
 void IO::output_bosonic_fields(std::ostream& ostream, const ModelBase& model) {
   if (!ostream) {
     throw std::runtime_error("DQMC::IO::output_bosonic_fields(): output stream is not valid.");
