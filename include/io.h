@@ -59,16 +59,6 @@ class IO {
   template <typename ObsType>
   static void output_observable_in_bins_to_file(std::ofstream& ostream,
                                                 const Observable::Observable<ObsType>& obs);
-
-  // output list of inequivalent momentum points ( k stars )
-  static void output_k_stars(std::ostream& ostream, const LatticeBase& lattice);
-
-  // output imgainary-time grids
-  static void output_imaginary_time_grids(std::ostream& ostream, const Walker& walker);
-
-  // output the current configuration the bosonic fields,
-  // depending on specific model type
-  static void output_bosonic_fields(std::ostream& ostream, const ModelBase& model);
 };
 
 // -------------------------------------------------------------------------------------------------------

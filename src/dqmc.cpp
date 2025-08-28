@@ -33,7 +33,8 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
     DQMC_ASSERT(config.lattice_size.size() == 3);
     m_lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
   } else {
-    throw std::runtime_error("DQMC::Dqmc: unsupported lattice type");
+    throw std::runtime_error(
+        dqmc_format_error("unsupported lattice type: {}", config.lattice_type));
   }
 
   // 2. Validate observables against lattice type
@@ -52,8 +53,8 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
     momentum_list_indices = m_lattice->momentum_lists().at(config.momentum_list);
   } catch (const std::out_of_range& e) {
     throw std::runtime_error(
-        std::format("DQMC: unknown momentum point '{}' or list '{}' for {} lattice",
-                    config.momentum, config.momentum_list, config.lattice_type));
+        dqmc_format_error("unknown momentum point '{}' or list '{}' for {} lattice",
+                          config.momentum, config.momentum_list, config.lattice_type));
   }
 
   // 4. Create MeasureHandler
@@ -76,7 +77,7 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
                                                          config.chemical_potential);
     m_model->initial(*m_lattice, *m_walker);
   } else {
-    throw std::runtime_error("DQMC::Dqmc: undefined model type");
+    throw std::runtime_error(dqmc_format_error("undefined model type: {}", config.model_type));
   }
 
   // 7. Create CheckerBoard if enabled
@@ -85,7 +86,7 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
       m_checkerboard = std::make_unique<CheckerBoard::Square>(*m_lattice, *m_model, *m_walker);
     } else {
       throw std::runtime_error(
-          "DQMC::Dqmc: checkerboard is currently only implemented for 2d square lattice");
+          dqmc_format_error("checkerboard is currently only implemented for 2d square lattice"));
     }
   }
 
@@ -103,7 +104,7 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
   } else {
     std::ifstream infile(config.fields_file, std::ios::in);
     if (!infile.is_open()) {
-      throw std::runtime_error("Dqmc::Dqmc(): failed to open fields file");
+      throw std::runtime_error("Dqmc::Dqmc(): failed to open file");
     }
     m_model->read_auxiliary_field_from_stream(infile);
     std::cout << ">> Configurations of the bosonic fields read from the input config file.\n"
@@ -128,28 +129,36 @@ void Dqmc::write_results(const std::string& out_path) const {
   std::ofstream outfile;
 
   // Output bosonic fields
-  const auto fields_out = std::format("{}/bosonic_fields_{}.out", out_path, m_seed);
-  outfile.open(fields_out, std::ios::trunc);
-  IO::output_bosonic_fields(outfile, model());
+  outfile.open(std::format("{}/bosonic_fields_{}.out", out_path, m_seed));
+  if (!outfile.is_open()) {
+    throw std::runtime_error(dqmc_format_error("failed to open file"));
+  }
+  m_model->output_configuration(outfile);
   outfile.close();
 
   // Output k stars
-  outfile.open(std::format("{}/kstars.out", out_path), std::ios::trunc);
-  IO::output_k_stars(outfile, lattice());
+  outfile.open(std::format("{}/kstars.out", out_path));
+  if (!outfile.is_open()) {
+    throw std::runtime_error(dqmc_format_error("failed to open file"));
+  }
+  m_lattice->output_k_points(outfile);
   outfile.close();
 
   // Output imaginary-time grids
-  outfile.open(std::format("{}/imaginary_time_grids.out", out_path), std::ios::trunc);
-  IO::output_imaginary_time_grids(outfile, walker());
+  outfile.open(std::format("{}/imaginary_time_grids.out", out_path));
+  if (!outfile.is_open()) {
+    throw std::runtime_error(dqmc_format_error("failed to open file"));
+  }
+  m_walker->output_imaginary_time_grids(outfile);
   outfile.close();
 
   // Helper lambda for observables
   auto output_observable_files = [&](const auto& obs, const std::string_view& obs_name) {
-    outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, m_seed), std::ios::trunc);
+    outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, m_seed));
     IO::output_observable_to_file(outfile, *obs);
     outfile.close();
 
-    outfile.open(std::format("{}/{}.bins.out", out_path, obs_name), std::ios::trunc);
+    outfile.open(std::format("{}/{}.bins.out", out_path, obs_name));
     IO::output_observable_in_bins_to_file(outfile, *obs);
     outfile.close();
   };

@@ -39,30 +39,4 @@ void IO::output_ending_info(std::ostream& ostream, const Walker& walker,
 
   ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n", walker.WrapError());
 }
-
-void IO::output_bosonic_fields(std::ostream& ostream, const ModelBase& model) {
-  if (!ostream) {
-    throw std::runtime_error("DQMC::IO::output_bosonic_fields(): output stream is not valid.");
-  }
-  model.output_configuration(ostream);
-}
-
-void IO::output_k_stars(std::ostream& ostream, const LatticeBase& lattice) {
-  if (!ostream) {
-    throw std::runtime_error(
-        "IO::output_k_points(): "
-        "output stream is not valid.");
-  }
-  lattice.output_k_points(ostream);
-}
-
-void IO::output_imaginary_time_grids(std::ostream& ostream, const Walker& walker) {
-  if (!ostream) {
-    throw std::runtime_error(
-        "DQMC::IO::output_imaginary_time_grids(): "
-        "output stream is not valid.");
-  }
-  walker.output_imaginary_time_grids(ostream);
-}
-
 }  // namespace DQMC
