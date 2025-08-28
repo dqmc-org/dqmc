@@ -26,23 +26,23 @@ namespace DQMC {
 
 Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) {
   // 1. Create all modules from config
-  m_context = parse_config(config);
+  create_modules(config);
 
   // 2. Initialize and link modules
-  initial_modules(m_context);
+  initialize_modules();
 
   // 3. Initialize auxiliary fields
   if (config.fields_file.empty()) {
-    m_context.model->set_bosonic_fields_to_random(m_rng);
+    m_model->set_bosonic_fields_to_random(m_rng);
     std::cout << ">> Configurations of the bosonic fields set to random.\n" << std::endl;
   } else {
-    IO::read_bosonic_fields_from_file(config.fields_file, *m_context.model);
+    IO::read_bosonic_fields_from_file(config.fields_file, *m_model);
     std::cout << ">> Configurations of the bosonic fields read from the input config file.\n"
               << std::endl;
   }
 
   // 4. Final DQMC preparations
-  initial_dqmc(m_context);
+  initialize_dqmc();
 
   std::cout << ">> Initialization finished. \n\n"
             << ">> The simulation is going to get started with parameters shown below :\n"
@@ -120,44 +120,42 @@ std::chrono::milliseconds Dqmc::timer_as_duration() const {
 }
 
 // ------------------------------------ Accessors for I/O -------------------------------------
-const Model::ModelBase& Dqmc::model() const { return *m_context.model; }
-const Lattice::LatticeBase& Dqmc::lattice() const { return *m_context.lattice; }
-const Walker& Dqmc::walker() const { return *m_context.walker; }
-const Measure::MeasureHandler& Dqmc::handler() const { return *m_context.handler; }
-const CheckerBoard::CheckerBoardBase* Dqmc::checkerboard() const {
-  return m_context.checkerboard.get();
-}
+const Model::ModelBase& Dqmc::model() const { return *m_model; }
+const Lattice::LatticeBase& Dqmc::lattice() const { return *m_lattice; }
+const Walker& Dqmc::walker() const { return *m_walker; }
+const Measure::MeasureHandler& Dqmc::handler() const { return *m_handler; }
+const CheckerBoard::CheckerBoardBase* Dqmc::checkerboard() const { return m_checkerboard.get(); }
 
 // -----------------------------------  Implementation of private methods
 // --------------------------------------
 
 void Dqmc::sweep_forth_and_back() {
-  if (m_context.handler->isDynamic()) {
-    m_context.walker->sweep_for_dynamic_greens(*m_context.model);
-    m_context.handler->dynamic_measure(*m_context.walker, *m_context.model, *m_context.lattice);
+  if (m_handler->isDynamic()) {
+    m_walker->sweep_for_dynamic_greens(*m_model);
+    m_handler->dynamic_measure(*m_walker, *m_model, *m_lattice);
   } else {
-    m_context.walker->sweep_from_0_to_beta(*m_context.model, m_rng);
-    if (m_context.handler->isEqualTime()) {
-      m_context.handler->equaltime_measure(*m_context.walker, *m_context.model, *m_context.lattice);
+    m_walker->sweep_from_0_to_beta(*m_model, m_rng);
+    if (m_handler->isEqualTime()) {
+      m_handler->equaltime_measure(*m_walker, *m_model, *m_lattice);
     }
   }
-  m_context.walker->sweep_from_beta_to_0(*m_context.model, m_rng);
-  if (m_context.handler->isEqualTime()) {
-    m_context.handler->equaltime_measure(*m_context.walker, *m_context.model, *m_context.lattice);
+  m_walker->sweep_from_beta_to_0(*m_model, m_rng);
+  if (m_handler->isEqualTime()) {
+    m_handler->equaltime_measure(*m_walker, *m_model, *m_lattice);
   }
 }
 
 void Dqmc::thermalize() {
-  if (m_context.handler->isWarmUp()) {
+  if (m_handler->isWarmUp()) {
     // create progress bar
-    ProgressBar progressbar(m_context.handler->WarmUpSweeps() / 2, m_progress_bar_width,
+    ProgressBar progressbar(m_handler->WarmUpSweeps() / 2, m_progress_bar_width,
                             m_progress_bar_complete_char, m_progress_bar_incomplete_char);
 
     // warm-up sweeps
-    for (auto sweep = 1; sweep <= m_context.handler->WarmUpSweeps() / 2; ++sweep) {
+    for (auto sweep = 1; sweep <= m_handler->WarmUpSweeps() / 2; ++sweep) {
       // sweep forth and back without measuring
-      m_context.walker->sweep_from_0_to_beta(*m_context.model, m_rng);
-      m_context.walker->sweep_from_beta_to_0(*m_context.model, m_rng);
+      m_walker->sweep_from_0_to_beta(*m_model, m_rng);
+      m_walker->sweep_from_beta_to_0(*m_model, m_rng);
 
       // record the tick
       ++progressbar;
@@ -176,15 +174,14 @@ void Dqmc::thermalize() {
 }
 
 void Dqmc::measure() {
-  if (m_context.handler->isEqualTime() || m_context.handler->isDynamic()) {
+  if (m_handler->isEqualTime() || m_handler->isDynamic()) {
     // create progress bar
-    ProgressBar progressbar(m_context.handler->BinsNum() * m_context.handler->BinsSize() / 2,
-                            m_progress_bar_width, m_progress_bar_complete_char,
-                            m_progress_bar_incomplete_char);
+    ProgressBar progressbar(m_handler->BinsNum() * m_handler->BinsSize() / 2, m_progress_bar_width,
+                            m_progress_bar_complete_char, m_progress_bar_incomplete_char);
 
     // measuring sweeps
-    for (auto bin = 0; bin < m_context.handler->BinsNum(); ++bin) {
-      for (auto sweep = 1; sweep <= m_context.handler->BinsSize() / 2; ++sweep) {
+    for (auto bin = 0; bin < m_handler->BinsNum(); ++bin) {
+      for (auto sweep = 1; sweep <= m_handler->BinsSize() / 2; ++sweep) {
         // update and measure
         sweep_forth_and_back();
 
@@ -197,14 +194,14 @@ void Dqmc::measure() {
       }
 
       // store the collected data in the MeasureHandler
-      m_context.handler->normalize_stats();
-      m_context.handler->write_stats_to_bins(bin);
-      m_context.handler->clear_temporary();
+      m_handler->normalize_stats();
+      m_handler->write_stats_to_bins(bin);
+      m_handler->clear_temporary();
 
       // avoid correlations between adjoining bins
-      for (auto sweep = 0; sweep < m_context.handler->SweepsBetweenBins() / 2; ++sweep) {
-        m_context.walker->sweep_from_0_to_beta(*m_context.model, m_rng);
-        m_context.walker->sweep_from_beta_to_0(*m_context.model, m_rng);
+      for (auto sweep = 0; sweep < m_handler->SweepsBetweenBins() / 2; ++sweep) {
+        m_walker->sweep_from_0_to_beta(*m_model, m_rng);
+        m_walker->sweep_from_beta_to_0(*m_model, m_rng);
       }
     }
 
@@ -216,38 +213,35 @@ void Dqmc::measure() {
   }
 }
 
-void Dqmc::analyse() { m_context.handler->analyse_stats(); }
+void Dqmc::analyse() { m_handler->analyse_stats(); }
 
-Context Dqmc::parse_config(const Config& config) {
-  Context context;
-
+void Dqmc::create_modules(const Config& config) {
   // 1. Create Lattice
   if (config.lattice_type == "Square") {
     DQMC_ASSERT(config.lattice_size.size() == 2);
-    context.lattice = std::make_unique<Lattice::Square>(config.lattice_size);
+    m_lattice = std::make_unique<Lattice::Square>(config.lattice_size);
   } else if (config.lattice_type == "Cubic") {
     DQMC_ASSERT(config.lattice_size.size() == 3);
-    context.lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
+    m_lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
   } else if (config.lattice_type == "Honeycomb") {
     throw std::runtime_error("Honeycomb lattice is not supported.");
   } else {
-    throw std::runtime_error("DQMC::Dqmc::parse_config(): unsupported lattice type");
+    throw std::runtime_error("DQMC::Dqmc::create_modules(): unsupported lattice type");
   }
 
   // 2. Create Model
   if (config.model_type == "RepulsiveHubbard") {
-    context.model = std::make_unique<Model::RepulsiveHubbard>(config.hopping_t, config.onsite_u,
-                                                              config.chemical_potential);
+    m_model = std::make_unique<Model::RepulsiveHubbard>(config.hopping_t, config.onsite_u,
+                                                        config.chemical_potential);
   } else if (config.model_type == "AttractiveHubbard") {
-    context.model = std::make_unique<Model::AttractiveHubbard>(config.hopping_t, config.onsite_u,
-                                                               config.chemical_potential);
+    m_model = std::make_unique<Model::AttractiveHubbard>(config.hopping_t, config.onsite_u,
+                                                         config.chemical_potential);
   } else {
-    throw std::runtime_error("DQMC::Dqmc::parse_config(): undefined model type");
+    throw std::runtime_error("DQMC::Dqmc::create_modules(): undefined model type");
   }
 
   // 3. Create Walker
-  context.walker =
-      std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);
+  m_walker = std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);
 
   // 4. Determine Momentum Indices for MeasureHandler
   if (config.lattice_type == "Honeycomb") {
@@ -257,12 +251,12 @@ Context Dqmc::parse_config(const Config& config) {
   int momentum_idx;
   std::vector<int> momentum_list_indices;
   try {
-    momentum_idx = context.lattice->momentum_points().at(config.momentum);
-    momentum_list_indices = context.lattice->momentum_lists().at(config.momentum_list);
+    momentum_idx = m_lattice->momentum_points().at(config.momentum);
+    momentum_list_indices = m_lattice->momentum_lists().at(config.momentum_list);
   } catch (const std::out_of_range& e) {
-    throw std::runtime_error(
-        std::format("DQMC::parse_config(): unknown momentum point '{}' or list '{}' for {} lattice",
-                    config.momentum, config.momentum_list, config.lattice_type));
+    throw std::runtime_error(std::format(
+        "DQMC::create_modules(): unknown momentum point '{}' or list '{}' for {} lattice",
+        config.momentum, config.momentum_list, config.lattice_type));
   }
 
   // 5. Validate observables against lattice type
@@ -274,46 +268,43 @@ Context Dqmc::parse_config(const Config& config) {
   }
 
   // 6. Create MeasureHandler
-  context.handler = std::make_unique<Measure::MeasureHandler>(
+  m_handler = std::make_unique<Measure::MeasureHandler>(
       config.sweeps_warmup, config.bin_num, config.bin_size, config.sweeps_between_bins,
       config.observables, momentum_idx, momentum_list_indices);
 
   // 7. Create CheckerBoard if enabled
   if (config.enable_checkerboard) {
     if (config.lattice_type == "Square") {
-      context.checkerboard =
-          std::make_unique<CheckerBoard::Square>(*context.lattice, *context.model, *context.walker);
+      m_checkerboard = std::make_unique<CheckerBoard::Square>(*m_lattice, *m_model, *m_walker);
     } else {
       throw std::runtime_error(
-          "DQMC::Dqmc::parse_config(): "
+          "DQMC::Dqmc::create_modules(): "
           "checkerboard is currently only implemented for 2d square lattice");
     }
   }
-
-  return context;
 }
 
-void Dqmc::initial_modules(const Context& context) {
+void Dqmc::initialize_modules() {
   // NOTE: The order of initializations below remains important for inter-linking.
-  DQMC_ASSERT(context.lattice->InitialStatus());
+  DQMC_ASSERT(m_lattice->InitialStatus());
 
-  context.handler->initial(*context.lattice, *context.walker);
-  context.walker->initial(*context.lattice, *context.handler);
-  context.model->initial(*context.lattice, *context.walker);
+  m_handler->initial(*m_lattice, *m_walker);
+  m_walker->initial(*m_lattice, *m_handler);
+  m_model->initial(*m_lattice, *m_walker);
 
   // Link checkerboard to the model if it exists
-  if (context.checkerboard) {
-    context.model->link(*context.checkerboard);
+  if (m_checkerboard) {
+    m_model->link(*m_checkerboard);
   } else {
-    context.model->link();
+    m_model->link();
   }
 }
 
-void Dqmc::initial_dqmc(const Context& context) {
+void Dqmc::initialize_dqmc() {
   // NOTE: this should be called after the initial configuration of the bosonic
   // fields.
-  context.walker->initial_svd_stacks(*context.lattice, *context.model);
-  context.walker->initial_greens_functions();
-  context.walker->initial_config_sign();
+  m_walker->initial_svd_stacks(*m_lattice, *m_model);
+  m_walker->initial_greens_functions();
+  m_walker->initial_config_sign();
 }
 }  // namespace DQMC

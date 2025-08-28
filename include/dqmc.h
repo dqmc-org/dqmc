@@ -69,21 +69,6 @@ struct Config {
   std::string momentum_list;
 };
 
-struct Context {
-  std::unique_ptr<Model::ModelBase> model;
-  std::unique_ptr<Lattice::LatticeBase> lattice;
-  std::unique_ptr<Walker> walker;
-  std::unique_ptr<Measure::MeasureHandler> handler;
-  std::unique_ptr<CheckerBoard::CheckerBoardBase> checkerboard;
-
-  Context() = default;
-  ~Context() = default;
-  Context(const Context&) = delete;
-  Context& operator=(const Context&) = delete;
-  Context(Context&&) = default;
-  Context& operator=(Context&&) = default;
-};
-
 class Dqmc {
  public:
   explicit Dqmc(const Config& config);
@@ -113,12 +98,17 @@ class Dqmc {
   void sweep_forth_and_back();
 
   // Initialization logic moved from the Initializer class
-  static Context parse_config(const Config& config);
-  static void initial_modules(const Context& context);
-  static void initial_dqmc(const Context& context);
+  void create_modules(const Config& config);
+  void initialize_modules();
+  void initialize_dqmc();
 
   // ------------------------------------ Member Variables
-  Context m_context;
+  std::unique_ptr<Model::ModelBase> m_model;
+  std::unique_ptr<Lattice::LatticeBase> m_lattice;
+  std::unique_ptr<Walker> m_walker;
+  std::unique_ptr<Measure::MeasureHandler> m_handler;
+  std::unique_ptr<CheckerBoard::CheckerBoardBase> m_checkerboard;
+
   std::default_random_engine m_rng;
   int m_seed;
 
