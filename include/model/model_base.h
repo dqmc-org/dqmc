@@ -164,7 +164,7 @@ class ModelBase {
 
   // return the updating ratio of one step of the local dqmc update
   // which is model-dependent
-  virtual double get_update_ratio(Walker& walker, TimeIndex time_index,
+  virtual double get_update_ratio(const Walker& walker, TimeIndex time_index,
                                   SpaceIndex space_index) const = 0;
 
   // transform the equal-time green's functions

@@ -130,7 +130,7 @@ void AttractiveHubbard::update_bosonic_field(TimeIndex time_index, SpaceIndex sp
   this->m_bosonic_field(time_index, space_index) = -this->m_bosonic_field(time_index, space_index);
 }
 
-double AttractiveHubbard::get_update_ratio(Walker& walker, TimeIndex time_index,
+double AttractiveHubbard::get_update_ratio(const Walker& walker, TimeIndex time_index,
                                            SpaceIndex space_index) const {
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);

@@ -94,7 +94,7 @@ class AttractiveHubbard : public ModelBase {
   void update_bosonic_field(TimeIndex time_index, SpaceIndex space_index) override;
   void update_greens_function(Walker& walker, TimeIndex time_index,
                               SpaceIndex space_index) override;
-  double get_update_ratio(Walker& walker, TimeIndex time_index,
+  double get_update_ratio(const Walker& walker, TimeIndex time_index,
                           SpaceIndex space_index) const override;
 
   // -------------------------------------- Warpping methods
