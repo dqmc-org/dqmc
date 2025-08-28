@@ -22,14 +22,9 @@ class Walker;
 
 namespace Measure {
 
-using ObsList = std::vector<std::string>;
 using ModelBase = Model::ModelBase;
 using LatticeBase = Lattice::LatticeBase;
 using Walker = DQMC::Walker;
-using MatrixType = Eigen::MatrixXd;
-using VectorType = Eigen::VectorXd;
-using MomentumIndex = int;
-using MomentumIndexList = std::vector<int>;
 
 // -----------------------------------  Handler class Measure::MeasureHandler
 // ---------------------------------
@@ -45,16 +40,16 @@ class MeasureHandler : public Observable::ObservableHandler {
   int m_sweeps_between_bins{};  // number of the MC sweeps between two adjoining
                                 // bins
 
-  ObsList m_obs_list{};  // list of observables to be measured
+  std::vector<std::string> m_obs_list{};  // list of observables to be measured
 
   // lattice momentum for the momentum-dependent measurements
-  MomentumIndex m_momentum{};
-  MomentumIndexList m_momentum_list{};
+  int m_momentum{};
+  std::vector<int> m_momentum_list{};
 
  public:
   explicit MeasureHandler(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins,
-                          const ObsList& observables, MomentumIndex measured_momentum_idx,
-                          const MomentumIndexList& measured_momentum_list);
+                          const std::vector<std::string>& observables, int measured_momentum_idx,
+                          const std::vector<int>& measured_momentum_list);
 
   MeasureHandler() = delete;
   MeasureHandler(const MeasureHandler&) = delete;
@@ -68,12 +63,12 @@ class MeasureHandler : public Observable::ObservableHandler {
 
   void set_measure_params(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins);
 
-  void set_observables(ObsList obs_list);
+  void set_observables(const std::vector<std::string>& obs_list);
 
   // set up lattice momentum params for momentum-dependent measurements
   // the input momentum list should be provided by Lattice module
-  void set_measured_momentum(MomentumIndex momentum_index);
-  void set_measured_momentum_list(const MomentumIndexList& momentum_index_list);
+  void set_measured_momentum(int momentum_index);
+  void set_measured_momentum_list(const std::vector<int>& momentum_index_list);
 
  public:
   // ------------------------------------  Initializations
@@ -95,16 +90,16 @@ class MeasureHandler : public Observable::ObservableHandler {
   int BinsNum() const { return this->m_bin_num; }
   int BinsSize() const { return this->m_bin_size; }
 
-  MomentumIndex Momentum() const { return this->m_momentum; }
+  int Momentum() const { return this->m_momentum; }
 
-  const MomentumIndexList& MomentumList() const { return this->m_momentum_list; }
+  const std::vector<int>& MomentumList() const { return this->m_momentum_list; }
 
-  MomentumIndex MomentumList(const int i) const {
+  int MomentumList(const int i) const {
     DQMC_ASSERT(i >= 0 && i < (int)this->m_momentum_list.size());
     return this->m_momentum_list[i];
   }
 
-  const ObsList& ObservablesList() const { return this->m_obs_list; }
+  const std::vector<std::string>& ObservablesList() const { return this->m_obs_list; }
 
   // --------------------------  Subroutines for measuring observables
   // ---------------------------------

@@ -10,9 +10,9 @@
 namespace Measure {
 
 MeasureHandler::MeasureHandler(int sweeps_warmup, int bin_num, int bin_size,
-                               int sweeps_between_bins, const ObsList& observables,
-                               MomentumIndex measured_momentum_idx,
-                               const MomentumIndexList& measured_momentum_list) {
+                               int sweeps_between_bins, const std::vector<std::string>& observables,
+                               int measured_momentum_idx,
+                               const std::vector<int>& measured_momentum_list) {
   set_measure_params(sweeps_warmup, bin_num, bin_size, sweeps_between_bins);
   set_observables(observables);
   set_measured_momentum(measured_momentum_idx);
@@ -31,13 +31,15 @@ void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num, int bin_
   this->m_sweeps_between_bins = sweeps_between_bins;
 }
 
-void MeasureHandler::set_observables(ObsList obs_list) { this->m_obs_list = obs_list; }
+void MeasureHandler::set_observables(const std::vector<std::string>& obs_list) {
+  this->m_obs_list = obs_list;
+}
 
-void MeasureHandler::set_measured_momentum(MomentumIndex momentum_index) {
+void MeasureHandler::set_measured_momentum(int momentum_index) {
   this->m_momentum = momentum_index;
 }
 
-void MeasureHandler::set_measured_momentum_list(const MomentumIndexList& momentum_index_list) {
+void MeasureHandler::set_measured_momentum_list(const std::vector<int>& momentum_index_list) {
   this->m_momentum_list = momentum_index_list;
 }
 
@@ -62,13 +64,14 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
       // note that the dimensions of the observable should be adjusted or
       // specialized here
-      vector_obs->set_zero_element(VectorType::Zero(time_size));
+      vector_obs->set_zero_element(Eigen::VectorXd::Zero(time_size));
       vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
       // specialize dimensions for certain observables if needed
-      matrix_obs->set_zero_element(MatrixType::Zero(lattice.space_size(), lattice.space_size()));
+      matrix_obs->set_zero_element(
+          Eigen::MatrixXd::Zero(lattice.space_size(), lattice.space_size()));
       matrix_obs->set_number_of_bins(this->m_bin_num);
       matrix_obs->allocate();
     }
@@ -83,7 +86,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
       // specialize dimensions for certain observables if needed
-      vector_obs->set_zero_element(VectorType::Zero(time_size));
+      vector_obs->set_zero_element(Eigen::VectorXd::Zero(time_size));
       vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
@@ -92,12 +95,14 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
       if (matrix_obs->name() == "greens_functions") {
         // for greens function measure, the rows represent different lattice
         // momentum and the columns represent imaginary-time grids.
-        matrix_obs->set_zero_element(MatrixType::Zero(this->m_momentum_list.size(), time_size));
+        matrix_obs->set_zero_element(
+            Eigen::MatrixXd::Zero(this->m_momentum_list.size(), time_size));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       } else {
         // otherwise initialize by default
-        matrix_obs->set_zero_element(MatrixType::Zero(lattice.space_size(), lattice.space_size()));
+        matrix_obs->set_zero_element(
+            Eigen::MatrixXd::Zero(lattice.space_size(), lattice.space_size()));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       }
