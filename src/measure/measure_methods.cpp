@@ -141,7 +141,7 @@ void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
                                             const MeasureContext& ctx) {
   const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
-  const int K_vector = ctx.handler.Momentum();
+  const int K_vector = ctx.handler.momentum();
   const double norm_factor = 0.5 / static_cast<double>(space_size);
 
   double total_sum = 0.0;
@@ -172,7 +172,7 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
                                                     const MeasureContext& ctx) {
   const int space_size = ctx.lattice.space_size();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
-  const int K_vector = ctx.handler.Momentum();
+  const int K_vector = ctx.handler.momentum();
 
   MatrixType guc(space_size, space_size);
   MatrixType gdc(space_size, space_size);
@@ -212,7 +212,7 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
                                                       const MeasureContext& ctx) {
   const int space_size = ctx.lattice.space_size();
   const int time_size = ctx.walker.time_size();
-  const int K_vector = ctx.handler.Momentum();
+  const int K_vector = ctx.handler.momentum();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
 
   std::vector<double> n_up(space_size);
@@ -311,7 +311,7 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
                                        const MeasureContext& ctx) {
   const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
-  const int num_momenta = ctx.handler.MomentumList().size();
+  const int num_momenta = ctx.handler.momentum_list().size();
   const double config_sign = ctx.walker.config_sign();
   const double prefactor = config_sign / static_cast<double>(space_size);
 
@@ -323,7 +323,7 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
         (t == 0) ? ctx.walker.green_tt_down(tau) : ctx.walker.green_t0_down(tau);
 
     for (auto k = 0; k < num_momenta; ++k) {
-      const auto& K_vector = ctx.handler.MomentumList(k);
+      const auto& K_vector = ctx.handler.momentum_list(k);
 
       double current_k_t_sum = 0.0;
 

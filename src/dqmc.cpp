@@ -160,7 +160,7 @@ void Dqmc::write_results(const std::string& out_path) const {
   };
 
   // Iterate and output all observables
-  for (const auto& obs_name : handler().ObservablesList()) {
+  for (const auto& obs_name : handler().observables_list()) {
     if (auto obs = handler().find<Observable::Scalar>(obs_name)) {
       output_observable_files(obs, obs_name);
     } else if (auto obs = handler().find<Observable::Vector>(obs_name)) {
@@ -202,29 +202,29 @@ const CheckerBoard::CheckerBoardBase* Dqmc::checkerboard() const { return m_chec
 // --------------------------------------
 
 void Dqmc::sweep_forth_and_back() {
-  if (m_handler->isDynamic()) {
+  if (m_handler->is_dynamic()) {
     m_walker->sweep_for_dynamic_greens(*m_model);
     m_handler->dynamic_measure(*m_walker, *m_model, *m_lattice);
   } else {
     m_walker->sweep_from_0_to_beta(*m_model, m_rng);
-    if (m_handler->isEqualTime()) {
+    if (m_handler->is_equaltime()) {
       m_handler->equaltime_measure(*m_walker, *m_model, *m_lattice);
     }
   }
   m_walker->sweep_from_beta_to_0(*m_model, m_rng);
-  if (m_handler->isEqualTime()) {
+  if (m_handler->is_equaltime()) {
     m_handler->equaltime_measure(*m_walker, *m_model, *m_lattice);
   }
 }
 
 void Dqmc::thermalize() {
-  if (m_handler->isWarmUp()) {
+  if (m_handler->is_warmup()) {
     // create progress bar
-    ProgressBar progressbar(m_handler->WarmUpSweeps() / 2, m_progress_bar_width,
+    ProgressBar progressbar(m_handler->warm_up_sweeps() / 2, m_progress_bar_width,
                             m_progress_bar_complete_char, m_progress_bar_incomplete_char);
 
     // warm-up sweeps
-    for (auto sweep = 1; sweep <= m_handler->WarmUpSweeps() / 2; ++sweep) {
+    for (auto sweep = 1; sweep <= m_handler->warm_up_sweeps() / 2; ++sweep) {
       // sweep forth and back without measuring
       m_walker->sweep_from_0_to_beta(*m_model, m_rng);
       m_walker->sweep_from_beta_to_0(*m_model, m_rng);
@@ -246,14 +246,15 @@ void Dqmc::thermalize() {
 }
 
 void Dqmc::measure() {
-  if (m_handler->isEqualTime() || m_handler->isDynamic()) {
+  if (m_handler->is_equaltime() || m_handler->is_dynamic()) {
     // create progress bar
-    ProgressBar progressbar(m_handler->BinsNum() * m_handler->BinsSize() / 2, m_progress_bar_width,
-                            m_progress_bar_complete_char, m_progress_bar_incomplete_char);
+    ProgressBar progressbar(m_handler->bins_num() * m_handler->bins_size() / 2,
+                            m_progress_bar_width, m_progress_bar_complete_char,
+                            m_progress_bar_incomplete_char);
 
     // measuring sweeps
-    for (auto bin = 0; bin < m_handler->BinsNum(); ++bin) {
-      for (auto sweep = 1; sweep <= m_handler->BinsSize() / 2; ++sweep) {
+    for (auto bin = 0; bin < m_handler->bins_num(); ++bin) {
+      for (auto sweep = 1; sweep <= m_handler->bins_size() / 2; ++sweep) {
         // update and measure
         sweep_forth_and_back();
 
@@ -271,7 +272,7 @@ void Dqmc::measure() {
       m_handler->clear_temporary();
 
       // avoid correlations between adjoining bins
-      for (auto sweep = 0; sweep < m_handler->SweepsBetweenBins() / 2; ++sweep) {
+      for (auto sweep = 0; sweep < m_handler->sweep_between_bins() / 2; ++sweep) {
         m_walker->sweep_from_0_to_beta(*m_model, m_rng);
         m_walker->sweep_from_beta_to_0(*m_model, m_rng);
       }
@@ -293,7 +294,7 @@ void Dqmc::initial_message(std::ostream& ostream) const {
   }
 
   m_model->output_model_info(ostream);
-  m_lattice->output_lattice_info(ostream, m_handler->Momentum());
+  m_lattice->output_lattice_info(ostream, m_handler->momentum());
 
   ostream << std::format("{:>30s}{:>7s}{:>24s}\n\n", "Checkerboard breakups", "->",
                          checkerboard() ? "True" : "False");
@@ -328,7 +329,7 @@ void Dqmc::info_message(std::ostream& ostream) const {
 }
 
 void Dqmc::output_results(std::ostream& ostream) const {
-  for (const auto& obs_name : m_handler->ObservablesList()) {
+  for (const auto& obs_name : m_handler->observables_list()) {
     if (auto obs = m_handler->find<Observable::Scalar>(obs_name)) {
       Observable::output_observable_to_console(std::cout, *obs);
     }

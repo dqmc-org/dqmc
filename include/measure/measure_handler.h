@@ -79,27 +79,27 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ---------------------------------------  Interfaces
   // -----------------------------------------------
 
-  bool isWarmUp() const { return this->m_is_warmup; }
-  bool isEqualTime() const { return this->m_is_equaltime; }
-  bool isDynamic() const { return this->m_is_dynamic; }
+  bool is_warmup() const { return this->m_is_warmup; }
+  bool is_equaltime() const { return this->m_is_equaltime; }
+  bool is_dynamic() const { return this->m_is_dynamic; }
 
-  int WarmUpSweeps() const { return this->m_sweeps_warmup; }
+  int warm_up_sweeps() const { return this->m_sweeps_warmup; }
 
-  int SweepsBetweenBins() const { return this->m_sweeps_between_bins; }
+  int sweep_between_bins() const { return this->m_sweeps_between_bins; }
 
-  int BinsNum() const { return this->m_bin_num; }
-  int BinsSize() const { return this->m_bin_size; }
+  int bins_num() const { return this->m_bin_num; }
+  int bins_size() const { return this->m_bin_size; }
 
-  int Momentum() const { return this->m_momentum; }
+  int momentum() const { return this->m_momentum; }
 
-  const std::vector<int>& MomentumList() const { return this->m_momentum_list; }
+  const std::vector<int>& momentum_list() const { return this->m_momentum_list; }
 
-  int MomentumList(const int i) const {
+  int momentum_list(const int i) const {
     DQMC_ASSERT(i >= 0 && i < (int)this->m_momentum_list.size());
     return this->m_momentum_list[i];
   }
 
-  const std::vector<std::string>& ObservablesList() const { return this->m_obs_list; }
+  const std::vector<std::string>& observables_list() const { return this->m_obs_list; }
 
   // --------------------------  Subroutines for measuring observables
   // ---------------------------------

@@ -274,14 +274,14 @@ void MeasureHandler::output_measuring_info(std::ostream& ostream) const {
   auto bool_to_str = [](bool b) { return b ? "True" : "False"; };
 
   ostream << "   Measuring Params:\n"
-          << fmt_str("Warm up", bool_to_str(this->isWarmUp()))
-          << fmt_str("Equal-time measure", bool_to_str(this->isEqualTime()))
-          << fmt_str("Dynamical measure", bool_to_str(this->isDynamic())) << std::endl;
+          << fmt_str("Warm up", bool_to_str(this->is_warmup()))
+          << fmt_str("Equal-time measure", bool_to_str(this->is_equaltime()))
+          << fmt_str("Dynamical measure", bool_to_str(this->is_dynamic())) << std::endl;
 
-  ostream << fmt_int("Sweeps for warmup", this->WarmUpSweeps())
-          << fmt_int("Number of bins", this->BinsNum())
-          << fmt_int("Sweeps per bin", this->BinsSize())
-          << fmt_int("Sweeps between bins", this->SweepsBetweenBins()) << std::endl;
+  ostream << fmt_int("Sweeps for warmup", this->warm_up_sweeps())
+          << fmt_int("Number of bins", this->bins_num())
+          << fmt_int("Sweeps per bin", this->bins_size())
+          << fmt_int("Sweeps between bins", this->sweep_between_bins()) << std::endl;
 }
 
 }  // namespace Measure

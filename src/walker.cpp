@@ -36,8 +36,8 @@ void Walker::initial(const LatticeBase& lattice, const MeasureHandler& meas_hand
   this->m_current_time_slice = 0;
   this->m_wrap_error = 0.0;
 
-  this->m_is_equaltime = meas_handler.isEqualTime();
-  this->m_is_dynamic = meas_handler.isDynamic();
+  this->m_is_equaltime = meas_handler.is_equaltime();
+  this->m_is_dynamic = meas_handler.is_dynamic();
 }
 
 void Walker::allocate_svd_stacks() {
