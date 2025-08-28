@@ -9,23 +9,6 @@ Square::Square(const LatticeIntVec& lattice_size) {
   initial();
 }
 
-// high symmetry points in the reciprocal lattice
-LatticeInt Square::GammaPointIndex() const { return this->m_gamma_point_index; }
-
-LatticeInt Square::XPointIndex() const { return this->m_x_point_index; }
-
-LatticeInt Square::MPointIndex() const { return this->m_m_point_index; }
-
-const LatticeIntVec& Square::DeltaLineIndex() const { return this->m_delta_line_index; }
-
-const LatticeIntVec& Square::ZLineIndex() const { return this->m_z_line_index; }
-
-const LatticeIntVec& Square::SigmaLineIndex() const { return this->m_sigma_line_index; }
-
-const LatticeIntVec& Square::Gamma2X2M2GammaLoopIndex() const {
-  return this->m_gamma2x2m2gamma_loop_index;
-}
-
 void Square::output_lattice_info(std::ostream& ostream, int momentum_index) const {
   auto fmt_str = [](const std::string& desc, const std::string& value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
@@ -177,6 +160,16 @@ void Square::initial_symmetry_points() {
     // along (pi,pi) -> (0,0) direction
     this->m_gamma2x2m2gamma_loop_index.emplace_back(i * (i + 3) / 2);
   }
+
+  m_momentum_points["GammaPoint"] = m_gamma_point_index;
+  m_momentum_points["XPoint"] = m_x_point_index;
+  m_momentum_points["MPoint"] = m_m_point_index;
+
+  m_momentum_lists["KstarsAll"] = m_k_stars_index;
+  m_momentum_lists["DeltaLine"] = m_delta_line_index;
+  m_momentum_lists["ZLine"] = m_z_line_index;
+  m_momentum_lists["SigmaLine"] = m_sigma_line_index;
+  m_momentum_lists["Gamma2X2M2GammaLoop"] = m_gamma2x2m2gamma_loop_index;
 }
 
 void Square::initial_fourier_factor_table() {

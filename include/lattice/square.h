@@ -6,6 +6,7 @@
  */
 
 #include <array>
+#include <unordered_map>
 
 #include "lattice/lattice_base.h"
 
@@ -41,15 +42,6 @@ class Square : public LatticeBase {
   void set_lattice_params(const LatticeIntVec& side_length_vec) override;
 
  public:
-  // interfaces for high symmetry momentum points
-  LatticeInt GammaPointIndex() const;
-  LatticeInt XPointIndex() const;
-  LatticeInt MPointIndex() const;
-  const LatticeIntVec& DeltaLineIndex() const;
-  const LatticeIntVec& ZLineIndex() const;
-  const LatticeIntVec& SigmaLineIndex() const;
-  const LatticeIntVec& Gamma2X2M2GammaLoopIndex() const;
-
   // Output lattice information
   void output_lattice_info(std::ostream& ostream, int momentum_index) const override;
 

@@ -9,27 +9,6 @@ Cubic::Cubic(const LatticeIntVec& lattice_size) {
   initial();
 }
 
-// high symmetry points in the reciprocal lattice
-LatticeInt Cubic::GammaPointIndex() const { return this->m_gamma_point_index; }
-
-LatticeInt Cubic::XPointIndex() const { return this->m_x_point_index; }
-
-LatticeInt Cubic::MPointIndex() const { return this->m_m_point_index; }
-
-LatticeInt Cubic::RPointIndex() const { return this->m_r_point_index; }
-
-const LatticeIntVec& Cubic::DeltaLineIndex() const { return this->m_delta_line_index; }
-
-const LatticeIntVec& Cubic::ZLineIndex() const { return this->m_z_line_index; }
-
-const LatticeIntVec& Cubic::SigmaLineIndex() const { return this->m_sigma_line_index; }
-
-const LatticeIntVec& Cubic::LambdaLineIndex() const { return this->m_lambda_line_index; }
-
-const LatticeIntVec& Cubic::SLineIndex() const { return this->m_s_line_index; }
-
-const LatticeIntVec& Cubic::TLineIndex() const { return this->m_t_line_index; }
-
 void Cubic::output_lattice_info(std::ostream& ostream, int momentum_index) const {
   auto fmt_str = [](const std::string& desc, const std::string& value) {
     return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
@@ -213,6 +192,19 @@ void Cubic::initial_symmetry_points() {
                                             (std::floor(this->m_side_length / 2.0) + 2 - i) / 2);
     }
   }
+
+  m_momentum_points["GammaPoint"] = m_gamma_point_index;
+  m_momentum_points["XPoint"] = m_x_point_index;
+  m_momentum_points["MPoint"] = m_m_point_index;
+  m_momentum_points["RPoint"] = m_r_point_index;
+
+  m_momentum_lists["KstarsAll"] = m_k_stars_index;
+  m_momentum_lists["DeltaLine"] = m_delta_line_index;
+  m_momentum_lists["ZLine"] = m_z_line_index;
+  m_momentum_lists["SigmaLine"] = m_sigma_line_index;
+  m_momentum_lists["LambdaLine"] = m_lambda_line_index;
+  m_momentum_lists["SLine"] = m_s_line_index;
+  m_momentum_lists["TLine"] = m_t_line_index;
 }
 
 void Cubic::initial_fourier_factor_table() {

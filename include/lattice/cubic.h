@@ -6,6 +6,7 @@
  */
 
 #include <array>
+#include <unordered_map>
 
 #include "lattice/lattice_base.h"
 
@@ -27,6 +28,9 @@ class Cubic : public LatticeBase {
   LatticeIntVec m_s_line_index{};       // (pi,0,0)  ->  (pi,pi,pi)
   LatticeIntVec m_t_line_index{};       // (pi,pi,0) ->  (pi,pi,pi)
 
+  std::unordered_map<std::string, int> m_momentum_points;
+  std::unordered_map<std::string, std::vector<int>> m_momentum_lists;
+
  public:
   explicit Cubic(const LatticeIntVec& lattice_size);
 
@@ -42,18 +46,6 @@ class Cubic : public LatticeBase {
   void set_lattice_params(const LatticeIntVec& side_length_vec) override;
 
  public:
-  // interfaces for high symmetry momentum points
-  LatticeInt GammaPointIndex() const;
-  LatticeInt XPointIndex() const;
-  LatticeInt MPointIndex() const;
-  LatticeInt RPointIndex() const;
-  const LatticeIntVec& DeltaLineIndex() const;
-  const LatticeIntVec& ZLineIndex() const;
-  const LatticeIntVec& SigmaLineIndex() const;
-  const LatticeIntVec& LambdaLineIndex() const;
-  const LatticeIntVec& SLineIndex() const;
-  const LatticeIntVec& TLineIndex() const;
-
   // Output lattice information
   void output_lattice_info(std::ostream& ostream, int momentum_index) const override;
 

@@ -9,6 +9,7 @@
 #include <Eigen/Core>
 #include <format>
 #include <iostream>
+#include <unordered_map>
 
 #include "utils/assert.h"
 
@@ -67,6 +68,10 @@ class LatticeBase {
 
   // all inequivalent momentum points ( k stars ) in the reciprocal lattice
   LatticeIntVec m_k_stars_index{};
+
+  // Momentum points and lines
+  std::unordered_map<std::string, int> m_momentum_points;
+  std::unordered_map<std::string, std::vector<int>> m_momentum_lists;
 
  public:
   LatticeBase() = default;
@@ -160,6 +165,13 @@ class LatticeBase {
 
   // Output list of inequivalent momentum points (k stars)
   void output_k_points(std::ostream& ostream) const;
+
+  // Momentum hashmaps
+  const std::unordered_map<std::string, int>& momentum_points() const { return m_momentum_points; };
+
+  const std::unordered_map<std::string, std::vector<int>>& momentum_lists() const {
+    return m_momentum_lists;
+  };
 };
 
 }  // namespace Lattice

@@ -218,94 +218,6 @@ void Dqmc::measure() {
 
 void Dqmc::analyse() { m_context.handler->analyse_stats(); }
 
-namespace {
-std::pair<int, std::vector<int>> parse_momentum_params(const Config& config,
-                                                       const Lattice::LatticeBase& lattice) {
-  int momentum_idx = 0;
-  std::vector<int> momentum_list_indices;
-
-  if (config.lattice_type == "Square") {
-    if (const auto* square_lattice = dynamic_cast<const Lattice::Square*>(&lattice)) {
-      if (config.momentum == "GammaPoint") {
-        momentum_idx = square_lattice->GammaPointIndex();
-      } else if (config.momentum == "MPoint") {
-        momentum_idx = square_lattice->MPointIndex();
-      } else if (config.momentum == "XPoint") {
-        momentum_idx = square_lattice->XPointIndex();
-      } else {
-        throw std::runtime_error(
-            std::format("DQMC::Dqmc::parse_config(): undefined momentum '{}' for 2d square lattice",
-                        config.momentum));
-      }
-
-      if (config.momentum_list == "KstarsAll") {
-        momentum_list_indices = square_lattice->kStarsIndex();
-      } else if (config.momentum_list == "DeltaLine") {
-        momentum_list_indices = square_lattice->DeltaLineIndex();
-      } else if (config.momentum_list == "ZLine") {
-        momentum_list_indices = square_lattice->ZLineIndex();
-      } else if (config.momentum_list == "SigmaLine") {
-        momentum_list_indices = square_lattice->SigmaLineIndex();
-      } else if (config.momentum_list == "Gamma2X2M2GammaLoop") {
-        momentum_list_indices = square_lattice->Gamma2X2M2GammaLoopIndex();
-      } else {
-        throw std::runtime_error(std::format(
-            "DQMC::Dqmc::parse_config(): undefined momentum list '{}' for 2d square lattice",
-            config.momentum_list));
-      }
-    } else {
-      throw std::runtime_error(
-          "DQMC::Dqmc::parse_config(): fail to convert 'Lattice::LatticeBase' to "
-          "'Lattice::Square'.");
-    }
-  } else if (config.lattice_type == "Cubic") {
-    if (const auto* cubic_lattice = dynamic_cast<const Lattice::Cubic*>(&lattice)) {
-      if (config.momentum == "GammaPoint") {
-        momentum_idx = cubic_lattice->GammaPointIndex();
-      } else if (config.momentum == "MPoint") {
-        momentum_idx = cubic_lattice->MPointIndex();
-      } else if (config.momentum == "XPoint") {
-        momentum_idx = cubic_lattice->XPointIndex();
-      } else if (config.momentum == "RPoint") {
-        momentum_idx = cubic_lattice->RPointIndex();
-      } else {
-        throw std::runtime_error(
-            std::format("DQMC::Dqmc::parse_config(): undefined momentum '{}' for 3d cubic lattice",
-                        config.momentum));
-      }
-
-      if (config.momentum_list == "KstarsAll") {
-        momentum_list_indices = cubic_lattice->kStarsIndex();
-      } else if (config.momentum_list == "DeltaLine") {
-        momentum_list_indices = cubic_lattice->DeltaLineIndex();
-      } else if (config.momentum_list == "ZLine") {
-        momentum_list_indices = cubic_lattice->ZLineIndex();
-      } else if (config.momentum_list == "SigmaLine") {
-        momentum_list_indices = cubic_lattice->SigmaLineIndex();
-      } else if (config.momentum_list == "LambdaLine") {
-        momentum_list_indices = cubic_lattice->LambdaLineIndex();
-      } else if (config.momentum_list == "SLine") {
-        momentum_list_indices = cubic_lattice->SLineIndex();
-      } else if (config.momentum_list == "TLine") {
-        momentum_list_indices = cubic_lattice->TLineIndex();
-      } else {
-        throw std::runtime_error(std::format(
-            "DQMC::Dqmc::parse_config(): undefined momentum list '{}' for 3d cubic lattice",
-            config.momentum_list));
-      }
-    } else {
-      throw std::runtime_error(
-          "DQMC::Dqmc::parse_config(): fail to convert 'Lattice::LatticeBase' to "
-          "'Lattice::Cubic'.");
-    }
-  } else if (config.lattice_type == "Honeycomb") {
-    throw std::runtime_error("Honeycomb lattice is not supported.");
-  }
-
-  return {momentum_idx, momentum_list_indices};
-}
-}  // namespace
-
 Context Dqmc::parse_config(const Config& config) {
   Context context;
 
@@ -338,7 +250,20 @@ Context Dqmc::parse_config(const Config& config) {
       std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);
 
   // 4. Determine Momentum Indices for MeasureHandler
-  auto [momentum_idx, momentum_list_indices] = parse_momentum_params(config, *context.lattice);
+  if (config.lattice_type == "Honeycomb") {
+    throw std::runtime_error("Honeycomb lattice is not supported.");
+  }
+
+  int momentum_idx;
+  std::vector<int> momentum_list_indices;
+  try {
+    momentum_idx = context.lattice->momentum_points().at(config.momentum);
+    momentum_list_indices = context.lattice->momentum_lists().at(config.momentum_list);
+  } catch (const std::out_of_range& e) {
+    throw std::runtime_error(
+        std::format("DQMC::parse_config(): unknown momentum point '{}' or list '{}' for {} lattice",
+                    config.momentum, config.momentum_list, config.lattice_type));
+  }
 
   // 5. Validate observables against lattice type
   if (config.lattice_type != "Square") {
