@@ -331,7 +331,7 @@ void Dqmc::info_message(std::ostream& ostream) const {
 void Dqmc::output_results(std::ostream& ostream) const {
   for (const auto& obs_name : m_handler->observables_list()) {
     if (auto obs = m_handler->find<Observable::Scalar>(obs_name)) {
-      Observable::output_observable_to_console(std::cout, *obs);
+      Observable::output_observable_to_console(ostream, *obs);
     }
   }
 }
