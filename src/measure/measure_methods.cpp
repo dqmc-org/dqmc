@@ -21,24 +21,24 @@ using VectorType = Eigen::VectorXd;
 // useful for reweighting
 void Methods::measure_equaltime_config_sign(Observable::Scalar& equaltime_sign,
                                             const MeasureContext& ctx) {
-  equaltime_sign.tmp_value() += ctx.walker.vecConfigSign().sum();
-  equaltime_sign += ctx.walker.TimeSize();
+  equaltime_sign.tmp_value() += ctx.walker.vec_config_sign().sum();
+  equaltime_sign += ctx.walker.time_size();
 }
 
 // Filling number defined as \sum i ( n_up + n_dn )(i)
 // which represents the total number of electrons
 void Methods::measure_filling_number(Observable::Scalar& filling_number,
                                      const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
   const double inv_space_size = 1.0 / static_cast<double>(space_size);
 
   double total_filling_contribution = 0.0;
 
   for (auto t = 0; t < time_size; ++t) {
-    const auto& g_up = ctx.walker.GreenttUp(t);
-    const auto& g_dn = ctx.walker.GreenttDn(t);
-    const double config_sign = ctx.walker.ConfigSign(t);
+    const auto& g_up = ctx.walker.green_tt_up(t);
+    const auto& g_dn = ctx.walker.green_tt_down(t);
+    const double config_sign = ctx.walker.config_sign(t);
 
     double combined_trace = g_up.trace() + g_dn.trace();
     const double avg_density = combined_trace * inv_space_size;
@@ -55,15 +55,15 @@ void Methods::measure_filling_number(Observable::Scalar& filling_number,
 // the same site
 void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
                                        const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
 
   RealScalar total_double_occu = 0.0;
 
   for (auto t = 0; t < time_size; ++t) {
-    const GreensFunc& gu = ctx.walker.GreenttUp(t);
-    const GreensFunc& gd = ctx.walker.GreenttDn(t);
-    const double config_sign = ctx.walker.ConfigSign(t);
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);
+    const double config_sign = ctx.walker.config_sign(t);
 
     RealScalar current_t_sum = 0.0;
     for (int i = 0; i < space_size; ++i) {
@@ -81,16 +81,16 @@ void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
 // neighbours
 void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
                                      const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
   const double prefactor = ctx.model.HoppingT() / space_size;
 
   double total_sum = 0.0;
 
   for (auto t = 0; t < time_size; ++t) {
-    const GreensFunc& g_up = ctx.walker.GreenttUp(t);
-    const GreensFunc& g_dn = ctx.walker.GreenttDn(t);
-    const RealScalar config_sign = ctx.walker.ConfigSign(t);
+    const GreensFunc& g_up = ctx.walker.green_tt_up(t);
+    const GreensFunc& g_dn = ctx.walker.green_tt_down(t);
+    const RealScalar config_sign = ctx.walker.config_sign(t);
 
     double sum_this_t = 0.0;
     for (auto i = 0; i < space_size; ++i) {
@@ -110,16 +110,16 @@ void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
 // space-time points. the local correlations are the limit of i = 0 and t = 0.
 void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
                                       const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
   const double prefactor = 1.0 / space_size;
 
   double total_sum = 0.0;
 
   for (auto t = 0; t < time_size; ++t) {
-    const GreensFunc& gu = ctx.walker.GreenttUp(t);
-    const GreensFunc& gd = ctx.walker.GreenttDn(t);
-    const double config_sign = ctx.walker.ConfigSign(t);
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);
+    const double config_sign = ctx.walker.config_sign(t);
 
     for (auto i = 0; i < space_size; ++i) {
       // Let n_up = gu(i, i) and n_dn = gd(i, i). The local spin correlation
@@ -139,7 +139,7 @@ void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
 // )(k) measured for one specific momentum point todo: scan the momentum space
 void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
                                             const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
   const int K_vector = ctx.handler.Momentum();
   const double norm_factor = 0.5 / static_cast<double>(space_size);
@@ -147,9 +147,9 @@ void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
   double total_sum = 0.0;
 
   for (auto t = 0; t < time_size; ++t) {
-    const GreensFunc& gu = ctx.walker.GreenttUp(t);
-    const GreensFunc& gd = ctx.walker.GreenttDn(t);
-    const double config_sign = ctx.walker.ConfigSign(t);
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);
+    const double config_sign = ctx.walker.config_sign(t);
 
     double tmp_momentum_dist = 0.0;
 
@@ -177,9 +177,9 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
   MatrixType guc(space_size, space_size);
   MatrixType gdc(space_size, space_size);
 
-  for (auto t = 0; t < ctx.walker.TimeSize(); ++t) {
-    const GreensFunc& gu = ctx.walker.GreenttUp(t);
-    const GreensFunc& gd = ctx.walker.GreenttDn(t);
+  for (auto t = 0; t < ctx.walker.time_size(); ++t) {
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);
 
     // We need to make this dance to avoid allocations
     guc.setIdentity();
@@ -187,7 +187,7 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
     gdc.setIdentity();
     gdc -= gd.transpose();
 
-    const double config_sign = ctx.walker.ConfigSign(t);
+    const double config_sign = ctx.walker.config_sign(t);
 
     RealScalar tmp_sdw = 0.0;
     for (auto i = 0; i < space_size; ++i) {
@@ -211,7 +211,7 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
 void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_factor,
                                                       const MeasureContext& ctx) {
   const int space_size = ctx.lattice.space_size();
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int K_vector = ctx.handler.Momentum();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
 
@@ -219,9 +219,9 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
   std::vector<double> n_dn(space_size);
 
   for (auto t = 0; t < time_size; ++t) {
-    const GreensFunc& gu = ctx.walker.GreenttUp(t);
-    const GreensFunc& gd = ctx.walker.GreenttDn(t);
-    const double config_sign = ctx.walker.ConfigSign(t);
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);
+    const double config_sign = ctx.walker.config_sign(t);
 
     for (int i = 0; i < space_size; ++i) {
       n_up[i] = 1.0 - gu(i, i);
@@ -266,12 +266,12 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
   MatrixType guc(space_size, space_size);
   MatrixType gdc(space_size, space_size);
 
-  for (auto t = 0; t < ctx.walker.TimeSize(); ++t) {
+  for (auto t = 0; t < ctx.walker.time_size(); ++t) {
     //  g(i,j) = < c_i * c^+_j > are the greens functions
     // gc(i,j) = < c^+_i * c_j > are isomorphic to the conjugation of greens
     // functions
-    const GreensFunc& gu = ctx.walker.GreenttUp(t);
-    const GreensFunc& gd = ctx.walker.GreenttDn(t);
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);
 
     // We need to make this dance to avoid allocations
     guc.setIdentity();
@@ -279,7 +279,7 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
     gdc.setIdentity();
     gdc -= gd.transpose();
 
-    const RealScalar& config_sign = ctx.walker.ConfigSign(t);
+    const RealScalar& config_sign = ctx.walker.config_sign(t);
 
     // loop over site i, j and take averages
     RealScalar tmp_s_wave_pairing = 0.0;
@@ -300,7 +300,7 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
 // The sign of the bosonic field configurations for dynamic measurements
 void Methods::measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
                                           const MeasureContext& ctx) {
-  dynamic_sign.tmp_value() += ctx.walker.ConfigSign();
+  dynamic_sign.tmp_value() += ctx.walker.config_sign();
   ++dynamic_sign;
 }
 
@@ -309,17 +309,18 @@ void Methods::measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
 // G(k,t)  =  1/N \sum ij exp( -i k*(rj-ri) ) * ( c_j(t) * c^+_i(0) )
 void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
                                        const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
   const int num_momenta = ctx.handler.MomentumList().size();
-  const double config_sign = ctx.walker.ConfigSign();
+  const double config_sign = ctx.walker.config_sign();
   const double prefactor = config_sign / static_cast<double>(space_size);
 
   for (auto t = 0; t < time_size; ++t) {
     const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    const GreensFunc& gup = (t == 0) ? ctx.walker.GreenttUp(tau) : ctx.walker.Greent0Up(tau);
-    const GreensFunc& gdn = (t == 0) ? ctx.walker.GreenttDn(tau) : ctx.walker.Greent0Dn(tau);
+    const GreensFunc& gup = (t == 0) ? ctx.walker.green_tt_up(tau) : ctx.walker.green_t0_up(tau);
+    const GreensFunc& gdn =
+        (t == 0) ? ctx.walker.green_tt_down(tau) : ctx.walker.green_t0_down(tau);
 
     for (auto k = 0; k < num_momenta; ++k) {
       const auto& K_vector = ctx.handler.MomentumList(k);
@@ -347,16 +348,17 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
 // D(omega).
 void Methods::measure_density_of_states(Observable::Vector& density_of_states,
                                         const MeasureContext& ctx) {
-  const int time_size = ctx.walker.TimeSize();
+  const int time_size = ctx.walker.time_size();
   const int space_size = ctx.lattice.space_size();
-  const auto& config_sign = ctx.walker.ConfigSign();
+  const auto& config_sign = ctx.walker.config_sign();
   const double prefactor = config_sign / static_cast<double>(space_size);
 
   for (auto t = 0; t < time_size; ++t) {
     const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    const GreensFunc& gup = (t == 0) ? ctx.walker.GreenttUp(tau) : ctx.walker.Greent0Up(tau);
-    const GreensFunc& gdn = (t == 0) ? ctx.walker.GreenttDn(tau) : ctx.walker.Greent0Dn(tau);
+    const GreensFunc& gup = (t == 0) ? ctx.walker.green_tt_up(tau) : ctx.walker.green_t0_up(tau);
+    const GreensFunc& gdn =
+        (t == 0) ? ctx.walker.green_tt_down(tau) : ctx.walker.green_t0_down(tau);
 
     const double gt0_trace = 0.5 * (gup.trace() + gdn.trace());
 
@@ -379,19 +381,19 @@ void Methods::measure_density_of_states(Observable::Vector& density_of_states,
 void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffness,
                                            const MeasureContext& ctx) {
   DQMC_ASSERT(dynamic_cast<const Lattice::Square*>(&ctx.lattice) != nullptr);
-  DQMC_ASSERT(ctx.lattice.SideLength() % 2 == 0);
+  DQMC_ASSERT(ctx.lattice.side_length() % 2 == 0);
 
   const int space_size = ctx.lattice.space_size();
-  const int time_size = ctx.walker.TimeSize();
-  const double config_sign = ctx.walker.ConfigSign();
+  const int time_size = ctx.walker.time_size();
+  const double config_sign = ctx.walker.config_sign();
   const double hopping_t2 = ctx.model.HoppingT() * ctx.model.HoppingT();
   const double final_prefactor = 0.25 * hopping_t2 / (static_cast<double>(space_size) * space_size);
 
   std::vector<double> uncorrelated_i_vals(space_size);
   std::vector<double> uncorrelated_j_vals(space_size);
 
-  const GreensFunc& g00up = ctx.walker.GreenttUp(time_size - 1);
-  const GreensFunc& g00dn = ctx.walker.GreenttDn(time_size - 1);
+  const GreensFunc& g00up = ctx.walker.green_tt_up(time_size - 1);
+  const GreensFunc& g00dn = ctx.walker.green_tt_down(time_size - 1);
 
   for (auto i = 0; i < space_size; ++i) {
     const auto ipx = ctx.lattice.nearest_neighbour(i, 0);
@@ -403,12 +405,12 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   for (auto t = 0; t < time_size; ++t) {
     const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    const GreensFunc& gttup = (t == 0) ? g00up : ctx.walker.GreenttUp(tau);
-    const GreensFunc& gttdn = (t == 0) ? g00dn : ctx.walker.GreenttDn(tau);
-    const GreensFunc& gt0up = ctx.walker.Greent0Up(tau);
-    const GreensFunc& gt0dn = ctx.walker.Greent0Dn(tau);
-    const GreensFunc& g0tup = ctx.walker.Green0tUp(tau);
-    const GreensFunc& g0tdn = ctx.walker.Green0tDn(tau);
+    const GreensFunc& gttup = (t == 0) ? g00up : ctx.walker.green_tt_up(tau);
+    const GreensFunc& gttdn = (t == 0) ? g00dn : ctx.walker.green_tt_down(tau);
+    const GreensFunc& gt0up = ctx.walker.green_t0_up(tau);
+    const GreensFunc& gt0dn = ctx.walker.green_t0_down(tau);
+    const GreensFunc& g0tup = ctx.walker.green_0t_up(tau);
+    const GreensFunc& g0tdn = ctx.walker.green_0t_down(tau);
 
     for (auto j = 0; j < space_size; ++j) {
       const auto jpx = ctx.lattice.nearest_neighbour(j, 0);
@@ -456,22 +458,22 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
 void Methods::measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_spin_susceptibility,
                                                   const MeasureContext& ctx) {
   const int space_size = ctx.lattice.space_size();
-  const int time_size = ctx.walker.TimeSize();
-  const double config_sign = ctx.walker.ConfigSign();
+  const int time_size = ctx.walker.time_size();
+  const double config_sign = ctx.walker.config_sign();
   const double prefactor = 0.25 * config_sign / space_size;
 
-  const GreensFunc& g00up = ctx.walker.GreenttUp(time_size - 1);
-  const GreensFunc& g00dn = ctx.walker.GreenttDn(time_size - 1);
+  const GreensFunc& g00up = ctx.walker.green_tt_up(time_size - 1);
+  const GreensFunc& g00dn = ctx.walker.green_tt_down(time_size - 1);
 
   for (auto t = 0; t < time_size; ++t) {
     const int tau = (t == 0) ? time_size - 1 : t - 1;
 
-    const GreensFunc& gttup = ctx.walker.GreenttUp(tau);
-    const GreensFunc& gttdn = ctx.walker.GreenttDn(tau);
-    const GreensFunc& gt0up = ctx.walker.Greent0Up(tau);
-    const GreensFunc& gt0dn = ctx.walker.Greent0Dn(tau);
-    const GreensFunc& g0tup = ctx.walker.Green0tUp(tau);
-    const GreensFunc& g0tdn = ctx.walker.Green0tDn(tau);
+    const GreensFunc& gttup = ctx.walker.green_tt_up(tau);
+    const GreensFunc& gttdn = ctx.walker.green_tt_down(tau);
+    const GreensFunc& gt0up = ctx.walker.green_t0_up(tau);
+    const GreensFunc& gt0dn = ctx.walker.green_t0_down(tau);
+    const GreensFunc& g0tup = ctx.walker.green_0t_up(tau);
+    const GreensFunc& g0tdn = ctx.walker.green_0t_down(tau);
 
     double current_t_sum = 0.0;
 

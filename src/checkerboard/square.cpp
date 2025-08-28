@@ -21,7 +21,7 @@ void Square::set_checkerboard_params(const LatticeBase &lattice, const ModelBase
   DQMC_ASSERT(lattice.space_size() >= 2);
   this->m_side_length = lattice.side_length();
   this->m_space_size = lattice.space_size();
-  this->m_time_interval = walker.TimeInterval();
+  this->m_time_interval = walker.time_interval();
   this->m_hopping_t = model.HoppingT();
   this->m_chemical_potential = model.ChemicalPotential();
 }

@@ -6,7 +6,6 @@
  */
 
 #include <Eigen/Core>
-#include <memory>
 #include <random>
 #include <vector>
 
@@ -36,22 +35,17 @@ using MeasureHandler = Measure::MeasureHandler;
 // ----------------------------
 class Walker {
  private:
-  using TimeIndex = int;
-  using RealScalar = double;
-  using RealScalarVec = Eigen::VectorXd;
   using SvdStack = Utils::SvdStack;
-
   using GreensFunc = Eigen::MatrixXd;
-  using GreensFuncVec = std::vector<Eigen::MatrixXd>;
 
   // --------------------------------- Walker params
   // ---------------------------------------------
 
-  int m_space_size{};            // number of space sites
-  int m_time_size{};             // number of time slices
-  RealScalar m_beta{};           // inverse temperature beta
-  RealScalar m_time_interval{};  // interval of imaginary-time grids
-  int m_current_time_slice{};    // helping params to record current time slice
+  int m_space_size{};          // number of space sites
+  int m_time_size{};           // number of time slices
+  double m_beta{};             // inverse temperature beta
+  double m_time_interval{};    // interval of imaginary-time grids
+  int m_current_time_slice{};  // helping params to record current time slice
 
   // ----------------------- ( Equal-time and dynamic ) Greens functions
   // -------------------------
@@ -59,15 +53,15 @@ class Walker {
   // Equal-time green's functions, which is the most crucial quantities during
   // dqmc simulations for spin-1/2 systems, we label the spin index with up and
   // down
-  GreensFunc m_green_tt_up{}, m_green_tt_dn{};
-  GreensFuncVec m_vec_green_tt_up{}, m_vec_green_tt_dn{};
+  GreensFunc m_green_tt_up{}, m_green_tt_down{};
+  std::vector<GreensFunc> m_vec_green_tt_up{}, m_vec_green_tt_down{};
 
   // Time-displaced green's functions G(t,0) and G(0,t)
   // important for time-displaced measurements of physical observables
   GreensFunc m_green_t0_up{}, m_green_t0_dn{};
   GreensFunc m_green_0t_up{}, m_green_0t_dn{};
-  GreensFuncVec m_vec_green_t0_up{}, m_vec_green_t0_dn{};
-  GreensFuncVec m_vec_green_0t_up{}, m_vec_green_0t_dn{};
+  std::vector<GreensFunc> m_vec_green_t0_up{}, m_vec_green_t0_down{};
+  std::vector<GreensFunc> m_vec_green_0t_up{}, m_vec_green_0t_down{};
 
   bool m_is_equaltime{};
   bool m_is_dynamic{};
@@ -90,15 +84,15 @@ class Walker {
   int m_stabilization_pace{};
 
   // keep track of the wrapping error
-  RealScalar m_wrap_error{};
+  double m_wrap_error{};
 
   // ---------------------------------- Reweighting params
   // --------------------------------------- keep track of the sign problem
-  RealScalar m_config_sign{};
-  RealScalarVec m_vec_config_sign{};
+  double m_config_sign{};
+  Eigen::VectorXd m_vec_config_sign{};
 
  public:
-  explicit Walker(RealScalar beta, int time_size, int stabilization_pace);
+  explicit Walker(double beta, int time_size, int stabilization_pace);
 
   Walker() = delete;
   Walker(const Walker&) = delete;
@@ -110,38 +104,31 @@ class Walker {
   // --------------------------------
 
  public:
-  int TimeSize() const { return this->m_time_size; }
-  RealScalar Beta() const { return this->m_beta; }
-  RealScalar TimeInterval() const { return this->m_time_interval; }
-  RealScalar WrapError() const { return this->m_wrap_error; }
-  int StabilizationPace() const { return this->m_stabilization_pace; }
+  int time_size() const { return this->m_time_size; }
+  double beta() const { return this->m_beta; }
+  double time_interval() const { return this->m_time_interval; }
+  double wrap_error() const { return this->m_wrap_error; }
+  int stabilization_pace() const { return this->m_stabilization_pace; }
 
   // interface for greens functions
-  GreensFunc& GreenttUp() { return this->m_green_tt_up; }
-  GreensFunc& GreenttDn() { return this->m_green_tt_dn; }
-  const GreensFunc& GreenttUp() const { return this->m_green_tt_up; }
-  const GreensFunc& GreenttDn() const { return this->m_green_tt_dn; }
+  GreensFunc& green_tt_up() { return this->m_green_tt_up; }
+  GreensFunc& green_tt_down() { return this->m_green_tt_down; }
+  const GreensFunc& green_tt_up() const { return this->m_green_tt_up; }
+  const GreensFunc& green_tt_down() const { return this->m_green_tt_down; }
 
-  const GreensFunc& GreenttUp(int t) const { return this->m_vec_green_tt_up[t]; }
-  const GreensFunc& GreenttDn(int t) const { return this->m_vec_green_tt_dn[t]; }
-  const GreensFunc& Greent0Up(int t) const { return this->m_vec_green_t0_up[t]; }
-  const GreensFunc& Greent0Dn(int t) const { return this->m_vec_green_t0_dn[t]; }
-  const GreensFunc& Green0tUp(int t) const { return this->m_vec_green_0t_up[t]; }
-  const GreensFunc& Green0tDn(int t) const { return this->m_vec_green_0t_dn[t]; }
-
-  const GreensFuncVec& vecGreenttUp() const { return this->m_vec_green_tt_up; }
-  const GreensFuncVec& vecGreenttDn() const { return this->m_vec_green_tt_dn; }
-  const GreensFuncVec& vecGreent0Up() const { return this->m_vec_green_t0_up; }
-  const GreensFuncVec& vecGreent0Dn() const { return this->m_vec_green_t0_dn; }
-  const GreensFuncVec& vecGreen0tUp() const { return this->m_vec_green_0t_up; }
-  const GreensFuncVec& vecGreen0tDn() const { return this->m_vec_green_0t_dn; }
+  const GreensFunc& green_tt_up(int t) const { return this->m_vec_green_tt_up[t]; }
+  const GreensFunc& green_tt_down(int t) const { return this->m_vec_green_tt_down[t]; }
+  const GreensFunc& green_t0_up(int t) const { return this->m_vec_green_t0_up[t]; }
+  const GreensFunc& green_t0_down(int t) const { return this->m_vec_green_t0_down[t]; }
+  const GreensFunc& green_0t_up(int t) const { return this->m_vec_green_0t_up[t]; }
+  const GreensFunc& green_0t_down(int t) const { return this->m_vec_green_0t_down[t]; }
 
   // interfaces for configuration signs
-  RealScalar ConfigSign() const { return this->m_config_sign; }
+  double config_sign() const { return this->m_config_sign; }
 
-  RealScalar ConfigSign(int t) const { return this->m_vec_config_sign[t]; }
+  double config_sign(int t) const { return this->m_vec_config_sign[t]; }
 
-  const RealScalarVec& vecConfigSign() const { return this->m_vec_config_sign; }
+  const Eigen::VectorXd& vec_config_sign() const { return this->m_vec_config_sign; }
 
   // output MonteCarlo parameters information
   void output_montecarlo_info(std::ostream& ostream) const;
@@ -158,7 +145,7 @@ class Walker {
 
   // set up the physical parameters
   // especially the inverse temperature and the number of time slices
-  void set_physical_params(RealScalar beta, int time_size);
+  void set_physical_params(double beta, int time_size);
 
   // set up the pace of stabilizations
   void set_stabilization_pace(int stabilization_pace);
@@ -197,12 +184,12 @@ class Walker {
 
  private:
   // update the bosonic fields at time slice t using Metropolis algorithm
-  void metropolis_update(ModelBase& model, TimeIndex t, std::default_random_engine& rng);
+  void metropolis_update(ModelBase& model, int time_index, std::default_random_engine& rng);
 
   // wrap the equal-time greens functions from time slice t to t+1
-  void wrap_from_0_to_beta(const ModelBase& model, TimeIndex t);
+  void wrap_from_0_to_beta(const ModelBase& model, int time_index);
 
   // wrap the equal-time greens functions from time slice t to t-1
-  void wrap_from_beta_to_0(const ModelBase& model, TimeIndex t);
+  void wrap_from_beta_to_0(const ModelBase& model, int time_index);
 };
 }  // namespace DQMC

@@ -66,8 +66,8 @@ void AttractiveHubbard::set_model_params(RealScalar hopping_t, RealScalar onsite
 
 void AttractiveHubbard::initial_params(const LatticeBase& lattice, const Walker& walker) {
   this->m_space_size = lattice.space_size();
-  this->m_time_size = walker.TimeSize();
-  const RealScalar time_interval = walker.TimeInterval();
+  this->m_time_size = walker.time_size();
+  const RealScalar time_interval = walker.time_interval();
 
   this->m_alpha = std::acosh(std::exp(0.5 * time_interval * this->m_onsite_u));
 
@@ -83,7 +83,7 @@ void AttractiveHubbard::initial_params(const LatticeBase& lattice, const Walker&
 
 void AttractiveHubbard::initial_KV_matrices(const LatticeBase& lattice, const Walker& walker) {
   const int space_size = lattice.space_size();
-  const RealScalar time_interval = walker.TimeInterval();
+  const RealScalar time_interval = walker.time_interval();
   const SpaceSpaceMat chemical_potential_mat =
       this->m_chemical_potential * SpaceSpaceMat::Identity(space_size, space_size);
   const SpaceSpaceMat Kmat = -this->m_hopping_t * lattice.hopping_matrix() + chemical_potential_mat;
@@ -135,8 +135,8 @@ double AttractiveHubbard::get_update_ratio(const Walker& walker, TimeIndex time_
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);
 
-  const Eigen::MatrixXd& green_tt_up = walker.GreenttUp();
-  const Eigen::MatrixXd& green_tt_dn = walker.GreenttDn();
+  const Eigen::MatrixXd& green_tt_up = walker.green_tt_up();
+  const Eigen::MatrixXd& green_tt_dn = walker.green_tt_down();
 
   const double s = this->m_bosonic_field(time_index, space_index);
   const double exp_factor = this->m_exp_val_half_diff * s + this->m_exp_val_avg;
@@ -156,8 +156,8 @@ void AttractiveHubbard::update_greens_function(Walker& walker, TimeIndex time_in
   DQMC_ASSERT(time_index >= 0 && time_index < this->m_time_size);
   DQMC_ASSERT(space_index >= 0 && space_index < this->m_space_size);
 
-  Eigen::MatrixXd& green_tt_up = walker.GreenttUp();
-  Eigen::MatrixXd& green_tt_dn = walker.GreenttDn();
+  Eigen::MatrixXd& green_tt_up = walker.green_tt_up();
+  Eigen::MatrixXd& green_tt_dn = walker.green_tt_down();
 
   // reference:
   //   Quantum Monte Carlo Methods (Algorithms for Lattice Models) Determinant

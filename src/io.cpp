@@ -37,6 +37,6 @@ void IO::output_ending_info(std::ostream& ostream, const Walker& walker,
   ostream << std::format("\n>> The simulation finished in {}d {}h {}m {}s {}ms.\n", d.count(),
                          h.count(), m.count(), s.count(), duration.count());
 
-  ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n", walker.WrapError());
+  ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n", walker.wrap_error());
 }
 }  // namespace DQMC
