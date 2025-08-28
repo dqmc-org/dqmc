@@ -2,11 +2,11 @@
 #include <chrono>
 #include <filesystem>
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <string>
 
 #include "dqmc.h"
-#include "io.h"
 
 // the main program
 int main(int argc, char* argv[]) {
@@ -178,10 +178,7 @@ int main(int argc, char* argv[]) {
     DQMC::Dqmc simulation(config);
 
     // 3. Output initialization info
-    std::cout << ">> Initialization finished. \n\n"
-              << ">> The simulation is going to get started with parameters shown below :\n"
-              << std::endl;
-    DQMC::IO::output_init_info(std::cout, simulation);
+    simulation.initial_message(std::cout);
 
     // Optional: Configure progress bar
     simulation.show_progress_bar(true);
@@ -192,14 +189,10 @@ int main(int argc, char* argv[]) {
     simulation.run();
 
     // 5. Output ending info
-    DQMC::IO::output_ending_info(std::cout, simulation.walker(), simulation.timer_as_duration());
+    simulation.info_message(std::cout);
 
     // 6. Output scalar results to console
-    for (const auto& obs_name : simulation.handler().ObservablesList()) {
-      if (auto obs = simulation.handler().find<Observable::Scalar>(obs_name)) {
-        DQMC::IO::output_observable_to_console(std::cout, *obs);
-      }
-    }
+    simulation.output_results(std::cout);
 
     // 7. Write all detailed results to files
     simulation.write_results(out_path);

@@ -9,6 +9,8 @@
  */
 
 #include <Eigen/Core>
+#include <format>
+#include <fstream>
 #include <functional>
 #include <iostream>
 #include <numeric>
@@ -237,4 +239,136 @@ class Observable : public ObservableBase {
 using Scalar = Observable<ScalarType>;
 using Vector = Observable<VectorType>;
 using Matrix = Observable<MatrixType>;
+
+template <typename ObsType>
+void output_observable_to_console(std::ostream& ostream, const Observable<ObsType>& obs) {
+  if (!ostream) {
+    throw std::runtime_error(dqmc_format_error("output stream is not valid."));
+  }
+
+  // for scalar observables
+  if constexpr (std::is_same_v<ObsType, ScalarType>) {
+    ostream << std::format("{:>30s}{:>7s}{:>20.12f}  pm  {:.12f}\n", obs.description(), "->",
+                           obs.mean_value(), obs.error_bar());
+  }
+
+  // // todo: currently not used
+  // // for vector observables
+  // else if constexpr ( std::is_same_v<ObsType, Observable::VectorType> ) {
+
+  // }
+
+  // // for matrix observables
+  // else if constexpr ( std::is_same_v<ObsType, Observable::MatrixType> ) {
+
+  // }
+
+  // other observable type, raising errors
+  else {
+    throw std::runtime_error(dqmc_format_error("undefined observable type."));
+  }
+}
+
+template <typename ObsType>
+void output_observable_to_file(std::ofstream& ostream, const Observable<ObsType>& obs) {
+  if (!ostream) {
+    throw std::runtime_error(dqmc_format_error("output stream is not valid."));
+  }
+
+  // for scalar observables
+  if constexpr (std::is_same_v<ObsType, ScalarType>) {
+    // for specfic scalar observable, output the mean value, error bar and
+    // relative error in order.
+    ostream << std::format("{:>20.10f}{:>20.10f}{:>20.10f}\n", obs.mean_value(), obs.error_bar(),
+                           obs.error_bar() / obs.mean_value());
+  }
+
+  // for vector observables
+  else if constexpr (std::is_same_v<ObsType, VectorType>) {
+    // output vector observable
+    const int size = obs.mean_value().size();
+    const auto relative_error = (obs.error_bar().array() / obs.mean_value().array()).matrix();
+    ostream << std::format("{:>20d}", size) << std::endl;
+    for (auto i = 0; i < size; ++i) {
+      // output the mean value, error bar and relative error in order.
+      ostream << std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i, obs.mean_value()(i),
+                             obs.error_bar()(i), relative_error(i));
+    }
+  }
+
+  // for matrix observables
+  else if constexpr (std::is_same_v<ObsType, MatrixType>) {
+    // output matrix observable
+    const int row = obs.mean_value().rows();
+    const int col = obs.mean_value().cols();
+    const auto relative_error = (obs.error_bar().array() / obs.mean_value().array()).matrix();
+    ostream << std::format("{:>20d}{:>20d}", row, col) << std::endl;
+    for (auto i = 0; i < row; ++i) {
+      for (auto j = 0; j < col; ++j) {
+        // output the mean value, error bar and relative error in order.
+        ostream << std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i, j,
+                               obs.mean_value()(i, j), obs.error_bar()(i, j), relative_error(i, j));
+      }
+    }
+  }
+
+  // other observable types, raising errors
+  else {
+    throw std::runtime_error(dqmc_format_error("undefined observable type."));
+  }
+}
+
+template <typename ObsType>
+void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<ObsType>& obs) {
+  if (!ostream) {
+    throw std::runtime_error(
+        dqmc_format_error("the ostream failed to work, please check the input."));
+  }
+
+  // for scalar observables
+  if constexpr (std::is_same_v<ObsType, ScalarType>) {
+    // output bin data of scalar observable
+    const int number_of_bins = obs.bin_num();
+    ostream << std::format("{:>20d}\n", number_of_bins);
+    for (auto bin = 0; bin < number_of_bins; ++bin) {
+      ostream << std::format("{:>20d}{:>20.10f}\n", bin, obs.bin_data(bin));
+    }
+  }
+
+  // for vector observables
+  else if constexpr (std::is_same_v<ObsType, VectorType>) {
+    // output bin data of vector observable
+    const int number_of_bins = obs.bin_num();
+    const int size = obs.mean_value().size();
+    ostream << std::format("{:>20d}{:>20d}\n", number_of_bins, size);
+    for (auto bin = 0; bin < number_of_bins; ++bin) {
+      for (auto i = 0; i < size; ++i) {
+        ostream << std::format("{:>20d}{:>20d}{:>20.10f}\n", bin, i, obs.bin_data(bin)(i));
+      }
+    }
+  }
+
+  // for matrix observables
+  else if constexpr (std::is_same_v<ObsType, MatrixType>) {
+    // output bin data of matrix observable
+    const int number_of_bins = obs.bin_num();
+    const int row = obs.mean_value().rows();
+    const int col = obs.mean_value().cols();
+    ostream << std::format("{:>20d}{:>20d}{:>20d}\n", number_of_bins, row, col);
+    for (auto bin = 0; bin < number_of_bins; ++bin) {
+      for (auto i = 0; i < row; ++i) {
+        for (auto j = 0; j < col; ++j) {
+          ostream << std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}\n", bin, i, j,
+                                 obs.bin_data(bin)(i, j));
+        }
+      }
+    }
+  }
+
+  // other observable types, raising errors
+  else {
+    throw std::runtime_error(dqmc_format_error("undefined observable type."));
+  }
+}
+
 }  // namespace Observable

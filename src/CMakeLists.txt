@@ -9,7 +9,6 @@ add_library(
   checkerboard/cubic.cpp
   checkerboard/square.cpp
   walker.cpp
-  io.cpp
   measure/measure_methods.cpp
   measure/measure_handler.cpp
   measure/observable_handler.cpp

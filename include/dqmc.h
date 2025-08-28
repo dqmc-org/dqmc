@@ -73,6 +73,8 @@ class Dqmc {
  public:
   explicit Dqmc(const Config& config);
 
+  ~Dqmc();
+
   void run();
   void write_results(const std::string& out_path) const;
 
@@ -88,6 +90,11 @@ class Dqmc {
   const Walker& walker() const;
   const Measure::MeasureHandler& handler() const;
   const CheckerBoard::CheckerBoardBase* checkerboard() const;
+
+  // Output
+  void initial_message(std::ostream& ostream) const;
+  void info_message(std::ostream& ostream) const;
+  void output_results(std::ostream& ostream) const;
 
  private:
   // ------------------------------------ Private subroutines

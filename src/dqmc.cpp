@@ -5,19 +5,14 @@
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
-#include <utility>
 
-#include "checkerboard/cubic.h"
 #include "checkerboard/square.h"
-#include "io.h"
 #include "lattice/cubic.h"
-#include "lattice/honeycomb.h"
 #include "lattice/square.h"
 #include "measure/measure_handler.h"
 #include "measure/observable.h"
 #include "model/attractive_hubbard.h"
 #include "model/repulsive_hubbard.h"
-#include "svd_stack.h"
 #include "utils/assert.h"
 #include "utils/progressbar.hpp"
 #include "walker.h"
@@ -117,6 +112,8 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
   m_walker->initial_config_sign();
 }
 
+Dqmc::~Dqmc() = default;
+
 void Dqmc::run() {
   m_begin_time = std::chrono::steady_clock::now();
   thermalize();
@@ -153,13 +150,13 @@ void Dqmc::write_results(const std::string& out_path) const {
   outfile.close();
 
   // Helper lambda for observables
-  auto output_observable_files = [&](const auto& obs, const std::string_view& obs_name) {
+  auto output_observable_files = [&](const auto& obs, const std::string& obs_name) {
     outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, m_seed));
-    IO::output_observable_to_file(outfile, *obs);
+    Observable::output_observable_to_file(outfile, *obs);
     outfile.close();
 
     outfile.open(std::format("{}/{}.bins.out", out_path, obs_name));
-    IO::output_observable_in_bins_to_file(outfile, *obs);
+    Observable::output_observable_in_bins_to_file(outfile, *obs);
     outfile.close();
   };
 
@@ -290,4 +287,52 @@ void Dqmc::measure() {
 }
 
 void Dqmc::analyse() { m_handler->analyse_stats(); }
+
+void Dqmc::initial_message(std::ostream& ostream) const {
+  if (!ostream) {
+    throw std::runtime_error(dqmc_format_error("output stream is not valid."));
+  }
+
+  m_model->output_model_info(ostream);
+  m_lattice->output_lattice_info(ostream, m_handler->Momentum());
+
+  ostream << std::format("{:>30s}{:>7s}{:>24s}\n\n", "Checkerboard breakups", "->",
+                         checkerboard() ? "True" : "False");
+
+  m_walker->output_montecarlo_info(ostream);
+  m_handler->output_measuring_info(ostream);
+}
+
+void Dqmc::info_message(std::ostream& ostream) const {
+  if (!ostream) {
+    throw std::runtime_error(dqmc_format_error("output stream is not valid."));
+  }
+
+  auto duration = this->timer_as_duration();
+
+  auto d = std::chrono::duration_cast<std::chrono::days>(duration);
+  duration -= d;
+
+  auto h = std::chrono::duration_cast<std::chrono::hours>(duration);
+  duration -= h;
+
+  auto m = std::chrono::duration_cast<std::chrono::minutes>(duration);
+  duration -= m;
+
+  auto s = std::chrono::duration_cast<std::chrono::seconds>(duration);
+  duration -= s;
+
+  ostream << std::format("\n>> The simulation finished in {}d {}h {}m {}s {}ms.\n", d.count(),
+                         h.count(), m.count(), s.count(), duration.count());
+
+  ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n", m_walker->wrap_error());
+}
+
+void Dqmc::output_results(std::ostream& ostream) const {
+  for (const auto& obs_name : m_handler->ObservablesList()) {
+    if (auto obs = m_handler->find<Observable::Scalar>(obs_name)) {
+      Observable::output_observable_to_console(std::cout, *obs);
+    }
+  }
+}
 }  // namespace DQMC
