@@ -17,22 +17,22 @@ namespace Lattice {
 class Cubic : public LatticeBase {
  private:
   // some high symmetry points in the reciprocal lattice
-  int m_gamma_point_index{};            // (0,0,0)
-  int m_x_point_index{};                // (pi,0,0)
-  int m_m_point_index{};                // (pi,pi,0)
-  int m_r_point_index{};                // (pi,pi,pi)
-  LatticeIntVec m_delta_line_index{};   // (0,0,0)   ->  (pi,0,0)
-  LatticeIntVec m_z_line_index{};       // (pi,0,0)  ->  (pi,pi,0)
-  LatticeIntVec m_sigma_line_index{};   // (0,0,0)   ->  (pi,pi,0)
-  LatticeIntVec m_lambda_line_index{};  // (0,0,0)   ->  (pi,pi,pi)
-  LatticeIntVec m_s_line_index{};       // (pi,0,0)  ->  (pi,pi,pi)
-  LatticeIntVec m_t_line_index{};       // (pi,pi,0) ->  (pi,pi,pi)
+  int m_gamma_point_index{};               // (0,0,0)
+  int m_x_point_index{};                   // (pi,0,0)
+  int m_m_point_index{};                   // (pi,pi,0)
+  int m_r_point_index{};                   // (pi,pi,pi)
+  std::vector<int> m_delta_line_index{};   // (0,0,0)   ->  (pi,0,0)
+  std::vector<int> m_z_line_index{};       // (pi,0,0)  ->  (pi,pi,0)
+  std::vector<int> m_sigma_line_index{};   // (0,0,0)   ->  (pi,pi,0)
+  std::vector<int> m_lambda_line_index{};  // (0,0,0)   ->  (pi,pi,pi)
+  std::vector<int> m_s_line_index{};       // (pi,0,0)  ->  (pi,pi,pi)
+  std::vector<int> m_t_line_index{};       // (pi,pi,0) ->  (pi,pi,pi)
 
   std::unordered_map<std::string, int> m_momentum_points;
   std::unordered_map<std::string, std::vector<int>> m_momentum_lists;
 
  public:
-  explicit Cubic(const LatticeIntVec& lattice_size);
+  explicit Cubic(const std::vector<int>& lattice_size);
 
   Cubic() = delete;
   Cubic(const Cubic&) = delete;
@@ -43,7 +43,7 @@ class Cubic : public LatticeBase {
   void initial() override;
 
  private:
-  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
+  void set_lattice_params(const std::vector<int>& side_length_vec) override;
 
  public:
   // Output lattice information

@@ -4,7 +4,7 @@
 
 namespace Lattice {
 
-Square::Square(const LatticeIntVec& lattice_size) {
+Square::Square(const std::vector<int>& lattice_size) {
   set_lattice_params(lattice_size);
   initial();
 }
@@ -28,7 +28,7 @@ void Square::output_lattice_info(std::ostream& ostream, int momentum_index) cons
           << fmt_str("Momentum point", fmt_momentum(px, py)) << std::flush;
 }
 
-void Square::set_lattice_params(const LatticeIntVec& side_length_vec) {
+void Square::set_lattice_params(const std::vector<int>& side_length_vec) {
   // lattice in two dimension
   DQMC_ASSERT((int)side_length_vec.size() == 2);
   // for square lattice, the length of each side should be equal to each other

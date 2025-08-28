@@ -4,7 +4,7 @@
 
 namespace Lattice {
 
-Cubic::Cubic(const LatticeIntVec& lattice_size) {
+Cubic::Cubic(const std::vector<int>& lattice_size) {
   set_lattice_params(lattice_size);
   initial();
 }
@@ -29,7 +29,7 @@ void Cubic::output_lattice_info(std::ostream& ostream, int momentum_index) const
           << fmt_str("Momentum point", fmt_momentum(px, py, pz)) << std::flush;
 }
 
-void Cubic::set_lattice_params(const LatticeIntVec& side_length_vec) {
+void Cubic::set_lattice_params(const std::vector<int>& side_length_vec) {
   // lattice in three dimension
   DQMC_ASSERT((int)side_length_vec.size() == 3);
   // for cubic lattice, the length of each side should be equal to each other

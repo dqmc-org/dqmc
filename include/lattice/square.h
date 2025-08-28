@@ -17,18 +17,18 @@ namespace Lattice {
 class Square : public LatticeBase {
  private:
   // some high symmetry points in the reciprocal lattice
-  int m_gamma_point_index{};           // (0,0)
-  int m_x_point_index{};               // (pi,0)
-  int m_m_point_index{};               // (pi,pi)
-  LatticeIntVec m_delta_line_index{};  // (0,0)  ->  (pi,0)
-  LatticeIntVec m_z_line_index{};      // (pi,0) ->  (pi,pi)
-  LatticeIntVec m_sigma_line_index{};  // (0,0)  ->  (pi,pi)
+  int m_gamma_point_index{};              // (0,0)
+  int m_x_point_index{};                  // (pi,0)
+  int m_m_point_index{};                  // (pi,pi)
+  std::vector<int> m_delta_line_index{};  // (0,0)  ->  (pi,0)
+  std::vector<int> m_z_line_index{};      // (pi,0) ->  (pi,pi)
+  std::vector<int> m_sigma_line_index{};  // (0,0)  ->  (pi,pi)
 
   // defined loop (0,0) -> (pi,0) -> (pi,pi) -> (0,0)
-  LatticeIntVec m_gamma2x2m2gamma_loop_index{};
+  std::vector<int> m_gamma2x2m2gamma_loop_index{};
 
  public:
-  explicit Square(const LatticeIntVec& lattice_size);
+  explicit Square(const std::vector<int>& lattice_size);
 
   Square() = delete;
   Square(const Square&) = delete;
@@ -39,7 +39,7 @@ class Square : public LatticeBase {
   void initial() override;
 
  private:
-  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
+  void set_lattice_params(const std::vector<int>& side_length_vec) override;
 
  public:
   // Output lattice information
