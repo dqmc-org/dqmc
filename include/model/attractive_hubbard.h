@@ -42,6 +42,15 @@ class AttractiveHubbard : public ModelBase {
   double m_exp_val_half_diff;
 
  public:
+  explicit AttractiveHubbard(RealScalar hopping_t, RealScalar onsite_u,
+                             RealScalar chemical_potential);
+
+  AttractiveHubbard() = delete;
+  AttractiveHubbard(const AttractiveHubbard&) = delete;
+  AttractiveHubbard& operator=(const AttractiveHubbard&) = delete;
+  AttractiveHubbard(AttractiveHubbard&&) = delete;
+  AttractiveHubbard& operator=(AttractiveHubbard&&) = delete;
+
   // ----------------------------------------- Friend class
   // --------------------------------------------- friend class
   // DQMC::IO for reading the bosonic fields from file or
@@ -51,6 +60,7 @@ class AttractiveHubbard : public ModelBase {
   // ------------------------------------------ Interfaces
   // ----------------------------------------------
 
+ public:
   RealScalar HoppingT() const override;
   RealScalar OnSiteU() const;
   RealScalar ChemicalPotential() const override;

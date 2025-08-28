@@ -28,14 +28,20 @@ class Cubic : public LatticeBase {
   LatticeIntVec m_t_line_index{};       // (pi,pi,0) ->  (pi,pi,pi)
 
  public:
-  Cubic() = default;
+  explicit Cubic(const LatticeIntVec& lattice_size);
 
-  // set up lattice parameters
-  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
+  Cubic() = delete;
+  Cubic(const Cubic&) = delete;
+  Cubic& operator=(const Cubic&) = delete;
+  Cubic(Cubic&&) = delete;
+  Cubic& operator=(Cubic&&) = delete;
 
-  // initializations
   void initial() override;
 
+ private:
+  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
+
+ public:
   // interfaces for high symmetry momentum points
   LatticeInt GammaPointIndex() const;
   LatticeInt XPointIndex() const;

@@ -8,6 +8,7 @@
 #include <unsupported/Eigen/MatrixFunctions>
 
 #include "lattice/lattice_base.h"
+#include "utils/assert.h"
 #include "walker.h"
 
 namespace Model {
@@ -15,6 +16,15 @@ namespace Model {
 using RealScalar = double;
 using SpaceTimeMat = Eigen::MatrixXd;
 using SpaceSpaceMat = Eigen::MatrixXd;
+
+AttractiveHubbard::AttractiveHubbard(RealScalar hopping_t, RealScalar onsite_u,
+                                     RealScalar chemical_potential) {
+  DQMC_ASSERT(hopping_t >= 0.0);
+  DQMC_ASSERT(onsite_u >= 0.0);  // abs of the onsite attractive interaction
+  this->m_hopping_t = hopping_t;
+  this->m_onsite_u = onsite_u;
+  this->m_chemical_potential = chemical_potential;
+}
 
 RealScalar AttractiveHubbard::HoppingT() const { return this->m_hopping_t; }
 

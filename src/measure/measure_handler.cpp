@@ -4,9 +4,21 @@
 
 #include "lattice/lattice_base.h"
 #include "model/model_base.h"
+#include "utils/assert.h"
 #include "walker.h"
 
 namespace Measure {
+
+MeasureHandler::MeasureHandler(int sweeps_warmup, int bin_num, int bin_size,
+                               int sweeps_between_bins, const ObsList& observables,
+                               MomentumIndex measured_momentum_idx,
+                               const MomentumIndexList& measured_momentum_list) {
+  set_measure_params(sweeps_warmup, bin_num, bin_size, sweeps_between_bins);
+  set_observables(observables);
+  set_measured_momentum(measured_momentum_idx);
+  set_measured_momentum_list(measured_momentum_list);
+}
+
 void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num, int bin_size,
                                         int sweeps_between_bins) {
   DQMC_ASSERT(sweeps_warmup >= 0);

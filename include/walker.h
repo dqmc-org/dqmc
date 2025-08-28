@@ -98,11 +98,18 @@ class Walker {
   RealScalarVec m_vec_config_sign{};
 
  public:
-  Walker() = default;
+  explicit Walker(RealScalar beta, int time_size, int stabilization_pace);
+
+  Walker() = delete;
+  Walker(const Walker&) = delete;
+  Walker& operator=(const Walker&) = delete;
+  Walker(Walker&&) = delete;
+  Walker& operator=(Walker&&) = delete;
 
   // -------------------------------- Interfaces and friend class
   // --------------------------------
 
+ public:
   int TimeSize() const { return this->m_time_size; }
   RealScalar Beta() const { return this->m_beta; }
   RealScalar TimeInterval() const { return this->m_time_interval; }
@@ -145,7 +152,8 @@ class Walker {
   friend class Initializer;
   friend class Dqmc;
 
-  // ------------------------------- Setup of parameters
+ private:
+  // ------------------------------- Setup of parameters (now private, called by constructor)
   // -----------------------------------------
 
   // set up the physical parameters
@@ -154,8 +162,6 @@ class Walker {
 
   // set up the pace of stabilizations
   void set_stabilization_pace(int stabilization_pace);
-
- private:
   // ---------------------------------- Initializations
   // ------------------------------------------ never explicitly call these
   // functions to avoid unpredictable mistakes, and use Initializer instead

@@ -4,6 +4,11 @@
 
 namespace Lattice {
 
+Cubic::Cubic(const LatticeIntVec& lattice_size) {
+  set_lattice_params(lattice_size);
+  initial();
+}
+
 // high symmetry points in the reciprocal lattice
 LatticeInt Cubic::GammaPointIndex() const { return this->m_gamma_point_index; }
 

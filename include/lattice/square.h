@@ -27,14 +27,20 @@ class Square : public LatticeBase {
   LatticeIntVec m_gamma2x2m2gamma_loop_index{};
 
  public:
-  Square() = default;
+  explicit Square(const LatticeIntVec& lattice_size);
 
-  // set up lattice parameters
-  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
+  Square() = delete;
+  Square(const Square&) = delete;
+  Square& operator=(const Square&) = delete;
+  Square(Square&&) = delete;
+  Square& operator=(Square&&) = delete;
 
-  // initializations
   void initial() override;
 
+ private:
+  void set_lattice_params(const LatticeIntVec& side_length_vec) override;
+
+ public:
   // interfaces for high symmetry momentum points
   LatticeInt GammaPointIndex() const;
   LatticeInt XPointIndex() const;

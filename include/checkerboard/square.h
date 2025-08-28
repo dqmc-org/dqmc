@@ -26,13 +26,21 @@ class Square : public CheckerBoardBase {
   Eigen::Matrix4d m_inv_expK_plaquette{};
 
  public:
-  // set up parameters
+  explicit Square(const LatticeBase &lattice, const ModelBase &model, const Walker &walker);
+
+  Square() = delete;
+  Square(const Square &) = delete;
+  Square &operator=(const Square &) = delete;
+  Square(Square &&) = delete;
+  Square &operator=(Square &&) = delete;
+
+ private:
   void set_checkerboard_params(const LatticeBase &lattice, const ModelBase &model,
                                const Walker &walker);
 
-  // initialization
   void initial();
 
+ public:
   // multiply the exponent of hopping matrix K using checkerboard breakups
   void mult_expK_from_left(Matrix &matrix) const;
   void mult_expK_from_right(Matrix &matrix) const;

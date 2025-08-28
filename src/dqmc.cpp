@@ -218,122 +218,20 @@ void Dqmc::measure() {
 
 void Dqmc::analyse() { m_context.handler->analyse_stats(); }
 
-Context Dqmc::parse_config(const Config& config) {
-  Context context;
-  // --------------------------------------------------------------------------------------------------
-  //                                      Parse the Model module
-  // --------------------------------------------------------------------------------------------------
-  if (config.model_type == "RepulsiveHubbard") {
-    context.model = std::make_unique<Model::RepulsiveHubbard>();
-    context.model->set_model_params(config.hopping_t, config.onsite_u, config.chemical_potential);
-  }
-
-  // -----------------------------------  Attractive Hubbard model
-  // -----------------------------------
-  else if (config.model_type == "AttractiveHubbard") {
-    context.model = std::make_unique<Model::AttractiveHubbard>();
-    context.model->set_model_params(config.hopping_t, config.onsite_u, config.chemical_potential);
-  }
-
-  else {
-    throw std::runtime_error(
-        "DQMC::Dqmc::parse_config(): "
-        "undefined model type");
-  }
-
-  // --------------------------------------------------------------------------------------------------
-  //                                    Parse the Lattice module
-  // --------------------------------------------------------------------------------------------------
-  if (config.lattice_type == "Square") {
-    DQMC_ASSERT(config.lattice_size.size() == 2);
-
-    // create 2d square lattice object
-    context.lattice = std::make_unique<Lattice::Square>();
-    context.lattice->set_lattice_params(config.lattice_size);
-    context.lattice->initial();
-  }
-
-  else if (config.lattice_type == "Cubic") {
-    DQMC_ASSERT(config.lattice_size.size() == 3);
-
-    // create 3d cubic lattice object
-    context.lattice = std::make_unique<Lattice::Cubic>();
-    context.lattice->set_lattice_params(config.lattice_size);
-    context.lattice->initial();
-  }
-
-  // ------------------------------------  2D Honeycomb lattice
-  // --------------------------------------
-  else if (config.lattice_type == "Honeycomb") {
-    throw std::runtime_error("Honeycomb lattice is not supported.");
-  }
-
-  else {
-    throw std::runtime_error(
-        "DQMC::Dqmc::parse_config(): "
-        "unsupported lattice type");
-  }
-
-  // --------------------------------------------------------------------------------------------------
-  //                                  Parse the CheckerBoard module
-  // --------------------------------------------------------------------------------------------------
-  // note that the checkerboard method is currently only implemented for 2d
-  // square lattice
-
-  if (config.enable_checkerboard) {
-    if (config.lattice_type == "Square") {
-      context.checkerboard = std::make_unique<CheckerBoard::Square>();
-    } else {
-      throw std::runtime_error(
-          "DQMC::Dqmc::parse_config(): "
-          "checkerboard is currently only implemented for "
-          "2d square lattice");
-    }
-  }
-
-  // --------------------------------------------------------------------------------------------------
-  //                                   Parse the Walker module
-  // --------------------------------------------------------------------------------------------------
-  // create dqmc walker and set up parameters
-  context.walker = std::make_unique<Walker>();
-  context.walker->set_physical_params(config.beta, config.time_size);
-  context.walker->set_stabilization_pace(config.stabilization_pace);
-
-  // --------------------------------------------------------------------------------------------------
-  //                                Parse the Measure Handler module
-  // --------------------------------------------------------------------------------------------------
-
-  // special observables, e.g. superfluid stiffness, are only supported for
-  // specific lattice type.
-  if (config.lattice_type != "Square") {
-    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness") !=
-        config.observables.end()) {
-      throw std::runtime_error("superfluid_stiffness is only supported for Square lattice");
-    }
-  }
-
-  // create measure handler and set up parameters
-  context.handler = std::make_unique<Measure::MeasureHandler>();
-
-  context.handler->set_measure_params(config.sweeps_warmup, config.bin_num, config.bin_size,
-                                      config.sweeps_between_bins);
-  context.handler->set_observables(config.observables);
-
-  // --------------------------------------------------------------------------------------------------
-  //                                Parse the input Momentum parmas
-  // --------------------------------------------------------------------------------------------------
-  // make sure that the lattice module is initialized ahead
-  DQMC_ASSERT(context.lattice->InitialStatus());
+namespace {
+std::pair<int, std::vector<int>> parse_momentum_params(const Config& config,
+                                                       const Lattice::LatticeBase& lattice) {
+  int momentum_idx = 0;
+  std::vector<int> momentum_list_indices;
 
   if (config.lattice_type == "Square") {
-    // covert base class pointer to that of the derived square lattice class
-    if (const auto square_lattice = dynamic_cast<const Lattice::Square*>(context.lattice.get())) {
+    if (const auto* square_lattice = dynamic_cast<const Lattice::Square*>(&lattice)) {
       if (config.momentum == "GammaPoint") {
-        context.handler->set_measured_momentum(square_lattice->GammaPointIndex());
+        momentum_idx = square_lattice->GammaPointIndex();
       } else if (config.momentum == "MPoint") {
-        context.handler->set_measured_momentum(square_lattice->MPointIndex());
+        momentum_idx = square_lattice->MPointIndex();
       } else if (config.momentum == "XPoint") {
-        context.handler->set_measured_momentum(square_lattice->XPointIndex());
+        momentum_idx = square_lattice->XPointIndex();
       } else {
         throw std::runtime_error(
             std::format("DQMC::Dqmc::parse_config(): undefined momentum '{}' for 2d square lattice",
@@ -341,15 +239,15 @@ Context Dqmc::parse_config(const Config& config) {
       }
 
       if (config.momentum_list == "KstarsAll") {
-        context.handler->set_measured_momentum_list(square_lattice->kStarsIndex());
+        momentum_list_indices = square_lattice->kStarsIndex();
       } else if (config.momentum_list == "DeltaLine") {
-        context.handler->set_measured_momentum_list(square_lattice->DeltaLineIndex());
+        momentum_list_indices = square_lattice->DeltaLineIndex();
       } else if (config.momentum_list == "ZLine") {
-        context.handler->set_measured_momentum_list(square_lattice->ZLineIndex());
+        momentum_list_indices = square_lattice->ZLineIndex();
       } else if (config.momentum_list == "SigmaLine") {
-        context.handler->set_measured_momentum_list(square_lattice->SigmaLineIndex());
+        momentum_list_indices = square_lattice->SigmaLineIndex();
       } else if (config.momentum_list == "Gamma2X2M2GammaLoop") {
-        context.handler->set_measured_momentum_list(square_lattice->Gamma2X2M2GammaLoopIndex());
+        momentum_list_indices = square_lattice->Gamma2X2M2GammaLoopIndex();
       } else {
         throw std::runtime_error(std::format(
             "DQMC::Dqmc::parse_config(): undefined momentum list '{}' for 2d square lattice",
@@ -360,19 +258,16 @@ Context Dqmc::parse_config(const Config& config) {
           "DQMC::Dqmc::parse_config(): fail to convert 'Lattice::LatticeBase' to "
           "'Lattice::Square'.");
     }
-  }
-
-  if (config.lattice_type == "Cubic") {
-    // covert base class pointer to that of the derived cubic lattice class
-    if (const auto cubic_lattice = dynamic_cast<const Lattice::Cubic*>(context.lattice.get())) {
+  } else if (config.lattice_type == "Cubic") {
+    if (const auto* cubic_lattice = dynamic_cast<const Lattice::Cubic*>(&lattice)) {
       if (config.momentum == "GammaPoint") {
-        context.handler->set_measured_momentum(cubic_lattice->GammaPointIndex());
+        momentum_idx = cubic_lattice->GammaPointIndex();
       } else if (config.momentum == "MPoint") {
-        context.handler->set_measured_momentum(cubic_lattice->MPointIndex());
+        momentum_idx = cubic_lattice->MPointIndex();
       } else if (config.momentum == "XPoint") {
-        context.handler->set_measured_momentum(cubic_lattice->XPointIndex());
+        momentum_idx = cubic_lattice->XPointIndex();
       } else if (config.momentum == "RPoint") {
-        context.handler->set_measured_momentum(cubic_lattice->RPointIndex());
+        momentum_idx = cubic_lattice->RPointIndex();
       } else {
         throw std::runtime_error(
             std::format("DQMC::Dqmc::parse_config(): undefined momentum '{}' for 3d cubic lattice",
@@ -380,19 +275,19 @@ Context Dqmc::parse_config(const Config& config) {
       }
 
       if (config.momentum_list == "KstarsAll") {
-        context.handler->set_measured_momentum_list(cubic_lattice->kStarsIndex());
+        momentum_list_indices = cubic_lattice->kStarsIndex();
       } else if (config.momentum_list == "DeltaLine") {
-        context.handler->set_measured_momentum_list(cubic_lattice->DeltaLineIndex());
+        momentum_list_indices = cubic_lattice->DeltaLineIndex();
       } else if (config.momentum_list == "ZLine") {
-        context.handler->set_measured_momentum_list(cubic_lattice->ZLineIndex());
+        momentum_list_indices = cubic_lattice->ZLineIndex();
       } else if (config.momentum_list == "SigmaLine") {
-        context.handler->set_measured_momentum_list(cubic_lattice->SigmaLineIndex());
+        momentum_list_indices = cubic_lattice->SigmaLineIndex();
       } else if (config.momentum_list == "LambdaLine") {
-        context.handler->set_measured_momentum_list(cubic_lattice->LambdaLineIndex());
+        momentum_list_indices = cubic_lattice->LambdaLineIndex();
       } else if (config.momentum_list == "SLine") {
-        context.handler->set_measured_momentum_list(cubic_lattice->SLineIndex());
+        momentum_list_indices = cubic_lattice->SLineIndex();
       } else if (config.momentum_list == "TLine") {
-        context.handler->set_measured_momentum_list(cubic_lattice->TLineIndex());
+        momentum_list_indices = cubic_lattice->TLineIndex();
       } else {
         throw std::runtime_error(std::format(
             "DQMC::Dqmc::parse_config(): undefined momentum list '{}' for 3d cubic lattice",
@@ -403,27 +298,86 @@ Context Dqmc::parse_config(const Config& config) {
           "DQMC::Dqmc::parse_config(): fail to convert 'Lattice::LatticeBase' to "
           "'Lattice::Cubic'.");
     }
+  } else if (config.lattice_type == "Honeycomb") {
+    throw std::runtime_error("Honeycomb lattice is not supported.");
   }
 
-  if (config.lattice_type == "Honeycomb") {
+  return {momentum_idx, momentum_list_indices};
+}
+}  // namespace
+
+Context Dqmc::parse_config(const Config& config) {
+  Context context;
+
+  // 1. Create Lattice
+  if (config.lattice_type == "Square") {
+    DQMC_ASSERT(config.lattice_size.size() == 2);
+    context.lattice = std::make_unique<Lattice::Square>(config.lattice_size);
+  } else if (config.lattice_type == "Cubic") {
+    DQMC_ASSERT(config.lattice_size.size() == 3);
+    context.lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
+  } else if (config.lattice_type == "Honeycomb") {
     throw std::runtime_error("Honeycomb lattice is not supported.");
+  } else {
+    throw std::runtime_error("DQMC::Dqmc::parse_config(): unsupported lattice type");
+  }
+
+  // 2. Create Model
+  if (config.model_type == "RepulsiveHubbard") {
+    context.model = std::make_unique<Model::RepulsiveHubbard>(config.hopping_t, config.onsite_u,
+                                                              config.chemical_potential);
+  } else if (config.model_type == "AttractiveHubbard") {
+    context.model = std::make_unique<Model::AttractiveHubbard>(config.hopping_t, config.onsite_u,
+                                                               config.chemical_potential);
+  } else {
+    throw std::runtime_error("DQMC::Dqmc::parse_config(): undefined model type");
+  }
+
+  // 3. Create Walker
+  context.walker =
+      std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);
+
+  // 4. Determine Momentum Indices for MeasureHandler
+  auto [momentum_idx, momentum_list_indices] = parse_momentum_params(config, *context.lattice);
+
+  // 5. Validate observables against lattice type
+  if (config.lattice_type != "Square") {
+    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness") !=
+        config.observables.end()) {
+      throw std::runtime_error("superfluid_stiffness is only supported for Square lattice");
+    }
+  }
+
+  // 6. Create MeasureHandler
+  context.handler = std::make_unique<Measure::MeasureHandler>(
+      config.sweeps_warmup, config.bin_num, config.bin_size, config.sweeps_between_bins,
+      config.observables, momentum_idx, momentum_list_indices);
+
+  // 7. Create CheckerBoard if enabled
+  if (config.enable_checkerboard) {
+    if (config.lattice_type == "Square") {
+      context.checkerboard =
+          std::make_unique<CheckerBoard::Square>(*context.lattice, *context.model, *context.walker);
+    } else {
+      throw std::runtime_error(
+          "DQMC::Dqmc::parse_config(): "
+          "checkerboard is currently only implemented for 2d square lattice");
+    }
   }
 
   return context;
 }
 
 void Dqmc::initial_modules(const Context& context) {
-  // NOTE: the order of initializations below are important.
+  // NOTE: The order of initializations below remains important for inter-linking.
   DQMC_ASSERT(context.lattice->InitialStatus());
 
   context.handler->initial(*context.lattice, *context.walker);
   context.walker->initial(*context.lattice, *context.handler);
   context.model->initial(*context.lattice, *context.walker);
 
+  // Link checkerboard to the model if it exists
   if (context.checkerboard) {
-    context.checkerboard->set_checkerboard_params(*context.lattice, *context.model,
-                                                  *context.walker);
-    context.checkerboard->initial();
     context.model->link(*context.checkerboard);
   } else {
     context.model->link();

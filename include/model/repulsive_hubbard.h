@@ -38,6 +38,15 @@ class RepulsiveHubbard : public ModelBase {
   SpaceTimeMat m_bosonic_field{};
 
  public:
+  explicit RepulsiveHubbard(RealScalar hopping_t, RealScalar onsite_u,
+                            RealScalar chemical_potential);
+
+  RepulsiveHubbard() = delete;
+  RepulsiveHubbard(const RepulsiveHubbard&) = delete;
+  RepulsiveHubbard& operator=(const RepulsiveHubbard&) = delete;
+  RepulsiveHubbard(RepulsiveHubbard&&) = delete;
+  RepulsiveHubbard& operator=(RepulsiveHubbard&&) = delete;
+
   // ----------------------------------------- Friend class
   // --------------------------------------------- friend class
   // DQMC::IO for reading the bosonic fields from file or
@@ -47,6 +56,7 @@ class RepulsiveHubbard : public ModelBase {
   // ------------------------------------------ Interfaces
   // ----------------------------------------------
 
+ public:
   RealScalar HoppingT() const override;
   RealScalar OnSiteU() const;
   RealScalar ChemicalPotential() const override;

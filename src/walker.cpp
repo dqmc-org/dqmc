@@ -7,6 +7,7 @@
 #include "measure/measure_handler.h"
 #include "model/model_base.h"
 #include "svd_stack.h"
+#include "utils/assert.h"
 #include "utils/numerical_stable.hpp"
 
 namespace DQMC {
@@ -14,6 +15,11 @@ namespace DQMC {
 // alias conventions
 using Matrix = Eigen::MatrixXd;
 using NumericalStable = Utils::NumericalStable;
+
+Walker::Walker(RealScalar beta, int time_size, int stabilization_pace) {
+  set_physical_params(beta, time_size);
+  set_stabilization_pace(stabilization_pace);
+}
 
 void Walker::set_physical_params(RealScalar beta, int time_size) {
   DQMC_ASSERT(beta > 0.0);

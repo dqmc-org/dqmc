@@ -52,8 +52,17 @@ class MeasureHandler : public Observable::ObservableHandler {
   MomentumIndexList m_momentum_list{};
 
  public:
-  MeasureHandler() = default;
+  explicit MeasureHandler(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins,
+                          const ObsList& observables, MomentumIndex measured_momentum_idx,
+                          const MomentumIndexList& measured_momentum_list);
 
+  MeasureHandler() = delete;
+  MeasureHandler(const MeasureHandler&) = delete;
+  MeasureHandler& operator=(const MeasureHandler&) = delete;
+  MeasureHandler(MeasureHandler&&) = delete;
+  MeasureHandler& operator=(MeasureHandler&&) = delete;
+
+ private:
   // ---------------------------  Set up measuring params and observables
   // ------------------------------
 
@@ -66,6 +75,7 @@ class MeasureHandler : public Observable::ObservableHandler {
   void set_measured_momentum(MomentumIndex momentum_index);
   void set_measured_momentum_list(const MomentumIndexList& momentum_index_list);
 
+ public:
   // ------------------------------------  Initializations
   // ---------------------------------------------
 

@@ -4,9 +4,15 @@
 
 #include "lattice/square.h"
 #include "model/model_base.h"
+#include "utils/assert.h"
 #include "walker.h"
 
 namespace CheckerBoard {
+
+Square::Square(const LatticeBase &lattice, const ModelBase &model, const Walker &walker) {
+  set_checkerboard_params(lattice, model, walker);
+  initial();
+}
 
 void Square::set_checkerboard_params(const LatticeBase &lattice, const ModelBase &model,
                                      const Walker &walker) {
