@@ -208,7 +208,7 @@ class NumericalStable {
   /*
    * Helper for common calculations in both compute_dynamic_greens and compute_equaltime_greens
    */
-  static void compute_greens_function_common_part(const SvdStack& left, const SvdStack& right,
+  static void compute_greens_function_common_part(const SVD_stack& left, const SVD_stack& right,
                                                   GreensWorkspace& ws) {
     auto& dlmax = ws.dlmax;
     auto& dlmin = ws.dlmin;
@@ -218,12 +218,12 @@ class NumericalStable {
     auto& Btmp = ws.Btmp;
     auto& tmp = ws.tmp;
 
-    const Matrix& ul = left.MatrixU();
-    const Vector& dl = left.SingularValues();
-    const Matrix& vl = left.MatrixV();
-    const Matrix& ur = right.MatrixU();
-    const Vector& dr = right.SingularValues();
-    const Matrix& vr = right.MatrixV();
+    const Matrix& ul = left.U();
+    const Vector& dl = left.S();
+    const Matrix& vl = left.V();
+    const Matrix& ur = right.U();
+    const Vector& dr = right.S();
+    const Matrix& vr = right.V();
 
     div_dvec_max_min(dl, dlmax, dlmin);
     div_dvec_max_min(dr, drmax, drmin);
@@ -246,39 +246,39 @@ class NumericalStable {
    * factorization note: (1 + left * right^T)^-1 = (1 + (USV^T)_left *
    * (VSU^T)_right)^-1
    */
-  static void compute_equaltime_greens(const SvdStack& left, const SvdStack& right, Matrix& gtt,
+  static void compute_equaltime_greens(const SVD_stack& left, const SVD_stack& right, Matrix& gtt,
                                        GreensWorkspace& ws) {
-    DQMC_ASSERT(left.MatDim() == right.MatDim());
-    const int ndim = left.MatDim();
+    DQMC_ASSERT(left.dim() == right.dim());
+    const int ndim = left.dim();
     ws.resize(ndim);
 
     if (left.empty()) {
-      compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gtt);
+      compute_greens_00_bb(right.V(), right.S(), right.U(), gtt);
       return;
     }
     if (right.empty()) {
-      compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), gtt);
+      compute_greens_00_bb(left.U(), left.S(), left.V(), gtt);
       return;
     }
 
     compute_greens_function_common_part(left, right, ws);
     auto& Atmp = ws.Atmp;
 
-    mult_v_invd_u(Atmp, ws.dlmax, left.MatrixU().transpose(), gtt);
+    mult_v_invd_u(Atmp, ws.dlmax, left.U().transpose(), gtt);
   }
 
   /*
    *  return time-displaced Green's function in a stable manner,
    *  with the method of MGS factorization
    */
-  static void compute_dynamic_greens(const SvdStack& left, const SvdStack& right, Matrix& gt0,
+  static void compute_dynamic_greens(const SVD_stack& left, const SVD_stack& right, Matrix& gt0,
                                      Matrix& g0t, GreensWorkspace& ws) {
-    DQMC_ASSERT(left.MatDim() == right.MatDim());
-    const int ndim = left.MatDim();
+    DQMC_ASSERT(left.dim() == right.dim());
+    const int ndim = left.dim();
     ws.resize(ndim);
 
     if (left.empty()) {
-      compute_greens_00_bb(right.MatrixV(), right.SingularValues(), right.MatrixU(), gt0);
+      compute_greens_00_bb(right.V(), right.S(), right.U(), gt0);
 
       g0t.noalias() = gt0;
       g0t.diagonal().array() -= 1.0;
@@ -286,24 +286,24 @@ class NumericalStable {
     }
 
     if (right.empty()) {
-      compute_greens_b0(left.MatrixU(), left.SingularValues(), left.MatrixV(), gt0);
-      compute_greens_00_bb(left.MatrixU(), left.SingularValues(), left.MatrixV(), g0t);
+      compute_greens_b0(left.U(), left.S(), left.V(), gt0);
+      compute_greens_00_bb(left.U(), left.S(), left.V(), g0t);
       g0t *= -1.0;
       return;
     }
 
     compute_greens_function_common_part(left, right, ws);
     auto& Atmp = ws.Atmp;
-    mult_v_d_u(Atmp, ws.dlmin, left.MatrixV().transpose(), gt0);
+    mult_v_d_u(Atmp, ws.dlmin, left.V().transpose(), gt0);
 
     auto& Xtmp = ws.Xtmp;
     auto& Ytmp = ws.Ytmp;
     auto& tmp = ws.tmp;
 
-    const Matrix& ul = left.MatrixU();
-    const Matrix& vl = left.MatrixV();
-    const Matrix& ur = right.MatrixU();
-    const Matrix& vr = right.MatrixV();
+    const Matrix& ul = left.U();
+    const Matrix& vl = left.V();
+    const Matrix& ur = right.U();
+    const Matrix& vr = right.V();
 
     Xtmp.noalias() = vr.transpose() * vl;
     Ytmp.noalias() = ur.transpose() * ul;

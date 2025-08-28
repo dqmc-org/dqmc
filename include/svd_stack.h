@@ -13,7 +13,6 @@
  */
 
 #include <Eigen/Core>
-#include <iostream>
 #include <vector>
 
 namespace Utils {
@@ -29,30 +28,25 @@ namespace Utils {
  * This decomposition is numerically stable and allows us to identify
  * and handle ill-conditioned matrices in DQMC calculations.
  */
-class SvdClass {
- private:
-  using uMat = Eigen::MatrixXd;  // Left singular vectors matrix
-  using sVec = Eigen::VectorXd;  // Singular values vector
-  using vMat = Eigen::MatrixXd;  // Right singular vectors matrix
-
-  uMat m_u_mat{};
-  sVec m_s_vec{};
-  vMat m_v_mat{};
-
+class SVD {
  public:
-  SvdClass() = default;
+  SVD() = default;
 
-  // Initialize with specified matrix dimension
-  explicit SvdClass(int dim) : m_u_mat(dim, dim), m_s_vec(dim), m_v_mat(dim, dim) {}
+  explicit SVD(int dim) : m_u(dim, dim), m_s(dim), m_v(dim, dim) {}
 
-  // Access to the SVD components
-  uMat& MatrixU() { return this->m_u_mat; }
-  sVec& SingularValues() { return this->m_s_vec; }
-  vMat& MatrixV() { return this->m_v_mat; }
+  Eigen::MatrixXd& U() { return this->m_u; }
+  const Eigen::MatrixXd& U() const { return this->m_u; }
 
-  const uMat& MatrixU() const { return this->m_u_mat; }
-  const sVec& SingularValues() const { return this->m_s_vec; }
-  const vMat& MatrixV() const { return this->m_v_mat; }
+  Eigen::VectorXd& S() { return this->m_s; }
+  const Eigen::VectorXd& S() const { return this->m_s; }
+
+  Eigen::MatrixXd& V() { return this->m_v; }
+  const Eigen::MatrixXd& V() const { return this->m_v; }
+
+ private:
+  Eigen::MatrixXd m_u{};
+  Eigen::VectorXd m_s{};
+  Eigen::MatrixXd m_v{};
 };
 
 /*
@@ -72,43 +66,37 @@ class SvdClass {
  *
  * The final product can be reconstructed as: Product = U' * S' * V_total^T
  */
-class SvdStack {
- private:
-  using VecSvd = std::vector<SvdClass>;
-  using Matrix = Eigen::MatrixXd;
-  using Vector = Eigen::VectorXd;
-
-  VecSvd m_stack{};                  // Stack of SVD decompositions
-  int m_mat_dim{};                   // Dimension of matrices (assumed square)
-  std::vector<Matrix> m_prefix_v{};  // Prefix multiplication of V matrices
-  Matrix m_tmp_buffer{};             // Temporary buffer
-
+class SVD_stack {
  public:
-  SvdStack() = default;
+  SVD_stack() = default;
 
-  // Pre-allocate space for a stack of given depth
-  explicit SvdStack(int mat_dim, int stack_length);
+  explicit SVD_stack(int dim, int stack_length);
 
-  // Stack state queries
-  bool empty() const;
-  int MatDim() const;
-  int StackLength() const;
+  bool empty() const { return this->m_stack.empty(); }
+  int dim() const { return this->m_dim; }
+  int size() const { return this->m_stack.size(); }
 
-  // Access to the current accumulated product's SVD components
-  // These represent the decomposition of the entire matrix chain
-  const Vector& SingularValues() const;  // Current singular values
-  const Matrix& MatrixU() const;         // Current U matrix
-  const Matrix& MatrixV() const;         // Accumulated V matrix across all operations
-
-  // Reset the stack to empty state (memory remains allocated for reuse)
+  // Reset the stack to empty state
   void clear();
 
   // Core operations for building the matrix product
   // Push: multiply a new matrix from the left: Product = matrix * Product
   // This updates the SVD decomposition incrementally to maintain stability
-  void push(const Matrix& matrix);
+  void push(const Eigen::MatrixXd& matrix);
 
   // Pop: remove the most recently added matrix from the product
   void pop();
+
+  // Access to the current accumulated product's SVD components
+  // These represent the decomposition of the entire matrix chain
+  const Eigen::MatrixXd& U() const;  // Current U matrix
+  const Eigen::VectorXd& S() const;  // Current singular values
+  const Eigen::MatrixXd& V() const;  // Accumulated V matrix across all operations
+
+ private:
+  int m_dim{};                                // Dimension of matrices (assumed square)
+  std::vector<SVD> m_stack{};                 // Stack of SVD decompositions
+  std::vector<Eigen::MatrixXd> m_prefix_v{};  // Prefix multiplication of V matrices
+  Eigen::MatrixXd m_tmp_buffer{};             // Temporary buffer
 };
 }  // namespace Utils

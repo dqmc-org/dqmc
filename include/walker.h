@@ -35,7 +35,7 @@ using MeasureHandler = Measure::MeasureHandler;
 // ----------------------------
 class Walker {
  private:
-  using SvdStack = Utils::SvdStack;
+  using SvdStack = Utils::SVD_stack;
   using GreensFunc = Eigen::MatrixXd;
 
   // --------------------------------- Walker params

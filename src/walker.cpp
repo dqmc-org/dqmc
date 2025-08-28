@@ -205,8 +205,8 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
           : this->m_time_size / this->m_stabilization_pace + 1;
   DQMC_ASSERT(this->m_current_time_slice == 1);
   DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_dn.empty());
-  DQMC_ASSERT(this->m_svd_stack_right_up.StackLength() == stack_length &&
-              this->m_svd_stack_right_dn.StackLength() == stack_length);
+  DQMC_ASSERT(this->m_svd_stack_right_up.size() == stack_length &&
+              this->m_svd_stack_right_dn.size() == stack_length);
 
   // temporary matrices
   Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
@@ -299,8 +299,8 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
           : this->m_time_size / this->m_stabilization_pace + 1;
   DQMC_ASSERT(this->m_current_time_slice == this->m_time_size);
   DQMC_ASSERT(this->m_svd_stack_right_up.empty() && this->m_svd_stack_right_dn.empty());
-  DQMC_ASSERT(this->m_svd_stack_left_up.StackLength() == stack_length &&
-              this->m_svd_stack_left_dn.StackLength() == stack_length);
+  DQMC_ASSERT(this->m_svd_stack_left_up.size() == stack_length &&
+              this->m_svd_stack_left_dn.size() == stack_length);
 
   // temporary matrices
   Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
@@ -397,8 +397,8 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
             : this->m_time_size / this->m_stabilization_pace + 1;
     DQMC_ASSERT(this->m_current_time_slice == 1);
     DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_dn.empty());
-    DQMC_ASSERT(this->m_svd_stack_right_up.StackLength() == stack_length &&
-                this->m_svd_stack_right_dn.StackLength() == stack_length);
+    DQMC_ASSERT(this->m_svd_stack_right_up.size() == stack_length &&
+                this->m_svd_stack_right_dn.size() == stack_length);
 
     // initialize greens functions: at t = 0, gt0 = g00, g0t = g00 - 1
     this->m_green_t0_up = this->m_green_tt_up;
