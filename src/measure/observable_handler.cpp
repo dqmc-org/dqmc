@@ -1,8 +1,5 @@
 #include "measure/observable_handler.h"
 
-#include <format>
-#include <iostream>
-
 #include "measure/measure_methods.h"
 
 namespace Observable {
@@ -10,14 +7,15 @@ namespace Observable {
 namespace {
 template <typename ObsType, typename MethodFunc>
 auto make_observable(MethodFunc method) {
-  return [method](const ObsName& name, const std::string& desc) -> std::shared_ptr<ObservableBase> {
-    return std::make_shared<ObsType>(name, desc, method);
+  return [method](const std::string& name,
+                  const std::string& desc) -> std::unique_ptr<ObservableBase> {
+    return std::make_unique<ObsType>(name, desc, method);
   };
 }
 }  // namespace
 
 // clang-format off
-const std::map<std::string, ObservableHandler::ObservableProperties> ObservableHandler::m_supported_observables = {
+const std::unordered_map<std::string, ObservableHandler::ObservableProperties> ObservableHandler::m_supported_observables = {
     // --- Equal-Time Observables ---
     {"filling_number",                 {"Filling number",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_filling_number)}},
     {"double_occupancy",               {"Double occupation",           ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_double_occupancy)}},
@@ -47,48 +45,26 @@ std::vector<std::string> ObservableHandler::get_all_observable_names() {
   return names;
 }
 
-bool ObservableHandler::is_eqtime(const ObsName& obs_name) const {
+bool ObservableHandler::is_eqtime(const std::string& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
   return it != m_supported_observables.end() && it->second.time_type == ObsTimeType::EqualTime;
 }
 
-bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
+bool ObservableHandler::is_dynamic(const std::string& obs_name) const {
   auto it = m_supported_observables.find(obs_name);
   return it != m_supported_observables.end() && it->second.time_type == ObsTimeType::Dynamic;
 }
 
-bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {
+bool ObservableHandler::check_validity(const std::vector<std::string>& obs_list) const {
   for (const auto& obs : obs_list) {
     if (m_supported_observables.find(obs) == m_supported_observables.end()) {
-      throw std::runtime_error(dqmc_format_error("observable '{}' is not supported.", obs));
+      return false;
     }
   }
   return true;
 }
 
-void ObservableHandler::deallocate() {
-  this->m_obs_map.clear();
-
-  this->m_eqtime_scalar_obs.clear();
-  this->m_eqtime_vector_obs.clear();
-  this->m_eqtime_matrix_obs.clear();
-  this->m_dynamic_scalar_obs.clear();
-  this->m_dynamic_vector_obs.clear();
-  this->m_dynamic_matrix_obs.clear();
-
-  this->m_eqtime_scalar_obs.shrink_to_fit();
-  this->m_eqtime_vector_obs.shrink_to_fit();
-  this->m_eqtime_matrix_obs.shrink_to_fit();
-  this->m_dynamic_scalar_obs.shrink_to_fit();
-  this->m_dynamic_vector_obs.shrink_to_fit();
-  this->m_dynamic_matrix_obs.shrink_to_fit();
-}
-
-void ObservableHandler::initial(const ObsNameList& obs_list_in) {
-  this->deallocate();
-
-  ObsNameList obs_list = obs_list_in;
-
+void ObservableHandler::initial(std::vector<std::string> obs_list) {
   // Automatically add sign observables if there are equal-time or dynamic observables
   bool has_eqtime = false;
   bool has_dynamic = false;
@@ -113,41 +89,43 @@ void ObservableHandler::initial(const ObsNameList& obs_list_in) {
   obs_list.erase(std::unique(obs_list.begin(), obs_list.end()), obs_list.end());
 
   if (!this->check_validity(obs_list)) {
-    throw std::runtime_error(
-        "Observable::ObservableHandler::initial(): "
-        "unsupported observable type.");
+    throw std::runtime_error(dqmc_format_error("unsupported observable type."));
   }
 
   for (const auto& obs_name : obs_list) {
     const auto& props = m_supported_observables.at(obs_name);
 
-    ptrBaseObs obs_base = props.factory(obs_name, props.description);
-    this->m_obs_map[obs_name] = obs_base;
+    std::unique_ptr<ObservableBase> obs_ptr = props.factory(obs_name, props.description);
 
-    if (props.time_type == ObsTimeType::EqualTime) {
-      switch (props.data_type) {
-        case ObsDataType::Scalar:
-          m_eqtime_scalar_obs.push_back(std::static_pointer_cast<Scalar>(obs_base));
-          break;
-        case ObsDataType::Vector:
-          m_eqtime_vector_obs.push_back(std::static_pointer_cast<Vector>(obs_base));
-          break;
-        case ObsDataType::Matrix:
-          m_eqtime_matrix_obs.push_back(std::static_pointer_cast<Matrix>(obs_base));
-          break;
-      }
-    } else {  // ObsTimeType::Dynamic
-      switch (props.data_type) {
-        case ObsDataType::Scalar:
-          m_dynamic_scalar_obs.push_back(std::static_pointer_cast<Scalar>(obs_base));
-          break;
-        case ObsDataType::Vector:
-          m_dynamic_vector_obs.push_back(std::static_pointer_cast<Vector>(obs_base));
-          break;
-        case ObsDataType::Matrix:
-          m_dynamic_matrix_obs.push_back(std::static_pointer_cast<Matrix>(obs_base));
-          break;
-      }
+    // Non-owning raw pointer
+    ObservableBase* raw_ptr = obs_ptr.get();
+
+    // Transfer ownership
+    this->m_obs_map[obs_name] = std::move(obs_ptr);
+
+    auto& scalar_obs_list =
+        (props.time_type == ObsTimeType::EqualTime) ? m_eqtime_scalar_obs : m_dynamic_scalar_obs;
+    auto& vector_obs_list =
+        (props.time_type == ObsTimeType::EqualTime) ? m_eqtime_vector_obs : m_dynamic_vector_obs;
+    auto& matrix_obs_list =
+        (props.time_type == ObsTimeType::EqualTime) ? m_eqtime_matrix_obs : m_dynamic_matrix_obs;
+
+    switch (props.data_type) {
+      case ObsDataType::Scalar:
+        if (auto p = dynamic_cast<Scalar*>(raw_ptr)) {
+          scalar_obs_list.push_back(p);
+        }
+        break;
+      case ObsDataType::Vector:
+        if (auto p = dynamic_cast<Vector*>(raw_ptr)) {
+          vector_obs_list.push_back(p);
+        }
+        break;
+      case ObsDataType::Matrix:
+        if (auto p = dynamic_cast<Matrix*>(raw_ptr)) {
+          matrix_obs_list.push_back(p);
+        }
+        break;
     }
   }
 }

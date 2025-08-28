@@ -138,7 +138,7 @@ void MeasureHandler::dynamic_measure(const Walker& walker, const ModelBase& mode
 
 void MeasureHandler::normalize_stats() {
   if (this->m_is_equaltime) {
-    if (auto equaltime_sign = this->find<Observable::Scalar>("equaltime_sign")) {
+    if (auto* equaltime_sign = this->find<Observable::Scalar>("equaltime_sign")) {
       // normalize the sign measurement first
       equaltime_sign->tmp_value() /= equaltime_sign->counts();
 
@@ -161,7 +161,7 @@ void MeasureHandler::normalize_stats() {
   }
 
   if (this->m_is_dynamic) {
-    if (auto dynamic_sign = this->find<Observable::Scalar>("dynamic_sign")) {
+    if (auto* dynamic_sign = this->find<Observable::Scalar>("dynamic_sign")) {
       // normalize the sign measurment first
       dynamic_sign->tmp_value() /= dynamic_sign->counts();
 
