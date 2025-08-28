@@ -43,9 +43,9 @@ void Walker::initial(const LatticeBase& lattice, const MeasureHandler& meas_hand
 void Walker::allocate_svd_stacks() {
   // allocate memory for SvdStack classes
   this->m_svd_stack_left_up = SvdStack(this->m_space_size, this->m_time_size);
-  this->m_svd_stack_left_dn = SvdStack(this->m_space_size, this->m_time_size);
+  this->m_svd_stack_left_down = SvdStack(this->m_space_size, this->m_time_size);
   this->m_svd_stack_right_up = SvdStack(this->m_space_size, this->m_time_size);
-  this->m_svd_stack_right_dn = SvdStack(this->m_space_size, this->m_time_size);
+  this->m_svd_stack_right_down = SvdStack(this->m_space_size, this->m_time_size);
 }
 
 void Walker::allocate_greens_functions() {
@@ -62,9 +62,9 @@ void Walker::allocate_greens_functions() {
 
   if (this->m_is_dynamic) {
     this->m_green_t0_up = GreensFunc(this->m_space_size, this->m_space_size);
-    this->m_green_t0_dn = GreensFunc(this->m_space_size, this->m_space_size);
+    this->m_green_t0_down = GreensFunc(this->m_space_size, this->m_space_size);
     this->m_green_0t_up = GreensFunc(this->m_space_size, this->m_space_size);
-    this->m_green_0t_dn = GreensFunc(this->m_space_size, this->m_space_size);
+    this->m_green_0t_down = GreensFunc(this->m_space_size, this->m_space_size);
 
     this->m_vec_green_t0_up = std::vector<GreensFunc>(
         this->m_time_size, GreensFunc(this->m_space_size, this->m_space_size));
@@ -87,19 +87,20 @@ void Walker::initial_svd_stacks([[maybe_unused]] const LatticeBase& lattice,
   this->allocate_svd_stacks();
 
   Eigen::MatrixXd tmp_stack_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_stack_dn = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
+  Eigen::MatrixXd tmp_stack_down =
+      Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
 
   // initial svd stacks for sweeping usages
   for (auto time_index = this->m_time_size; time_index >= 1; --time_index) {
     model.mult_transB_from_left(tmp_stack_up, time_index, +1.0);
-    model.mult_transB_from_left(tmp_stack_dn, time_index, -1.0);
+    model.mult_transB_from_left(tmp_stack_down, time_index, -1.0);
 
     // stabilize every nwrap steps with svd decomposition
     if ((time_index - 1) % this->m_stabilization_pace == 0) {
       this->m_svd_stack_right_up.push(tmp_stack_up);
-      this->m_svd_stack_right_dn.push(tmp_stack_dn);
+      this->m_svd_stack_right_down.push(tmp_stack_down);
       tmp_stack_up.setIdentity();
-      tmp_stack_dn.setIdentity();
+      tmp_stack_down.setIdentity();
     }
   }
 }
@@ -113,8 +114,9 @@ void Walker::initial_greens_functions() {
   // the svd stacks should be initialized correctly ahead of time
   NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up, this->m_svd_stack_right_up,
                                             this->m_green_tt_up, this->m_greens_workspace);
-  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn, this->m_svd_stack_right_dn,
-                                            this->m_green_tt_down, this->m_greens_workspace);
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
+                                            this->m_svd_stack_right_down, this->m_green_tt_down,
+                                            this->m_greens_workspace);
 }
 
 void Walker::initial_config_sign() {
@@ -204,15 +206,15 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
   DQMC_ASSERT(this->m_current_time_slice == 1);
-  DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_dn.empty());
+  DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_down.empty());
   DQMC_ASSERT(this->m_svd_stack_right_up.size() == stack_length &&
-              this->m_svd_stack_right_dn.size() == stack_length);
+              this->m_svd_stack_right_down.size() == stack_length);
 
   // temporary matrices
   Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_mat_dn = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
+  Eigen::MatrixXd tmp_mat_down = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
   Eigen::MatrixXd tmp_green_tt_up(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_green_tt_dn(this->m_space_size, this->m_space_size);
+  Eigen::MatrixXd tmp_green_tt_down(this->m_space_size, this->m_space_size);
 
   // sweep upwards from 0 to beta
   for (auto time_index = 1; time_index <= this->m_time_size; ++time_index) {
@@ -228,21 +230,21 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
     }
 
     model.mult_B_from_left(tmp_mat_up, time_index, +1);
-    model.mult_B_from_left(tmp_mat_dn, time_index, -1);
+    model.mult_B_from_left(tmp_mat_down, time_index, -1);
 
     // perform the stabilizations
     if (time_index % this->m_stabilization_pace == 0 || time_index == this->m_time_size) {
       // update svd stacks
       this->m_svd_stack_right_up.pop();
-      this->m_svd_stack_right_dn.pop();
+      this->m_svd_stack_right_down.pop();
       this->m_svd_stack_left_up.push(tmp_mat_up);
-      this->m_svd_stack_left_dn.push(tmp_mat_dn);
+      this->m_svd_stack_left_down.push(tmp_mat_down);
 
       // collect the wrapping errors
       tmp_green_tt_up.setZero();
-      tmp_green_tt_dn.setZero();
+      tmp_green_tt_down.setZero();
       double tmp_wrap_error_tt_up = 0.0;
-      double tmp_wrap_error_tt_dn = 0.0;
+      double tmp_wrap_error_tt_down = 0.0;
 
       // compute fresh greens every 'stabilization_pace' steps: g = ( 1 +
       // stack_left*stack_right^T )^-1 stack_left = B(t-1) * ... * B(0)
@@ -250,20 +252,20 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
                                                 this->m_svd_stack_right_up, tmp_green_tt_up,
                                                 this->m_greens_workspace);
-      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                                this->m_svd_stack_right_dn, tmp_green_tt_dn,
+      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
+                                                this->m_svd_stack_right_down, tmp_green_tt_down,
                                                 this->m_greens_workspace);
 
       // compute wrapping errors
       NumericalStable::matrix_compare_error(tmp_green_tt_up, this->m_green_tt_up,
                                             tmp_wrap_error_tt_up);
-      NumericalStable::matrix_compare_error(tmp_green_tt_dn, this->m_green_tt_down,
-                                            tmp_wrap_error_tt_dn);
+      NumericalStable::matrix_compare_error(tmp_green_tt_down, this->m_green_tt_down,
+                                            tmp_wrap_error_tt_down);
       this->m_wrap_error =
-          std::max(this->m_wrap_error, std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
+          std::max(this->m_wrap_error, std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_down));
 
       this->m_green_tt_up = tmp_green_tt_up;
-      this->m_green_tt_down = tmp_green_tt_dn;
+      this->m_green_tt_down = tmp_green_tt_down;
 
       if (this->m_is_equaltime) {
         this->m_vec_green_tt_up[time_index - 1] = this->m_green_tt_up;
@@ -271,7 +273,7 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
       }
 
       tmp_mat_up.setIdentity();
-      tmp_mat_dn.setIdentity();
+      tmp_mat_down.setIdentity();
     }
 
     // finally stop at time slice t = ts + 1
@@ -298,15 +300,15 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
           ? this->m_time_size / this->m_stabilization_pace
           : this->m_time_size / this->m_stabilization_pace + 1;
   DQMC_ASSERT(this->m_current_time_slice == this->m_time_size);
-  DQMC_ASSERT(this->m_svd_stack_right_up.empty() && this->m_svd_stack_right_dn.empty());
+  DQMC_ASSERT(this->m_svd_stack_right_up.empty() && this->m_svd_stack_right_down.empty());
   DQMC_ASSERT(this->m_svd_stack_left_up.size() == stack_length &&
-              this->m_svd_stack_left_dn.size() == stack_length);
+              this->m_svd_stack_left_down.size() == stack_length);
 
   // temporary matrices
   Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_mat_dn = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
+  Eigen::MatrixXd tmp_mat_down = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
   Eigen::MatrixXd tmp_green_tt_up(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_green_tt_dn(this->m_space_size, this->m_space_size);
+  Eigen::MatrixXd tmp_green_tt_down(this->m_space_size, this->m_space_size);
 
   // sweep downwards from beta to 0
   for (auto time_index = this->m_time_size; time_index >= 1; --time_index) {
@@ -314,36 +316,36 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
     if (time_index % this->m_stabilization_pace == 0 && time_index != this->m_time_size) {
       // update svd stacks
       this->m_svd_stack_left_up.pop();
-      this->m_svd_stack_left_dn.pop();
+      this->m_svd_stack_left_down.pop();
       this->m_svd_stack_right_up.push(tmp_mat_up);
-      this->m_svd_stack_right_dn.push(tmp_mat_dn);
+      this->m_svd_stack_right_down.push(tmp_mat_down);
 
       // collect the wrapping errors
       tmp_green_tt_up.setZero();
-      tmp_green_tt_dn.setZero();
+      tmp_green_tt_down.setZero();
       double tmp_wrap_error_tt_up = 0.0;
-      double tmp_wrap_error_tt_dn = 0.0;
+      double tmp_wrap_error_tt_down = 0.0;
 
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
                                                 this->m_svd_stack_right_up, tmp_green_tt_up,
                                                 this->m_greens_workspace);
-      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                                this->m_svd_stack_right_dn, tmp_green_tt_dn,
+      NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
+                                                this->m_svd_stack_right_down, tmp_green_tt_down,
                                                 this->m_greens_workspace);
 
       // compute the wrapping errors
       NumericalStable::matrix_compare_error(tmp_green_tt_up, this->m_green_tt_up,
                                             tmp_wrap_error_tt_up);
-      NumericalStable::matrix_compare_error(tmp_green_tt_dn, this->m_green_tt_down,
-                                            tmp_wrap_error_tt_dn);
+      NumericalStable::matrix_compare_error(tmp_green_tt_down, this->m_green_tt_down,
+                                            tmp_wrap_error_tt_down);
       this->m_wrap_error =
-          std::max(this->m_wrap_error, std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_dn));
+          std::max(this->m_wrap_error, std::max(tmp_wrap_error_tt_up, tmp_wrap_error_tt_down));
 
       this->m_green_tt_up = tmp_green_tt_up;
-      this->m_green_tt_down = tmp_green_tt_dn;
+      this->m_green_tt_down = tmp_green_tt_down;
 
       tmp_mat_up.setIdentity();
-      tmp_mat_dn.setIdentity();
+      tmp_mat_down.setIdentity();
     }
 
     // update auxiliary fields and record the updated greens functions
@@ -355,7 +357,7 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
     }
 
     model.mult_transB_from_left(tmp_mat_up, time_index, +1);
-    model.mult_transB_from_left(tmp_mat_dn, time_index, -1);
+    model.mult_transB_from_left(tmp_mat_down, time_index, -1);
 
     this->wrap_from_beta_to_0(model, time_index);
 
@@ -364,14 +366,15 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
 
   // at time slice t = 0
   this->m_svd_stack_left_up.pop();
-  this->m_svd_stack_left_dn.pop();
+  this->m_svd_stack_left_down.pop();
   this->m_svd_stack_right_up.push(tmp_mat_up);
-  this->m_svd_stack_right_dn.push(tmp_mat_dn);
+  this->m_svd_stack_right_down.push(tmp_mat_down);
 
   NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up, this->m_svd_stack_right_up,
                                             this->m_green_tt_up, this->m_greens_workspace);
-  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn, this->m_svd_stack_right_dn,
-                                            this->m_green_tt_down, this->m_greens_workspace);
+  NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
+                                            this->m_svd_stack_right_down, this->m_green_tt_down,
+                                            this->m_greens_workspace);
 
   // end with fresh greens functions
   if (this->m_is_equaltime) {
@@ -396,25 +399,26 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
             ? this->m_time_size / this->m_stabilization_pace
             : this->m_time_size / this->m_stabilization_pace + 1;
     DQMC_ASSERT(this->m_current_time_slice == 1);
-    DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_dn.empty());
+    DQMC_ASSERT(this->m_svd_stack_left_up.empty() && this->m_svd_stack_left_down.empty());
     DQMC_ASSERT(this->m_svd_stack_right_up.size() == stack_length &&
-                this->m_svd_stack_right_dn.size() == stack_length);
+                this->m_svd_stack_right_down.size() == stack_length);
 
     // initialize greens functions: at t = 0, gt0 = g00, g0t = g00 - 1
     this->m_green_t0_up = this->m_green_tt_up;
-    this->m_green_t0_dn = this->m_green_tt_down;
+    this->m_green_t0_down = this->m_green_tt_down;
     this->m_green_0t_up =
         this->m_green_tt_up - Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-    this->m_green_0t_dn =
+    this->m_green_0t_down =
         this->m_green_tt_down - Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
 
     // temporary matrices
     Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_mat_dn = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
+    Eigen::MatrixXd tmp_mat_down =
+        Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
     Eigen::MatrixXd tmp_green_t0_up(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_green_t0_dn(this->m_space_size, this->m_space_size);
+    Eigen::MatrixXd tmp_green_t0_down(this->m_space_size, this->m_space_size);
     Eigen::MatrixXd tmp_green_0t_up(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_green_0t_dn(this->m_space_size, this->m_space_size);
+    Eigen::MatrixXd tmp_green_0t_down(this->m_space_size, this->m_space_size);
 
     // sweep forwards from 0 to beta
     for (auto time_index = 1; time_index <= this->m_time_size; ++time_index) {
@@ -426,35 +430,35 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
       // calculate and record the time-displaced greens functions at different
       // time slices
       model.mult_B_from_left(this->m_green_t0_up, time_index, +1);
-      model.mult_B_from_left(this->m_green_t0_dn, time_index, -1);
+      model.mult_B_from_left(this->m_green_t0_down, time_index, -1);
       this->m_vec_green_t0_up[time_index - 1] = this->m_green_t0_up;
-      this->m_vec_green_t0_down[time_index - 1] = this->m_green_t0_dn;
+      this->m_vec_green_t0_down[time_index - 1] = this->m_green_t0_down;
 
       model.mult_invB_from_right(this->m_green_0t_up, time_index, +1);
-      model.mult_invB_from_right(this->m_green_0t_dn, time_index, -1);
+      model.mult_invB_from_right(this->m_green_0t_down, time_index, -1);
       this->m_vec_green_0t_up[time_index - 1] = this->m_green_0t_up;
-      this->m_vec_green_0t_down[time_index - 1] = this->m_green_0t_dn;
+      this->m_vec_green_0t_down[time_index - 1] = this->m_green_0t_down;
 
       model.mult_B_from_left(tmp_mat_up, time_index, +1);
-      model.mult_B_from_left(tmp_mat_dn, time_index, -1);
+      model.mult_B_from_left(tmp_mat_down, time_index, -1);
 
       // perform the stabilizations
       if (time_index % this->m_stabilization_pace == 0 || time_index == this->m_time_size) {
         // update svd stacks
         this->m_svd_stack_right_up.pop();
-        this->m_svd_stack_right_dn.pop();
+        this->m_svd_stack_right_down.pop();
         this->m_svd_stack_left_up.push(tmp_mat_up);
-        this->m_svd_stack_left_dn.push(tmp_mat_dn);
+        this->m_svd_stack_left_down.push(tmp_mat_down);
 
         // collect the wrapping errors
         tmp_green_t0_up.setZero();
-        tmp_green_t0_dn.setZero();
+        tmp_green_t0_down.setZero();
         tmp_green_0t_up.setZero();
-        tmp_green_0t_dn.setZero();
+        tmp_green_0t_down.setZero();
         double tmp_wrap_error_t0_up = 0.0;
-        double tmp_wrap_error_t0_dn = 0.0;
+        double tmp_wrap_error_t0_down = 0.0;
         double tmp_wrap_error_0t_up = 0.0;
-        double tmp_wrap_error_0t_dn = 0.0;
+        double tmp_wrap_error_0t_down = 0.0;
 
         // compute fresh greens every nwrap steps
         // stack_left = B(t-1) * ... * B(0)
@@ -464,45 +468,45 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
         NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
                                                   this->m_svd_stack_right_up, this->m_green_tt_up,
                                                   this->m_greens_workspace);
-        NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_dn,
-                                                  this->m_svd_stack_right_dn, this->m_green_tt_down,
-                                                  this->m_greens_workspace);
+        NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
+                                                  this->m_svd_stack_right_down,
+                                                  this->m_green_tt_down, this->m_greens_workspace);
         NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_up,
                                                 this->m_svd_stack_right_up, tmp_green_t0_up,
                                                 tmp_green_0t_up, this->m_greens_workspace);
-        NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_dn,
-                                                this->m_svd_stack_right_dn, tmp_green_t0_dn,
-                                                tmp_green_0t_dn, this->m_greens_workspace);
+        NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_down,
+                                                this->m_svd_stack_right_down, tmp_green_t0_down,
+                                                tmp_green_0t_down, this->m_greens_workspace);
 
         // compute wrapping errors
         NumericalStable::matrix_compare_error(tmp_green_t0_up, this->m_green_t0_up,
                                               tmp_wrap_error_t0_up);
-        NumericalStable::matrix_compare_error(tmp_green_t0_dn, this->m_green_t0_dn,
-                                              tmp_wrap_error_t0_dn);
+        NumericalStable::matrix_compare_error(tmp_green_t0_down, this->m_green_t0_down,
+                                              tmp_wrap_error_t0_down);
         this->m_wrap_error =
-            std::max(this->m_wrap_error, std::max(tmp_wrap_error_t0_up, tmp_wrap_error_t0_dn));
+            std::max(this->m_wrap_error, std::max(tmp_wrap_error_t0_up, tmp_wrap_error_t0_down));
 
         NumericalStable::matrix_compare_error(tmp_green_0t_up, this->m_green_0t_up,
                                               tmp_wrap_error_0t_up);
-        NumericalStable::matrix_compare_error(tmp_green_0t_dn, this->m_green_0t_dn,
-                                              tmp_wrap_error_0t_dn);
+        NumericalStable::matrix_compare_error(tmp_green_0t_down, this->m_green_0t_down,
+                                              tmp_wrap_error_0t_down);
         this->m_wrap_error =
-            std::max(this->m_wrap_error, std::max(tmp_wrap_error_0t_up, tmp_wrap_error_0t_dn));
+            std::max(this->m_wrap_error, std::max(tmp_wrap_error_0t_up, tmp_wrap_error_0t_down));
 
         this->m_green_t0_up = tmp_green_t0_up;
-        this->m_green_t0_dn = tmp_green_t0_dn;
+        this->m_green_t0_down = tmp_green_t0_down;
         this->m_green_0t_up = tmp_green_0t_up;
-        this->m_green_0t_dn = tmp_green_0t_dn;
+        this->m_green_0t_down = tmp_green_0t_down;
 
         this->m_vec_green_tt_up[time_index - 1] = this->m_green_tt_up;
         this->m_vec_green_tt_down[time_index - 1] = this->m_green_tt_down;
         this->m_vec_green_t0_up[time_index - 1] = this->m_green_t0_up;
-        this->m_vec_green_t0_down[time_index - 1] = this->m_green_t0_dn;
+        this->m_vec_green_t0_down[time_index - 1] = this->m_green_t0_down;
         this->m_vec_green_0t_up[time_index - 1] = this->m_green_0t_up;
-        this->m_vec_green_0t_down[time_index - 1] = this->m_green_0t_dn;
+        this->m_vec_green_0t_down[time_index - 1] = this->m_green_0t_down;
 
         tmp_mat_up.setIdentity();
-        tmp_mat_dn.setIdentity();
+        tmp_mat_down.setIdentity();
       }
 
       // finally stop at time slice t = ts + 1

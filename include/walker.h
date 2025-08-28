@@ -58,8 +58,8 @@ class Walker {
 
   // Time-displaced green's functions G(t,0) and G(0,t)
   // important for time-displaced measurements of physical observables
-  GreensFunc m_green_t0_up{}, m_green_t0_dn{};
-  GreensFunc m_green_0t_up{}, m_green_0t_dn{};
+  GreensFunc m_green_t0_up{}, m_green_t0_down{};
+  GreensFunc m_green_0t_up{}, m_green_0t_down{};
   std::vector<GreensFunc> m_vec_green_t0_up{}, m_vec_green_t0_down{};
   std::vector<GreensFunc> m_vec_green_0t_up{}, m_vec_green_0t_down{};
 
@@ -72,9 +72,9 @@ class Walker {
   // Utils::SvdStack class
   // for efficient svd decompositions and numerical stabilization
   SvdStack m_svd_stack_left_up{};
-  SvdStack m_svd_stack_left_dn{};
+  SvdStack m_svd_stack_left_down{};
   SvdStack m_svd_stack_right_up{};
-  SvdStack m_svd_stack_right_dn{};
+  SvdStack m_svd_stack_right_down{};
 
   Utils::GreensWorkspace m_greens_workspace{};
 
