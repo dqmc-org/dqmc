@@ -68,7 +68,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
       // specialize dimensions for certain observables if needed
-      matrix_obs->set_zero_element(MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
+      matrix_obs->set_zero_element(MatrixType::Zero(lattice.space_size(), lattice.space_size()));
       matrix_obs->set_number_of_bins(this->m_bin_num);
       matrix_obs->allocate();
     }
@@ -97,7 +97,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
         matrix_obs->allocate();
       } else {
         // otherwise initialize by default
-        matrix_obs->set_zero_element(MatrixType::Zero(lattice.SpaceSize(), lattice.SpaceSize()));
+        matrix_obs->set_zero_element(MatrixType::Zero(lattice.space_size(), lattice.space_size()));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       }

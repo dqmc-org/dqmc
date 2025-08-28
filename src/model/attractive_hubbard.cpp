@@ -65,7 +65,7 @@ void AttractiveHubbard::set_model_params(RealScalar hopping_t, RealScalar onsite
 }
 
 void AttractiveHubbard::initial_params(const LatticeBase& lattice, const Walker& walker) {
-  this->m_space_size = lattice.SpaceSize();
+  this->m_space_size = lattice.space_size();
   this->m_time_size = walker.TimeSize();
   const RealScalar time_interval = walker.TimeInterval();
 
@@ -82,11 +82,11 @@ void AttractiveHubbard::initial_params(const LatticeBase& lattice, const Walker&
 }
 
 void AttractiveHubbard::initial_KV_matrices(const LatticeBase& lattice, const Walker& walker) {
-  const int space_size = lattice.SpaceSize();
+  const int space_size = lattice.space_size();
   const RealScalar time_interval = walker.TimeInterval();
   const SpaceSpaceMat chemical_potential_mat =
       this->m_chemical_potential * SpaceSpaceMat::Identity(space_size, space_size);
-  const SpaceSpaceMat Kmat = -this->m_hopping_t * lattice.HoppingMatrix() + chemical_potential_mat;
+  const SpaceSpaceMat Kmat = -this->m_hopping_t * lattice.hopping_matrix() + chemical_potential_mat;
 
   this->m_temp_buffer = Matrix(space_size, space_size);
   this->m_expK_mat = (-time_interval * Kmat).exp();

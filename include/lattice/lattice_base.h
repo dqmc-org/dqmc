@@ -85,64 +85,64 @@ class LatticeBase {
   // --------------------------------- Interfaces
   // ----------------------------------------
 
-  LatticeBool InitialStatus() const { return this->m_initial_status; }
+  LatticeBool initial_status() const { return this->m_initial_status; }
 
-  LatticeInt SpaceDim() const { return this->m_space_dim; }
+  LatticeInt space_dim() const { return this->m_space_dim; }
 
-  LatticeInt SpaceSize() const { return this->m_space_size; }
+  LatticeInt space_size() const { return this->m_space_size; }
 
-  LatticeInt SideLength() const { return this->m_side_length; }
+  LatticeInt side_length() const { return this->m_side_length; }
 
-  LatticeInt CoordinationNumber() const { return this->m_coordination_number; }
+  LatticeInt coordination_number() const { return this->m_coordination_number; }
 
-  LatticeInt kStarsNum() const { return this->m_num_k_stars; }
+  LatticeInt k_stars_num() const { return this->m_num_k_stars; }
 
-  const LatticeIntVec& kStarsIndex() const { return this->m_k_stars_index; }
+  const LatticeIntVec& k_stars_index() const { return this->m_k_stars_index; }
 
-  const MatrixDouble& HoppingMatrix() const { return this->m_hopping_matrix; }
+  const MatrixDouble& hopping_matrix() const { return this->m_hopping_matrix; }
 
-  const MatrixDouble& FourierFactor() const { return this->m_fourier_factor_table; }
+  const MatrixDouble& fourier_factor() const { return this->m_fourier_factor_table; }
 
-  LatticeInt Displacement(const LatticeInt site1_index, const LatticeInt site2_index) const {
+  LatticeInt displacement(const LatticeInt site1_index, const LatticeInt site2_index) const {
     DQMC_ASSERT(site1_index >= 0 && site1_index < this->m_space_size);
     DQMC_ASSERT(site2_index >= 0 && site2_index < this->m_space_size);
     return this->m_displacement_table(site1_index, site2_index);
   }
 
-  LatticeDouble FourierFactor(const LatticeInt site_index, const LatticeInt momentum_index) const {
+  LatticeDouble fourier_factor(const LatticeInt site_index, const LatticeInt momentum_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     return this->m_fourier_factor_table(site_index, momentum_index);
   }
 
-  LatticeInt NearestNeighbour(const LatticeInt site_index, const LatticeInt direction) const {
+  LatticeInt nearest_neighbour(const LatticeInt site_index, const LatticeInt direction) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(direction >= 0 && direction < this->m_coordination_number);
     return this->m_nearest_neighbour_table(site_index, direction);
   }
 
-  MatrixIntRowView GetNeighbors(const LatticeInt site_index) const {
+  MatrixIntRowView get_neighbors(const LatticeInt site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_nearest_neighbour_table.row(site_index);
   }
 
-  MatrixIntRowView Index2Site(const LatticeInt site_index) const {
+  MatrixIntRowView index_to_site(const LatticeInt site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_index2site_table.row(site_index);
   }
 
-  LatticeInt Index2Site(const LatticeInt site_index, const LatticeInt axis) const {
+  LatticeInt index_to_site(const LatticeInt site_index, const LatticeInt axis) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
     return this->m_index2site_table(site_index, axis);
   }
 
-  MatrixDoubleRowView Index2Momentum(const LatticeInt momentum_index) const {
+  MatrixDoubleRowView index_to_momentum(const LatticeInt momentum_index) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     return this->m_index2momentum_table.row(momentum_index);
   }
 
-  LatticeDouble Index2Momentum(const LatticeInt momentum_index, const LatticeInt axis) const {
+  LatticeDouble index_to_momentum(const LatticeInt momentum_index, const LatticeInt axis) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
     return this->m_index2momentum_table(momentum_index, axis);

@@ -18,9 +18,9 @@ void Square::set_checkerboard_params(const LatticeBase &lattice, const ModelBase
                                      const Walker &walker) {
   // make sure that the lattice class is of type Lattice::Square
   DQMC_ASSERT(dynamic_cast<const Lattice::Square *>(&lattice) != nullptr);
-  DQMC_ASSERT(lattice.SpaceSize() >= 2);
-  this->m_side_length = lattice.SideLength();
-  this->m_space_size = lattice.SpaceSize();
+  DQMC_ASSERT(lattice.space_size() >= 2);
+  this->m_side_length = lattice.side_length();
+  this->m_space_size = lattice.space_size();
   this->m_time_interval = walker.TimeInterval();
   this->m_hopping_t = model.HoppingT();
   this->m_chemical_potential = model.ChemicalPotential();

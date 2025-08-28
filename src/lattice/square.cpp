@@ -20,8 +20,8 @@ void Square::output_lattice_info(std::ostream& ostream, int momentum_index) cons
     return std::format("({:.2f}, {:.2f}) pi", px, py);
   };
 
-  const double px = (this->Index2Momentum(momentum_index, 0) / M_PI);
-  const double py = (this->Index2Momentum(momentum_index, 1) / M_PI);
+  const double px = (this->index_to_momentum(momentum_index, 0) / M_PI);
+  const double py = (this->index_to_momentum(momentum_index, 1) / M_PI);
 
   ostream << "   Lattice: Square lattice\n"
           << fmt_str("Size of cell", fmt_cell(this->m_side_length))
@@ -193,8 +193,8 @@ void Square::initial_hopping_matrix() {
   this->m_hopping_matrix.setZero();
   for (auto index = 0; index < this->m_space_size; ++index) {
     // direction 0 for x+1 and 1 for y+1
-    const int index_xplus1 = this->NearestNeighbour(index, 0);
-    const int index_yplus1 = this->NearestNeighbour(index, 1);
+    const int index_xplus1 = this->nearest_neighbour(index, 0);
+    const int index_yplus1 = this->nearest_neighbour(index, 1);
 
     this->m_hopping_matrix(index, index_xplus1) += 1.0;
     this->m_hopping_matrix(index_xplus1, index) += 1.0;

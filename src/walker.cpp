@@ -34,7 +34,7 @@ void Walker::set_stabilization_pace(int stabilization_pace) {
 }
 
 void Walker::initial(const LatticeBase& lattice, const MeasureHandler& meas_handler) {
-  this->m_space_size = lattice.SpaceSize();
+  this->m_space_size = lattice.space_size();
   this->m_current_time_slice = 0;
   this->m_wrap_error = 0.0;
 

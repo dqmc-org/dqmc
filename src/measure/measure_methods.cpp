@@ -30,7 +30,7 @@ void Methods::measure_equaltime_config_sign(Observable::Scalar& equaltime_sign,
 void Methods::measure_filling_number(Observable::Scalar& filling_number,
                                      const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const double inv_space_size = 1.0 / static_cast<double>(space_size);
 
   double total_filling_contribution = 0.0;
@@ -56,7 +56,7 @@ void Methods::measure_filling_number(Observable::Scalar& filling_number,
 void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
                                        const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
 
   RealScalar total_double_occu = 0.0;
 
@@ -82,7 +82,7 @@ void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
 void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
                                      const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const double prefactor = ctx.model.HoppingT() / space_size;
 
   double total_sum = 0.0;
@@ -94,7 +94,7 @@ void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
 
     double sum_this_t = 0.0;
     for (auto i = 0; i < space_size; ++i) {
-      for (const auto j : ctx.lattice.GetNeighbors(i)) {
+      for (const auto j : ctx.lattice.get_neighbors(i)) {
         sum_this_t += g_up(i, j) + g_dn(i, j);
       }
     }
@@ -111,7 +111,7 @@ void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
 void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
                                       const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const double prefactor = 1.0 / space_size;
 
   double total_sum = 0.0;
@@ -140,7 +140,7 @@ void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
 void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
                                             const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const int K_vector = ctx.handler.Momentum();
   const double norm_factor = 0.5 / static_cast<double>(space_size);
 
@@ -156,7 +156,7 @@ void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
     for (auto j = 0; j < space_size; ++j) {
       for (auto i = 0; i < space_size; ++i) {
         tmp_momentum_dist += (gu(j, i) + gd(j, i)) *
-                             ctx.lattice.FourierFactor(ctx.lattice.Displacement(i, j), K_vector);
+                             ctx.lattice.fourier_factor(ctx.lattice.displacement(i, j), K_vector);
       }
     }
     total_sum += config_sign * (1 - norm_factor * tmp_momentum_dist);
@@ -170,7 +170,7 @@ void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
 // where Q is the wave momentum of sdw.
 void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_factor,
                                                     const MeasureContext& ctx) {
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
   const int K_vector = ctx.handler.Momentum();
 
@@ -195,7 +195,7 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
       const double gdc_ii = gdc(i, i);
 
       for (auto j = 0; j < space_size; ++j) {
-        tmp_sdw += ctx.lattice.FourierFactor(ctx.lattice.Displacement(i, j), K_vector) *
+        tmp_sdw += ctx.lattice.fourier_factor(ctx.lattice.displacement(i, j), K_vector) *
                    (+guc_ii * guc(j, j) + guc(i, j) * gu(i, j) + gdc_ii * gdc(j, j) +
                     gdc(i, j) * gd(i, j) - gdc_ii * guc(j, j) - guc_ii * gdc(j, j));
       }
@@ -210,7 +210,7 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
 // where Q is the wave momentum of cdw.
 void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_factor,
                                                       const MeasureContext& ctx) {
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const int time_size = ctx.walker.TimeSize();
   const int K_vector = ctx.handler.Momentum();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
@@ -242,7 +242,7 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
 
         const double total_correlator = density_term + hopping_term;
         const auto fourier_factor =
-            ctx.lattice.FourierFactor(ctx.lattice.Displacement(i, j), K_vector);
+            ctx.lattice.fourier_factor(ctx.lattice.displacement(i, j), K_vector);
 
         tmp_cdw += fourier_factor * total_correlator;
       }
@@ -261,7 +261,7 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
 // duplicated countings of ij.
 void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
                                           const MeasureContext& ctx) {
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
 
   MatrixType guc(space_size, space_size);
   MatrixType gdc(space_size, space_size);
@@ -283,13 +283,13 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
 
     // loop over site i, j and take averages
     RealScalar tmp_s_wave_pairing = 0.0;
-    for (auto i = 0; i < ctx.lattice.SpaceSize(); ++i) {
-      for (auto j = 0; j < ctx.lattice.SpaceSize(); ++j) {
+    for (auto i = 0; i < ctx.lattice.space_size(); ++i) {
+      for (auto j = 0; j < ctx.lattice.space_size(); ++j) {
         tmp_s_wave_pairing += config_sign * (guc(i, j) * gdc(i, j));
       }
     }
     // entensive quantity
-    s_wave_pairing.tmp_value() += tmp_s_wave_pairing / ctx.lattice.SpaceSize();
+    s_wave_pairing.tmp_value() += tmp_s_wave_pairing / ctx.lattice.space_size();
     ++s_wave_pairing;
   }
 }
@@ -310,7 +310,7 @@ void Methods::measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
 void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
                                        const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const int num_momenta = ctx.handler.MomentumList().size();
   const double config_sign = ctx.walker.ConfigSign();
   const double prefactor = config_sign / static_cast<double>(space_size);
@@ -331,7 +331,7 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
           const double gt0_ji = 0.5 * (gup(j, i) + gdn(j, i));
 
           const auto fourier_factor =
-              ctx.lattice.FourierFactor(ctx.lattice.Displacement(i, j), K_vector);
+              ctx.lattice.fourier_factor(ctx.lattice.displacement(i, j), K_vector);
 
           current_k_t_sum += gt0_ji * fourier_factor;
         }
@@ -348,7 +348,7 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
 void Methods::measure_density_of_states(Observable::Vector& density_of_states,
                                         const MeasureContext& ctx) {
   const int time_size = ctx.walker.TimeSize();
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const auto& config_sign = ctx.walker.ConfigSign();
   const double prefactor = config_sign / static_cast<double>(space_size);
 
@@ -381,7 +381,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   DQMC_ASSERT(dynamic_cast<const Lattice::Square*>(&ctx.lattice) != nullptr);
   DQMC_ASSERT(ctx.lattice.SideLength() % 2 == 0);
 
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const int time_size = ctx.walker.TimeSize();
   const double config_sign = ctx.walker.ConfigSign();
   const double hopping_t2 = ctx.model.HoppingT() * ctx.model.HoppingT();
@@ -394,7 +394,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   const GreensFunc& g00dn = ctx.walker.GreenttDn(time_size - 1);
 
   for (auto i = 0; i < space_size; ++i) {
-    const auto ipx = ctx.lattice.NearestNeighbour(i, 0);
+    const auto ipx = ctx.lattice.nearest_neighbour(i, 0);
     uncorrelated_i_vals[i] = g00up(i, ipx) - g00up(ipx, i) + g00dn(i, ipx) - g00dn(ipx, i);
   }
 
@@ -411,21 +411,21 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
     const GreensFunc& g0tdn = ctx.walker.Green0tDn(tau);
 
     for (auto j = 0; j < space_size; ++j) {
-      const auto jpx = ctx.lattice.NearestNeighbour(j, 0);
+      const auto jpx = ctx.lattice.nearest_neighbour(j, 0);
       uncorrelated_j_vals[j] = gttup(j, jpx) - gttup(jpx, j) + gttdn(j, jpx) - gttdn(jpx, j);
     }
 
     double t_slice_sum = 0.0;
     for (auto i = 0; i < space_size; ++i) {
-      const auto ipx = ctx.lattice.NearestNeighbour(i, 0);
+      const auto ipx = ctx.lattice.nearest_neighbour(i, 0);
       for (auto j = 0; j < space_size; ++j) {
-        const auto jpx = ctx.lattice.NearestNeighbour(j, 0);
+        const auto jpx = ctx.lattice.nearest_neighbour(j, 0);
 
-        const auto displacement = ctx.lattice.Displacement(i, j);
-        const auto rx = ctx.lattice.Index2Site(displacement, 0);
-        const auto ry = ctx.lattice.Index2Site(displacement, 1);
+        const auto displacement = ctx.lattice.displacement(i, j);
+        const auto rx = ctx.lattice.index_to_site(displacement, 0);
+        const auto ry = ctx.lattice.index_to_site(displacement, 1);
         const auto fourier_factor =
-            ctx.lattice.FourierFactor(rx, 1) - ctx.lattice.FourierFactor(ry, 1);
+            ctx.lattice.fourier_factor(rx, 1) - ctx.lattice.fourier_factor(ry, 1);
 
         const double up_contribution =
             g0tup(ipx, jpx) * gt0up(j, i) - g0tup(i, jpx) * gt0up(j, ipx) -
@@ -455,7 +455,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
 //
 void Methods::measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_spin_susceptibility,
                                                   const MeasureContext& ctx) {
-  const int space_size = ctx.lattice.SpaceSize();
+  const int space_size = ctx.lattice.space_size();
   const int time_size = ctx.walker.TimeSize();
   const double config_sign = ctx.walker.ConfigSign();
   const double prefactor = 0.25 * config_sign / space_size;
