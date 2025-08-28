@@ -60,8 +60,7 @@ bool ObservableHandler::is_dynamic(const ObsName& obs_name) const {
 bool ObservableHandler::check_validity(const ObsNameList& obs_list) const {
   for (const auto& obs : obs_list) {
     if (m_supported_observables.find(obs) == m_supported_observables.end()) {
-      std::string error_message = std::format("Error: observable '{}' is not supported.", obs);
-      throw std::runtime_error(error_message);
+      throw std::runtime_error(dqmc_format_error("observable '{}' is not supported.", obs));
     }
   }
   return true;
