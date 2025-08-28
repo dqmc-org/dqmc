@@ -148,16 +148,19 @@ void Square::initial_symmetry_points() {
   // loop: (0,0) -> (pi,0) -> (pi,pi) -> (0,0)
   this->m_gamma2x2m2gamma_loop_index.reserve(
       3 * (this->m_side_length - std::ceil(this->m_side_length / 2.0)));
+
+  // along (0,0) -> (pi,0) direation
   for (auto i = 0; i < std::floor(this->m_side_length / 2.0); ++i) {
-    // along (0,0) -> (pi,0) direation
     this->m_gamma2x2m2gamma_loop_index.emplace_back(i * (i + 1) / 2);
   }
+
+  // along (pi,0) -> (pi,pi) direction
   for (auto i = 0; i < std::floor(this->m_side_length / 2.0); ++i) {
-    // along (pi,0) -> (pi,pi) direction
     this->m_gamma2x2m2gamma_loop_index.emplace_back(this->m_x_point_index + i);
   }
+
+  // along (pi,pi) -> (0,0) direction
   for (auto i = std::floor(this->m_side_length / 2.0); i >= 1; --i) {
-    // along (pi,pi) -> (0,0) direction
     this->m_gamma2x2m2gamma_loop_index.emplace_back(i * (i + 3) / 2);
   }
 
@@ -177,12 +180,10 @@ void Square::initial_fourier_factor_table() {
   this->m_fourier_factor_table.resize(this->m_space_size, this->m_num_k_stars);
   for (auto i = 0; i < this->m_space_size; ++i) {
     for (auto k = 0; k < this->m_num_k_stars; ++k) {
-      // this defines the inner product of a site vector x and a momemtum
-      // vector
-      // k
+      // this defines the inner product of a site vector x and a momemtum vector k
       auto [xi, yi] = index_to_site(i);
       this->m_fourier_factor_table(i, k) =
-          cos((-xi * this->m_index2momentum_table(k, 0) - yi * this->m_index2momentum_table(k, 1)));
+          cos(-xi * this->m_index2momentum_table(k, 0) - yi * this->m_index2momentum_table(k, 1));
     }
   }
 }
