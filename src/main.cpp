@@ -139,7 +139,7 @@ int main(int argc, char* argv[]) {
   // ------------------------------------------------------------------------------------------------
   //                                Output run information
   // ------------------------------------------------------------------------------------------------
-  std::cout << std::format(">> Starting DQMC run with seed: {}\n", seed) << std::endl;
+  std::cout << std::format(">> Starting DQMC run with seed: {}\n", seed);
 
   // ------------------------------------------------------------------------------------------------
   //                                 Process of DQMC simulation

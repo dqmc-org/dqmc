@@ -95,15 +95,14 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
   // 9. Initialize auxiliary fields
   if (config.fields_file.empty()) {
     m_model->set_bosonic_fields_to_random(m_rng);
-    std::cout << ">> Configurations of the bosonic fields set to random.\n" << std::endl;
+    std::cout << ">> Configurations of the bosonic fields set to random.\n";
   } else {
-    std::ifstream infile(config.fields_file, std::ios::in);
+    std::ifstream infile(config.fields_file);
     if (!infile.is_open()) {
       throw std::runtime_error("Dqmc::Dqmc(): failed to open file");
     }
     m_model->read_auxiliary_field_from_stream(infile);
-    std::cout << ">> Configurations of the bosonic fields read from the input config file.\n"
-              << std::endl;
+    std::cout << ">> Configurations of the bosonic fields read from the input config file.\n";
   }
 
   // 10. Final DQMC preparations
