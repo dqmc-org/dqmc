@@ -205,7 +205,7 @@ int main(int argc, char* argv[]) {
     simulation.write_results(out_path);
 
   } catch (const std::exception& e) {
-    std::cerr << "A runtime error occurred: " << e.what() << std::endl;
+    std::cerr << e.what() << std::endl;
     return 1;
   }
 
