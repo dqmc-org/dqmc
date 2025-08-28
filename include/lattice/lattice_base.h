@@ -15,28 +15,25 @@
 
 namespace Lattice {
 
-using LatticeBool = bool;
-using LatticeInt = int;
-using LatticeDouble = double;
 using LatticeIntVec = std::vector<int>;
 using MatrixDouble = Eigen::MatrixXd;
 using MatrixDoubleRowView = Eigen::MatrixXd::ConstRowXpr;
 using VectorDouble = Eigen::VectorXd;
-using MatrixInt = Eigen::MatrixXi;
-using MatrixIntRowView = Eigen::MatrixXi::ConstRowXpr;
-using VectorInt = Eigen::VectorXi;
+using Matrixint = Eigen::MatrixXi;
+using MatrixintRowView = Eigen::MatrixXi::ConstRowXpr;
+using Vectorint = Eigen::VectorXi;
 
 // -------------------------- Pure virtual base class Lattice::LatticeBase
 // ----------------------------
 class LatticeBase {
  protected:
-  LatticeBool m_initial_status{false};  // status of initialization
+  bool m_initial_status{false};  // status of initialization
 
-  LatticeInt m_space_dim{};            // dimension of the space
-  LatticeInt m_side_length{};          // side length of the lattice
-  LatticeInt m_space_size{};           // total number of lattice sites
-  LatticeInt m_coordination_number{};  // coordination number of the lattice
-  LatticeInt m_num_k_stars{};          // number of k stars ( inequivalent momentum points )
+  int m_space_dim{};            // dimension of the space
+  int m_side_length{};          // side length of the lattice
+  int m_space_size{};           // total number of lattice sites
+  int m_coordination_number{};  // coordination number of the lattice
+  int m_num_k_stars{};          // number of k stars ( inequivalent momentum points )
 
   // hopping matrix, depending only on the topology of lattice
   // hopping constants are normalized to 1.0 .
@@ -44,18 +41,18 @@ class LatticeBase {
 
   // Matrix structure for storing the nearest neighbours of each lattice site
   // the matrix shape is SpaceSize * Coordination number
-  MatrixInt m_nearest_neighbour_table{};
+  Matrixint m_nearest_neighbour_table{};
   // todo: next nearest neighbours
-  // MatrixInt m_next_nearest_neighbour_table{};
+  // Matrixint m_next_nearest_neighbour_table{};
 
   // Matrix structure for storing the map from site index to the site vector
   // with the shape of SpaceSize * SpaceDim
-  MatrixInt m_index2site_table{};
+  Matrixint m_index2site_table{};
 
   // table of the displacement between any two sites i and j, pointing from i to
   // j the displacement is represented by a site index due to the periodic
   // boundary condition, and the shape of the table is SpaceSize * SpaceSize.
-  MatrixInt m_displacement_table{};
+  Matrixint m_displacement_table{};
 
   // the map from momentum index to the lattice momentum in the reciprocal
   // lattice the number of rows should be equal to the number of inequivalent
@@ -82,20 +79,20 @@ class LatticeBase {
   // lengths
   virtual void set_lattice_params(const LatticeIntVec& side_length_vec) = 0;
 
-  // --------------------------------- Interfaces
+  // --------------------------------- interfaces
   // ----------------------------------------
 
-  LatticeBool initial_status() const { return this->m_initial_status; }
+  bool initial_status() const { return this->m_initial_status; }
 
-  LatticeInt space_dim() const { return this->m_space_dim; }
+  int space_dim() const { return this->m_space_dim; }
 
-  LatticeInt space_size() const { return this->m_space_size; }
+  int space_size() const { return this->m_space_size; }
 
-  LatticeInt side_length() const { return this->m_side_length; }
+  int side_length() const { return this->m_side_length; }
 
-  LatticeInt coordination_number() const { return this->m_coordination_number; }
+  int coordination_number() const { return this->m_coordination_number; }
 
-  LatticeInt k_stars_num() const { return this->m_num_k_stars; }
+  int k_stars_num() const { return this->m_num_k_stars; }
 
   const LatticeIntVec& k_stars_index() const { return this->m_k_stars_index; }
 
@@ -103,46 +100,46 @@ class LatticeBase {
 
   const MatrixDouble& fourier_factor() const { return this->m_fourier_factor_table; }
 
-  LatticeInt displacement(const LatticeInt site1_index, const LatticeInt site2_index) const {
+  int displacement(const int site1_index, const int site2_index) const {
     DQMC_ASSERT(site1_index >= 0 && site1_index < this->m_space_size);
     DQMC_ASSERT(site2_index >= 0 && site2_index < this->m_space_size);
     return this->m_displacement_table(site1_index, site2_index);
   }
 
-  LatticeDouble fourier_factor(const LatticeInt site_index, const LatticeInt momentum_index) const {
+  double fourier_factor(const int site_index, const int momentum_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     return this->m_fourier_factor_table(site_index, momentum_index);
   }
 
-  LatticeInt nearest_neighbour(const LatticeInt site_index, const LatticeInt direction) const {
+  int nearest_neighbour(const int site_index, const int direction) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(direction >= 0 && direction < this->m_coordination_number);
     return this->m_nearest_neighbour_table(site_index, direction);
   }
 
-  MatrixIntRowView get_neighbors(const LatticeInt site_index) const {
+  MatrixintRowView get_neighbors(const int site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_nearest_neighbour_table.row(site_index);
   }
 
-  MatrixIntRowView index_to_site(const LatticeInt site_index) const {
+  MatrixintRowView index_to_site(const int site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     return this->m_index2site_table.row(site_index);
   }
 
-  LatticeInt index_to_site(const LatticeInt site_index, const LatticeInt axis) const {
+  int index_to_site(const int site_index, const int axis) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
     return this->m_index2site_table(site_index, axis);
   }
 
-  MatrixDoubleRowView index_to_momentum(const LatticeInt momentum_index) const {
+  MatrixDoubleRowView index_to_momentum(const int momentum_index) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     return this->m_index2momentum_table.row(momentum_index);
   }
 
-  LatticeDouble index_to_momentum(const LatticeInt momentum_index, const LatticeInt axis) const {
+  double index_to_momentum(const int momentum_index, const int axis) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
     return this->m_index2momentum_table(momentum_index, axis);
