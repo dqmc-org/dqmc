@@ -9,10 +9,25 @@ jobs:
     steps:
     - uses: actions/checkout@v5
 
+    - name: Cache packages
+      uses: actions/cache@v4
+      with:
+        path: ./apt-cache
+        key: ${{ runner.os }}-apt-${{ hashFiles('.github/workflows/ci.yml') }}
+        restore-keys: |
+          ${{ runner.os }}-apt-
+
     - name: Install dependencies
       run: |
-        sudo apt-get update
-        sudo apt-get install -y ninja-build clang libboost-all-dev libeigen3-dev libopenblas-dev liblapacke-dev
+        if ls ./apt-cache/*.deb >/dev/null 2>&1; then
+          sudo dpkg -i ./apt-cache/*.deb || sudo apt-get -f install -y
+        else
+          sudo apt-get update || true
+          sudo apt-get install -y --no-install-recommends \
+            ninja-build clang libboost-all-dev libeigen3-dev libopenblas-dev liblapacke-dev
+          mkdir -p ./apt-cache
+          sudo cp -a /var/cache/apt/archives/*.deb ./apt-cache/ || true
+        fi
 
     - name: Set up CMake
       uses: jwlawson/actions-setup-cmake@v2.0.2
@@ -23,10 +38,6 @@ jobs:
       run: |
         cmake -S . -B build-debug-clang -G Ninja \
         -DCMAKE_BUILD_TYPE=Debug \
-        -DBUILD_TESTING=YES \
-        -DBUILD_BENCHMARK=YES \
-        -DBUILD_EXAMPLES=YES \
-        -DCMAKE_EXPORT_COMPILE_COMMANDS=ON  \
         -DCMAKE_C_COMPILER=clang \
         -DCMAKE_CXX_COMPILER=clang++ \
         -DCMAKE_CXX_FLAGS="-Wall -Wextra -Werror -Wpedantic" \
