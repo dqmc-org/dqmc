@@ -178,6 +178,9 @@ int main(int argc, char* argv[]) {
     DQMC::Dqmc simulation(config);
 
     // 3. Output initialization info
+    std::cout << ">> Initialization finished. \n\n"
+              << ">> The simulation is going to get started with parameters shown below :\n"
+              << std::endl;
     DQMC::IO::output_init_info(std::cout, simulation);
 
     // Optional: Configure progress bar

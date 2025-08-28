@@ -41,7 +41,7 @@ void MeasureHandler::set_measured_momentum_list(const MomentumIndexList& momentu
   this->m_momentum_list = momentum_index_list;
 }
 
-void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
+void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
   // initialize ObservableHandler
   Observable::ObservableHandler::initial(this->m_obs_list);
 
@@ -62,7 +62,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
       // note that the dimensions of the observable should be adjusted or
       // specialized here
-      vector_obs->set_zero_element(VectorType::Zero(walker.TimeSize()));
+      vector_obs->set_zero_element(VectorType::Zero(time_size));
       vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
@@ -83,7 +83,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
       // specialize dimensions for certain observables if needed
-      vector_obs->set_zero_element(VectorType::Zero(walker.TimeSize()));
+      vector_obs->set_zero_element(VectorType::Zero(time_size));
       vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
@@ -92,8 +92,7 @@ void MeasureHandler::initial(const LatticeBase& lattice, const Walker& walker) {
       if (matrix_obs->name() == "greens_functions") {
         // for greens function measure, the rows represent different lattice
         // momentum and the columns represent imaginary-time grids.
-        matrix_obs->set_zero_element(
-            MatrixType::Zero(this->m_momentum_list.size(), walker.TimeSize()));
+        matrix_obs->set_zero_element(MatrixType::Zero(this->m_momentum_list.size(), time_size));
         matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       } else {

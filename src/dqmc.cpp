@@ -25,13 +25,78 @@
 namespace DQMC {
 
 Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) {
-  // 1. Create all modules from config
-  create_modules(config);
+  // 1. Create Lattice
+  if (config.lattice_type == "Square") {
+    DQMC_ASSERT(config.lattice_size.size() == 2);
+    m_lattice = std::make_unique<Lattice::Square>(config.lattice_size);
+  } else if (config.lattice_type == "Cubic") {
+    DQMC_ASSERT(config.lattice_size.size() == 3);
+    m_lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
+  } else {
+    throw std::runtime_error("DQMC::Dqmc: unsupported lattice type");
+  }
 
-  // 2. Initialize and link modules
-  initialize_modules();
+  // 2. Validate observables against lattice type
+  if (config.lattice_type != "Square") {
+    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness") !=
+        config.observables.end()) {
+      throw std::runtime_error("superfluid_stiffness is only supported for Square lattice");
+    }
+  }
 
-  // 3. Initialize auxiliary fields
+  // 3. Determine Momentum Indices
+  int momentum_idx;
+  std::vector<int> momentum_list_indices;
+  try {
+    momentum_idx = m_lattice->momentum_points().at(config.momentum);
+    momentum_list_indices = m_lattice->momentum_lists().at(config.momentum_list);
+  } catch (const std::out_of_range& e) {
+    throw std::runtime_error(
+        std::format("DQMC: unknown momentum point '{}' or list '{}' for {} lattice",
+                    config.momentum, config.momentum_list, config.lattice_type));
+  }
+
+  // 4. Create MeasureHandler
+  m_handler = std::make_unique<Measure::MeasureHandler>(
+      config.sweeps_warmup, config.bin_num, config.bin_size, config.sweeps_between_bins,
+      config.observables, momentum_idx, momentum_list_indices);
+  m_handler->initial(*m_lattice, config.time_size);
+
+  // 5. Create Walker
+  m_walker = std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);
+  m_walker->initial(*m_lattice, *m_handler);
+
+  // 6. Create Model
+  if (config.model_type == "RepulsiveHubbard") {
+    m_model = std::make_unique<Model::RepulsiveHubbard>(config.hopping_t, config.onsite_u,
+                                                        config.chemical_potential);
+    m_model->initial(*m_lattice, *m_walker);
+  } else if (config.model_type == "AttractiveHubbard") {
+    m_model = std::make_unique<Model::AttractiveHubbard>(config.hopping_t, config.onsite_u,
+                                                         config.chemical_potential);
+    m_model->initial(*m_lattice, *m_walker);
+  } else {
+    throw std::runtime_error("DQMC::Dqmc: undefined model type");
+  }
+
+  // 7. Create CheckerBoard if enabled
+  if (config.enable_checkerboard) {
+    if (config.lattice_type == "Square") {
+      m_checkerboard = std::make_unique<CheckerBoard::Square>(*m_lattice, *m_model, *m_walker);
+    } else {
+      throw std::runtime_error(
+          "DQMC::Dqmc: checkerboard is currently only implemented for 2d square lattice");
+    }
+  }
+
+  // 8. Link checkerboard to the model if it exists
+  if (m_checkerboard) {
+    m_model->link(*m_checkerboard);
+  } else {
+    m_model->link();
+  }
+
+  // 9. Initialize auxiliary fields
   if (config.fields_file.empty()) {
     m_model->set_bosonic_fields_to_random(m_rng);
     std::cout << ">> Configurations of the bosonic fields set to random.\n" << std::endl;
@@ -41,12 +106,10 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
               << std::endl;
   }
 
-  // 4. Final DQMC preparations
-  initialize_dqmc();
-
-  std::cout << ">> Initialization finished. \n\n"
-            << ">> The simulation is going to get started with parameters shown below :\n"
-            << std::endl;
+  // 10. Final DQMC preparations
+  m_walker->initial_svd_stacks(*m_lattice, *m_model);
+  m_walker->initial_greens_functions();
+  m_walker->initial_config_sign();
 }
 
 void Dqmc::run() {
@@ -214,97 +277,4 @@ void Dqmc::measure() {
 }
 
 void Dqmc::analyse() { m_handler->analyse_stats(); }
-
-void Dqmc::create_modules(const Config& config) {
-  // 1. Create Lattice
-  if (config.lattice_type == "Square") {
-    DQMC_ASSERT(config.lattice_size.size() == 2);
-    m_lattice = std::make_unique<Lattice::Square>(config.lattice_size);
-  } else if (config.lattice_type == "Cubic") {
-    DQMC_ASSERT(config.lattice_size.size() == 3);
-    m_lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
-  } else if (config.lattice_type == "Honeycomb") {
-    throw std::runtime_error("Honeycomb lattice is not supported.");
-  } else {
-    throw std::runtime_error("DQMC::Dqmc::create_modules(): unsupported lattice type");
-  }
-
-  // 2. Create Model
-  if (config.model_type == "RepulsiveHubbard") {
-    m_model = std::make_unique<Model::RepulsiveHubbard>(config.hopping_t, config.onsite_u,
-                                                        config.chemical_potential);
-  } else if (config.model_type == "AttractiveHubbard") {
-    m_model = std::make_unique<Model::AttractiveHubbard>(config.hopping_t, config.onsite_u,
-                                                         config.chemical_potential);
-  } else {
-    throw std::runtime_error("DQMC::Dqmc::create_modules(): undefined model type");
-  }
-
-  // 3. Create Walker
-  m_walker = std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);
-
-  // 4. Determine Momentum Indices for MeasureHandler
-  if (config.lattice_type == "Honeycomb") {
-    throw std::runtime_error("Honeycomb lattice is not supported.");
-  }
-
-  int momentum_idx;
-  std::vector<int> momentum_list_indices;
-  try {
-    momentum_idx = m_lattice->momentum_points().at(config.momentum);
-    momentum_list_indices = m_lattice->momentum_lists().at(config.momentum_list);
-  } catch (const std::out_of_range& e) {
-    throw std::runtime_error(std::format(
-        "DQMC::create_modules(): unknown momentum point '{}' or list '{}' for {} lattice",
-        config.momentum, config.momentum_list, config.lattice_type));
-  }
-
-  // 5. Validate observables against lattice type
-  if (config.lattice_type != "Square") {
-    if (std::find(config.observables.begin(), config.observables.end(), "superfluid_stiffness") !=
-        config.observables.end()) {
-      throw std::runtime_error("superfluid_stiffness is only supported for Square lattice");
-    }
-  }
-
-  // 6. Create MeasureHandler
-  m_handler = std::make_unique<Measure::MeasureHandler>(
-      config.sweeps_warmup, config.bin_num, config.bin_size, config.sweeps_between_bins,
-      config.observables, momentum_idx, momentum_list_indices);
-
-  // 7. Create CheckerBoard if enabled
-  if (config.enable_checkerboard) {
-    if (config.lattice_type == "Square") {
-      m_checkerboard = std::make_unique<CheckerBoard::Square>(*m_lattice, *m_model, *m_walker);
-    } else {
-      throw std::runtime_error(
-          "DQMC::Dqmc::create_modules(): "
-          "checkerboard is currently only implemented for 2d square lattice");
-    }
-  }
-}
-
-void Dqmc::initialize_modules() {
-  // NOTE: The order of initializations below remains important for inter-linking.
-  DQMC_ASSERT(m_lattice->InitialStatus());
-
-  m_handler->initial(*m_lattice, *m_walker);
-  m_walker->initial(*m_lattice, *m_handler);
-  m_model->initial(*m_lattice, *m_walker);
-
-  // Link checkerboard to the model if it exists
-  if (m_checkerboard) {
-    m_model->link(*m_checkerboard);
-  } else {
-    m_model->link();
-  }
-}
-
-void Dqmc::initialize_dqmc() {
-  // NOTE: this should be called after the initial configuration of the bosonic
-  // fields.
-  m_walker->initial_svd_stacks(*m_lattice, *m_model);
-  m_walker->initial_greens_functions();
-  m_walker->initial_config_sign();
-}
 }  // namespace DQMC
