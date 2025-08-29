@@ -77,7 +77,7 @@ class Walker {
   SvdStack m_svd_stack_right_up{};
   SvdStack m_svd_stack_right_down{};
 
-  Utils::TemporaryPool m_tmp_pool{};
+  Utils::TemporaryPool m_pool{};
 
   // pace of numerical stabilizations
   // or equivalently, the number of consequent wrapping steps of equal-time
