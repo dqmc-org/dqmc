@@ -41,6 +41,10 @@ class AttractiveHubbard : public ModelBase {
   double m_exp_val_avg;
   double m_exp_val_half_diff;
 
+  // pre-allocated buffers to avoid temporary allocations in multiplication functions
+  mutable Eigen::VectorXd m_exp_V_col_buffer;
+  mutable Eigen::RowVectorXd m_exp_V_row_buffer;
+
  public:
   explicit AttractiveHubbard(RealScalar hopping_t, RealScalar onsite_u,
                              RealScalar chemical_potential);

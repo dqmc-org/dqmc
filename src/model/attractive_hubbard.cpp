@@ -79,6 +79,10 @@ void AttractiveHubbard::initial_params(const LatticeBase& lattice, const Walker&
 
   // allocate memory for bosonic fields
   this->m_bosonic_field.resize(this->m_time_size, this->m_space_size);
+
+  // resize the pre-allocated buffers
+  m_exp_V_col_buffer.resize(this->m_space_size);
+  m_exp_V_row_buffer.resize(this->m_space_size);
 }
 
 void AttractiveHubbard::initial_KV_matrices(const LatticeBase& lattice, const Walker& walker) {
@@ -196,8 +200,9 @@ void AttractiveHubbard::mult_B_from_left(GreensFunc& green, TimeIndex time_index
   // the time slice labeled by 0 actually corresponds to slice tau = beta
   const int eff_time_index = (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
   this->call_mult_expK_from_left(green);
-  green.array().colwise() *=
+  m_exp_V_col_buffer =
       (this->m_alpha * this->m_bosonic_field.row(eff_time_index).transpose().array()).exp();
+  green.array().colwise() *= m_exp_V_col_buffer.array();
 }
 
 void AttractiveHubbard::mult_B_from_right(GreensFunc& green, TimeIndex time_index,
@@ -211,8 +216,8 @@ void AttractiveHubbard::mult_B_from_right(GreensFunc& green, TimeIndex time_inde
   DQMC_ASSERT(abs(spin) == 1.0);
 
   const int eff_time_index = (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  green.array().rowwise() *=
-      (this->m_alpha * this->m_bosonic_field.row(eff_time_index).array()).exp();
+  m_exp_V_row_buffer = (this->m_alpha * this->m_bosonic_field.row(eff_time_index).array()).exp();
+  green.array().rowwise() *= m_exp_V_row_buffer.array();
   this->call_mult_expK_from_right(green);
 }
 
@@ -227,8 +232,9 @@ void AttractiveHubbard::mult_invB_from_left(GreensFunc& green, TimeIndex time_in
   DQMC_ASSERT(abs(spin) == 1.0);
 
   const int eff_time_index = (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  green.array().colwise() *=
+  m_exp_V_col_buffer =
       (-this->m_alpha * this->m_bosonic_field.row(eff_time_index).transpose().array()).exp();
+  green.array().colwise() *= m_exp_V_col_buffer.array();
   this->call_mult_inv_expK_from_left(green);
 }
 
@@ -244,8 +250,8 @@ void AttractiveHubbard::mult_invB_from_right(GreensFunc& green, TimeIndex time_i
 
   const int eff_time_index = (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
   this->call_mult_inv_expK_from_right(green);
-  green.array().rowwise() *=
-      (-this->m_alpha * this->m_bosonic_field.row(eff_time_index).array()).exp();
+  m_exp_V_row_buffer = (-this->m_alpha * this->m_bosonic_field.row(eff_time_index).array()).exp();
+  green.array().rowwise() *= m_exp_V_row_buffer.array();
 }
 
 void AttractiveHubbard::mult_transB_from_left(GreensFunc& green, TimeIndex time_index,
@@ -259,8 +265,9 @@ void AttractiveHubbard::mult_transB_from_left(GreensFunc& green, TimeIndex time_
   DQMC_ASSERT(abs(spin) == 1.0);
 
   const int eff_time_index = (time_index == 0) ? this->m_time_size - 1 : time_index - 1;
-  green.array().colwise() *=
+  m_exp_V_col_buffer =
       (this->m_alpha * this->m_bosonic_field.row(eff_time_index).transpose().array()).exp();
+  green.array().colwise() *= m_exp_V_col_buffer.array();
   this->call_mult_trans_expK_from_left(green);
 }
 
