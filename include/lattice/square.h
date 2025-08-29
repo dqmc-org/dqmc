@@ -6,7 +6,6 @@
  */
 
 #include <array>
-#include <unordered_map>
 
 #include "lattice/lattice_base.h"
 

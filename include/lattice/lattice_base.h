@@ -7,7 +7,6 @@
  */
 
 #include <Eigen/Core>
-#include <format>
 #include <iostream>
 #include <unordered_map>
 

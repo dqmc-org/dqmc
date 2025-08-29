@@ -182,8 +182,8 @@ void Square::initial_fourier_factor_table() {
     for (auto k = 0; k < this->m_num_k_stars; ++k) {
       // this defines the inner product of a site vector x and a momemtum vector k
       auto [xi, yi] = index_to_site(i);
-      this->m_fourier_factor_table(i, k) =
-          cos(-xi * this->m_index_to_momentum_table(k, 0) - yi * this->m_index_to_momentum_table(k, 1));
+      this->m_fourier_factor_table(i, k) = cos(-xi * this->m_index_to_momentum_table(k, 0) -
+                                               yi * this->m_index_to_momentum_table(k, 1));
     }
   }
 }
@@ -204,7 +204,6 @@ void Square::initial_hopping_matrix() {
 }
 
 void Square::initial() {
-  // avoid multiple initialization
   this->initial_index_to_site_table();
   this->initial_index_to_momentum_table();
 

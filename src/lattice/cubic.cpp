@@ -216,9 +216,9 @@ void Cubic::initial_fourier_factor_table() {
       // vector
       // k
       auto [xi, yi, zi] = index_to_site(i);
-      this->m_fourier_factor_table(i, k) =
-          cos((-xi * this->m_index_to_momentum_table(k, 0) - yi * this->m_index_to_momentum_table(k, 1) -
-               zi * this->m_index_to_momentum_table(k, 2)));
+      this->m_fourier_factor_table(i, k) = cos((-xi * this->m_index_to_momentum_table(k, 0) -
+                                                yi * this->m_index_to_momentum_table(k, 1) -
+                                                zi * this->m_index_to_momentum_table(k, 2)));
     }
   }
 }
@@ -242,11 +242,10 @@ void Cubic::initial_hopping_matrix() {
 }
 
 void Cubic::initial() {
-  // avoid multiple initialization
-  this->initial_index2site_table();
-  this->initial_index2momentum_table();
+  this->initial_index_to_site_table();
+  this->initial_index_to_momentum_table();
 
-  this->initial_nearest_neighbour_table();
+  this->initial_nearest_neighbor_table();
   this->initial_displacement_table();
   this->initial_symmetry_points();
   this->initial_fourier_factor_table();
