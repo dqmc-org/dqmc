@@ -38,6 +38,8 @@ void Walker::initial(const LatticeBase& lattice, const MeasureHandler& meas_hand
 
   this->m_is_equaltime = meas_handler.is_equaltime();
   this->m_is_dynamic = meas_handler.is_dynamic();
+
+  allocate_workspace();
 }
 
 void Walker::allocate_svd_stacks() {
@@ -77,6 +79,8 @@ void Walker::allocate_greens_functions() {
   }
 }
 
+void Walker::allocate_workspace() { this->m_workspace.resize(this->m_space_size); }
+
 void Walker::initial_svd_stacks([[maybe_unused]] const LatticeBase& lattice,
                                 const ModelBase& model) {
   // initialize udv stacks for sweep use
@@ -86,9 +90,10 @@ void Walker::initial_svd_stacks([[maybe_unused]] const LatticeBase& lattice,
   // allocate memory
   this->allocate_svd_stacks();
 
-  Eigen::MatrixXd tmp_stack_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_stack_down =
-      Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
+  auto& tmp_stack_up = m_workspace.tmp_mat_up;
+  auto& tmp_stack_down = m_workspace.tmp_mat_down;
+  tmp_stack_up.setIdentity();
+  tmp_stack_down.setIdentity();
 
   // initial svd stacks for sweeping usages
   for (auto time_index = this->m_time_size; time_index >= 1; --time_index) {
@@ -210,11 +215,14 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
   DQMC_ASSERT(this->m_svd_stack_right_up.size() == stack_length &&
               this->m_svd_stack_right_down.size() == stack_length);
 
-  // temporary matrices
-  Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_mat_down = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_green_tt_up(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_green_tt_down(this->m_space_size, this->m_space_size);
+  // Use pre-allocated temporary matrices from workspace
+  auto& tmp_mat_up = m_workspace.tmp_mat_up;
+  auto& tmp_mat_down = m_workspace.tmp_mat_down;
+  auto& tmp_green_tt_up = m_workspace.tmp_green_tt_up;
+  auto& tmp_green_tt_down = m_workspace.tmp_green_tt_down;
+
+  tmp_mat_up.setIdentity();
+  tmp_mat_down.setIdentity();
 
   // sweep upwards from 0 to beta
   for (auto time_index = 1; time_index <= this->m_time_size; ++time_index) {
@@ -304,11 +312,14 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
   DQMC_ASSERT(this->m_svd_stack_left_up.size() == stack_length &&
               this->m_svd_stack_left_down.size() == stack_length);
 
-  // temporary matrices
-  Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_mat_down = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_green_tt_up(this->m_space_size, this->m_space_size);
-  Eigen::MatrixXd tmp_green_tt_down(this->m_space_size, this->m_space_size);
+  // Use pre-allocated temporary matrices from workspace
+  auto& tmp_mat_up = m_workspace.tmp_mat_up;
+  auto& tmp_mat_down = m_workspace.tmp_mat_down;
+  auto& tmp_green_tt_up = m_workspace.tmp_green_tt_up;
+  auto& tmp_green_tt_down = m_workspace.tmp_green_tt_down;
+
+  tmp_mat_up.setIdentity();
+  tmp_mat_down.setIdentity();
 
   // sweep downwards from beta to 0
   for (auto time_index = this->m_time_size; time_index >= 1; --time_index) {
@@ -411,14 +422,16 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
     this->m_green_0t_down =
         this->m_green_tt_down - Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
 
-    // temporary matrices
-    Eigen::MatrixXd tmp_mat_up = Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_mat_down =
-        Eigen::MatrixXd::Identity(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_green_t0_up(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_green_t0_down(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_green_0t_up(this->m_space_size, this->m_space_size);
-    Eigen::MatrixXd tmp_green_0t_down(this->m_space_size, this->m_space_size);
+    // Use pre-allocated temporary matrices from workspace
+    auto& tmp_mat_up = m_workspace.tmp_mat_up;
+    auto& tmp_mat_down = m_workspace.tmp_mat_down;
+    auto& tmp_green_t0_up = m_workspace.tmp_green_t0_up;
+    auto& tmp_green_t0_down = m_workspace.tmp_green_t0_down;
+    auto& tmp_green_0t_up = m_workspace.tmp_green_0t_up;
+    auto& tmp_green_0t_down = m_workspace.tmp_green_0t_down;
+
+    tmp_mat_up.setIdentity();
+    tmp_mat_down.setIdentity();
 
     // sweep forwards from 0 to beta
     for (auto time_index = 1; time_index <= this->m_time_size; ++time_index) {
