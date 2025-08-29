@@ -51,10 +51,10 @@ class Cubic : public LatticeBase {
 
  private:
   // private initialization functions
-  void initial_index2site_table() override;
-  void initial_index2momentum_table() override;
+  void initial_index_to_site_table() override;
+  void initial_index_to_momentum_table() override;
 
-  void initial_nearest_neighbour_table() override;
+  void initial_nearest_neighbor_table() override;
   void initial_displacement_table() override;
   void initial_symmetry_points() override;
   void initial_fourier_factor_table() override;

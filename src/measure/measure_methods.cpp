@@ -396,7 +396,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   const GreensFunc& g00dn = ctx.walker.green_tt_down(time_size - 1);
 
   for (auto i = 0; i < space_size; ++i) {
-    const auto ipx = ctx.lattice.nearest_neighbour(i, 0);
+    const auto ipx = ctx.lattice.nearest_neighbor(i, 0);
     uncorrelated_i_vals[i] = g00up(i, ipx) - g00up(ipx, i) + g00dn(i, ipx) - g00dn(ipx, i);
   }
 
@@ -413,15 +413,15 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
     const GreensFunc& g0tdn = ctx.walker.green_0t_down(tau);
 
     for (auto j = 0; j < space_size; ++j) {
-      const auto jpx = ctx.lattice.nearest_neighbour(j, 0);
+      const auto jpx = ctx.lattice.nearest_neighbor(j, 0);
       uncorrelated_j_vals[j] = gttup(j, jpx) - gttup(jpx, j) + gttdn(j, jpx) - gttdn(jpx, j);
     }
 
     double t_slice_sum = 0.0;
     for (auto i = 0; i < space_size; ++i) {
-      const auto ipx = ctx.lattice.nearest_neighbour(i, 0);
+      const auto ipx = ctx.lattice.nearest_neighbor(i, 0);
       for (auto j = 0; j < space_size; ++j) {
-        const auto jpx = ctx.lattice.nearest_neighbour(j, 0);
+        const auto jpx = ctx.lattice.nearest_neighbor(j, 0);
 
         const auto displacement = ctx.lattice.displacement(i, j);
         const auto rx = ctx.lattice.index_to_site(displacement, 0);

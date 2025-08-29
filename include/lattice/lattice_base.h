@@ -31,13 +31,13 @@ class LatticeBase {
 
   // Matrix structure for storing the nearest neighbours of each lattice site
   // the matrix shape is SpaceSize * Coordination number
-  Eigen::MatrixXi m_nearest_neighbour_table{};
+  Eigen::MatrixXi m_nearest_neighbor_table{};
   // todo: next nearest neighbours
   // Matrixint m_next_nearest_neighbour_table{};
 
   // Matrix structure for storing the map from site index to the site vector
   // with the shape of SpaceSize * SpaceDim
-  Eigen::MatrixXi m_index2site_table{};
+  Eigen::MatrixXi m_index_to_site_table{};
 
   // table of the displacement between any two sites i and j, pointing from i to
   // j the displacement is represented by a site index due to the periodic
@@ -47,7 +47,7 @@ class LatticeBase {
   // the map from momentum index to the lattice momentum in the reciprocal
   // lattice the number of rows should be equal to the number of inequivalent
   // momentum points (k stars), and the columns is the space dimension.
-  Eigen::MatrixXd m_index2momentum_table{};
+  Eigen::MatrixXd m_index_to_momentum_table{};
 
   // table of fourier transformation factor
   // e.g. Re( exp(ikx) ) for lattice site x and momentum k
@@ -100,37 +100,37 @@ class LatticeBase {
     return this->m_fourier_factor_table(site_index, momentum_index);
   }
 
-  int nearest_neighbour(int site_index, int direction) const {
+  int nearest_neighbor(int site_index, int direction) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(direction >= 0 && direction < this->m_coordination_number);
-    return this->m_nearest_neighbour_table(site_index, direction);
+    return this->m_nearest_neighbor_table(site_index, direction);
   }
 
   Eigen::MatrixXi::ConstRowXpr get_neighbors(int site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
-    return this->m_nearest_neighbour_table.row(site_index);
+    return this->m_nearest_neighbor_table.row(site_index);
   }
 
   Eigen::MatrixXi::ConstRowXpr index_to_site(int site_index) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
-    return this->m_index2site_table.row(site_index);
+    return this->m_index_to_site_table.row(site_index);
   }
 
   int index_to_site(int site_index, int axis) const {
     DQMC_ASSERT(site_index >= 0 && site_index < this->m_space_size);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
-    return this->m_index2site_table(site_index, axis);
+    return this->m_index_to_site_table(site_index, axis);
   }
 
   Eigen::MatrixXd::ConstRowXpr index_to_momentum(int momentum_index) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
-    return this->m_index2momentum_table.row(momentum_index);
+    return this->m_index_to_momentum_table.row(momentum_index);
   }
 
   double index_to_momentum(int momentum_index, int axis) const {
     DQMC_ASSERT(momentum_index >= 0 && momentum_index < this->m_num_k_stars);
     DQMC_ASSERT(axis >= 0 && axis < this->m_space_dim);
-    return this->m_index2momentum_table(momentum_index, axis);
+    return this->m_index_to_momentum_table(momentum_index, axis);
   }
 
   // -------------------------------- Initializations
@@ -138,10 +138,10 @@ class LatticeBase {
 
   virtual void initial() = 0;
   virtual void initial_hopping_matrix() = 0;
-  virtual void initial_index2site_table() = 0;
-  virtual void initial_nearest_neighbour_table() = 0;
+  virtual void initial_index_to_site_table() = 0;
+  virtual void initial_nearest_neighbor_table() = 0;
   virtual void initial_displacement_table() = 0;
-  virtual void initial_index2momentum_table() = 0;
+  virtual void initial_index_to_momentum_table() = 0;
   virtual void initial_symmetry_points() = 0;
   virtual void initial_fourier_factor_table() = 0;
 

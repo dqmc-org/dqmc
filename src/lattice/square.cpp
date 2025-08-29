@@ -47,17 +47,17 @@ std::array<int, 2> Square::index_to_site(int index) const {
   return {index % this->m_side_length, index / this->m_side_length};
 }
 
-void Square::initial_index2site_table() {
-  this->m_index2site_table.resize(this->m_space_size, this->m_space_dim);
+void Square::initial_index_to_site_table() {
+  this->m_index_to_site_table.resize(this->m_space_size, this->m_space_dim);
   for (auto index = 0; index < this->m_space_size; ++index) {
     // map the site index to the site vector (x,y)
     auto [i, j] = index_to_site(index);
-    this->m_index2site_table(index, 0) = i;
-    this->m_index2site_table(index, 1) = j;
+    this->m_index_to_site_table(index, 0) = i;
+    this->m_index_to_site_table(index, 1) = j;
   }
 }
 
-void Square::initial_index2momentum_table() {
+void Square::initial_index_to_momentum_table() {
   // k stars (inequivalent momentum points) in 2d square lattice
   // locate in the zone surrounded by loop (0,0) -> (pi,0) -> (pi,pi) ->
   // (0,0). note that the point group of 2d sqaure lattice is C4v
@@ -71,11 +71,11 @@ void Square::initial_index2momentum_table() {
   }
 
   // initialize index2momentum table
-  this->m_index2momentum_table.resize(this->m_num_k_stars, this->m_space_dim);
+  this->m_index_to_momentum_table.resize(this->m_num_k_stars, this->m_space_dim);
   int count = 0;
   for (auto i = std::ceil(this->m_side_length / 2.0); i <= this->m_side_length; ++i) {
     for (auto j = std::ceil(this->m_side_length / 2.0); j <= i; ++j) {
-      this->m_index2momentum_table.row(count) =
+      this->m_index_to_momentum_table.row(count) =
           Eigen::Vector2d((double)i / this->m_side_length * 2 * M_PI - M_PI,
                           (double)j / this->m_side_length * 2 * M_PI - M_PI);
       count++;
@@ -83,27 +83,27 @@ void Square::initial_index2momentum_table() {
   }
 }
 
-void Square::initial_nearest_neighbour_table() {
+void Square::initial_nearest_neighbor_table() {
   // the coordination number for 2d square lattice is 4
   // correspondense between the table index and the direction of displacement
   // : 0: (x+1, y)    1: (x, y+1) 2: (x-1, y)    3: (x, y-1)
-  this->m_nearest_neighbour_table.resize(this->m_space_size, this->m_coordination_number);
+  this->m_nearest_neighbor_table.resize(this->m_space_size, this->m_coordination_number);
   int L = this->m_side_length;
   for (int i = 0; i < L; ++i) {
     for (int j = 0; j < L; ++j) {
       int site_index = this->site_to_index(i, j);
 
       // Direction 0: (x+1, y)
-      this->m_nearest_neighbour_table(site_index, 0) = this->site_to_index((i + 1) % L, j);
+      this->m_nearest_neighbor_table(site_index, 0) = this->site_to_index((i + 1) % L, j);
 
       // Direction 1: (x, y+1)
-      this->m_nearest_neighbour_table(site_index, 1) = this->site_to_index(i, (j + 1) % L);
+      this->m_nearest_neighbor_table(site_index, 1) = this->site_to_index(i, (j + 1) % L);
 
       // Direction 2: (x-1, y)
-      this->m_nearest_neighbour_table(site_index, 2) = this->site_to_index((i - 1 + L) % L, j);
+      this->m_nearest_neighbor_table(site_index, 2) = this->site_to_index((i - 1 + L) % L, j);
 
       // Direction 3: (x, y-1)
-      this->m_nearest_neighbour_table(site_index, 3) = this->site_to_index(i, (j - 1 + L) % L);
+      this->m_nearest_neighbor_table(site_index, 3) = this->site_to_index(i, (j - 1 + L) % L);
     }
   }
 }
@@ -183,7 +183,7 @@ void Square::initial_fourier_factor_table() {
       // this defines the inner product of a site vector x and a momemtum vector k
       auto [xi, yi] = index_to_site(i);
       this->m_fourier_factor_table(i, k) =
-          cos(-xi * this->m_index2momentum_table(k, 0) - yi * this->m_index2momentum_table(k, 1));
+          cos(-xi * this->m_index_to_momentum_table(k, 0) - yi * this->m_index_to_momentum_table(k, 1));
     }
   }
 }
@@ -193,8 +193,8 @@ void Square::initial_hopping_matrix() {
   this->m_hopping_matrix.setZero();
   for (auto index = 0; index < this->m_space_size; ++index) {
     // direction 0 for x+1 and 1 for y+1
-    const int index_xplus1 = this->nearest_neighbour(index, 0);
-    const int index_yplus1 = this->nearest_neighbour(index, 1);
+    const int index_xplus1 = this->nearest_neighbor(index, 0);
+    const int index_yplus1 = this->nearest_neighbor(index, 1);
 
     this->m_hopping_matrix(index, index_xplus1) += 1.0;
     this->m_hopping_matrix(index_xplus1, index) += 1.0;
@@ -205,10 +205,10 @@ void Square::initial_hopping_matrix() {
 
 void Square::initial() {
   // avoid multiple initialization
-  this->initial_index2site_table();
-  this->initial_index2momentum_table();
+  this->initial_index_to_site_table();
+  this->initial_index_to_momentum_table();
 
-  this->initial_nearest_neighbour_table();
+  this->initial_nearest_neighbor_table();
   this->initial_displacement_table();
   this->initial_symmetry_points();
   this->initial_fourier_factor_table();
