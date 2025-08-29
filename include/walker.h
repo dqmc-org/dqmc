@@ -11,6 +11,7 @@
 
 #include "svd_stack.h"
 #include "utils/numerical_stable.hpp"
+#include "utils/temporary_pool.h"
 
 namespace Model {
 class ModelBase;
@@ -37,30 +38,6 @@ class Walker {
  private:
   using SvdStack = Utils::SVD_stack;
   using GreensFunc = Eigen::MatrixXd;
-
-  struct WalkerWorkspace {
-    GreensFunc tmp_mat_up;
-    GreensFunc tmp_mat_down;
-
-    GreensFunc tmp_green_tt_up;
-    GreensFunc tmp_green_tt_down;
-
-    GreensFunc tmp_green_t0_up;
-    GreensFunc tmp_green_t0_down;
-    GreensFunc tmp_green_0t_up;
-    GreensFunc tmp_green_0t_down;
-
-    void resize(int space_size) {
-      tmp_mat_up.resize(space_size, space_size);
-      tmp_mat_down.resize(space_size, space_size);
-      tmp_green_tt_up.resize(space_size, space_size);
-      tmp_green_tt_down.resize(space_size, space_size);
-      tmp_green_t0_up.resize(space_size, space_size);
-      tmp_green_t0_down.resize(space_size, space_size);
-      tmp_green_0t_up.resize(space_size, space_size);
-      tmp_green_0t_down.resize(space_size, space_size);
-    }
-  };
 
   // --------------------------------- Walker params
   // ---------------------------------------------
@@ -102,8 +79,7 @@ class Walker {
 
   // TODO: better descriptive name
   Utils::GreensWorkspace m_greens_workspace{};
-
-  WalkerWorkspace m_workspace{};
+  Utils::TemporaryPool m_tmp_pool{};
 
   // pace of numerical stabilizations
   // or equivalently, the number of consequent wrapping steps of equal-time
@@ -194,7 +170,6 @@ class Walker {
   // allocate memory
   void allocate_svd_stacks();
   void allocate_greens_functions();
-  void allocate_workspace();
 
  public:
   // ---------------------------------- Monte Carlo updates

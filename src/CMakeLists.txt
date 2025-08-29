@@ -17,6 +17,7 @@ add_library(
   model/repulsive_hubbard.cpp
   utils/assert.cpp
   utils/numerical_stable.cpp
+  utils/temporary_pool.cpp
 )
 
 target_include_directories(
