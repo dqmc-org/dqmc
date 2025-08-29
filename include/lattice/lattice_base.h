@@ -19,8 +19,6 @@ namespace Lattice {
 // ----------------------------
 class LatticeBase {
  protected:
-  bool m_initial_status{false};  // status of initialization
-
   int m_space_dim{};            // dimension of the space
   int m_side_length{};          // side length of the lattice
   int m_space_size{};           // total number of lattice sites
@@ -73,8 +71,6 @@ class LatticeBase {
 
   // --------------------------------- interfaces
   // ----------------------------------------
-
-  bool initial_status() const { return this->m_initial_status; }
 
   int space_dim() const { return this->m_space_dim; }
 

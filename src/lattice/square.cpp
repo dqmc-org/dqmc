@@ -205,19 +205,15 @@ void Square::initial_hopping_matrix() {
 
 void Square::initial() {
   // avoid multiple initialization
-  if (!this->m_initial_status) {
-    this->initial_index2site_table();
-    this->initial_index2momentum_table();
+  this->initial_index2site_table();
+  this->initial_index2momentum_table();
 
-    this->initial_nearest_neighbour_table();
-    this->initial_displacement_table();
-    this->initial_symmetry_points();
-    this->initial_fourier_factor_table();
+  this->initial_nearest_neighbour_table();
+  this->initial_displacement_table();
+  this->initial_symmetry_points();
+  this->initial_fourier_factor_table();
 
-    this->initial_hopping_matrix();
-
-    this->m_initial_status = true;
-  }
+  this->initial_hopping_matrix();
 }
 
 }  // namespace Lattice
