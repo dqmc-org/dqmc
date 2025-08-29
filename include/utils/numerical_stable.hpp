@@ -57,19 +57,19 @@ class NumericalStable {
    *  Workspace: temp_mat
    */
   static void mult_v_invd_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat,
-                            Matrix& zmat, Matrix& temp_mat) {
+                            Matrix& zmat, TemporaryPool& pool) {
     DQMC_ASSERT(vmat.cols() == umat.cols());
     DQMC_ASSERT(vmat.cols() == zmat.cols());
     DQMC_ASSERT(vmat.rows() == umat.rows());
     DQMC_ASSERT(vmat.rows() == zmat.rows());
     DQMC_ASSERT(vmat.rows() == vmat.cols());
     DQMC_ASSERT(vmat.cols() == dvec.size());
-    DQMC_ASSERT(temp_mat.rows() == vmat.rows() && temp_mat.cols() == vmat.cols());
 
     // temp_mat = vmat * D^-1
-    temp_mat.noalias() = vmat * dvec.asDiagonal().inverse();
+    auto temp_mat = pool.acquire_matrix(vmat.rows(), vmat.cols());
+    temp_mat->noalias() = vmat * dvec.asDiagonal().inverse();
     // zmat = temp_mat * umat
-    zmat.noalias() = temp_mat * umat;
+    zmat.noalias() = *temp_mat * umat;
   }
 
   /*
@@ -79,19 +79,19 @@ class NumericalStable {
    *  Workspace: temp_mat
    */
   static void mult_v_d_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat, Matrix& zmat,
-                         Matrix& temp_mat) {
+                         TemporaryPool& pool) {
     DQMC_ASSERT(vmat.cols() == umat.cols());
     DQMC_ASSERT(vmat.cols() == zmat.cols());
     DQMC_ASSERT(vmat.rows() == umat.rows());
     DQMC_ASSERT(vmat.rows() == zmat.rows());
     DQMC_ASSERT(vmat.rows() == vmat.cols());
     DQMC_ASSERT(vmat.cols() == dvec.size());
-    DQMC_ASSERT(temp_mat.rows() == vmat.rows() && temp_mat.cols() == vmat.cols());
 
     // temp_mat = vmat * D
-    temp_mat.noalias() = vmat * dvec.asDiagonal();
+    auto temp_mat = pool.acquire_matrix(vmat.rows(), vmat.cols());
+    temp_mat->noalias() = vmat * dvec.asDiagonal();
     // zmat = temp_mat * umat
-    zmat.noalias() = temp_mat * umat;
+    zmat.noalias() = *temp_mat * umat;
   }
 
   /*
@@ -253,9 +253,7 @@ class NumericalStable {
     auto drmin = pool.acquire_vector(ndim);
 
     compute_greens_function_common_part(left, right, *Atmp, *dlmax, *dlmin, *drmax, *drmin, pool);
-
-    auto tmp = pool.acquire_matrix(ndim, ndim);
-    mult_v_invd_u(*Atmp, *dlmax, left.U().transpose(), gtt, *tmp);
+    mult_v_invd_u(*Atmp, *dlmax, left.U().transpose(), gtt, pool);
   }
 
   /*
@@ -289,25 +287,24 @@ class NumericalStable {
     {
       auto Atmp = pool.acquire_matrix(ndim, ndim);
       compute_greens_function_common_part(left, right, *Atmp, *dlmax, *dlmin, *drmax, *drmin, pool);
-      auto tmp = pool.acquire_matrix(ndim, ndim);
-      mult_v_d_u(*Atmp, *dlmin, left.V().transpose(), gt0, *tmp);
+      mult_v_d_u(*Atmp, *dlmin, left.V().transpose(), gt0, pool);
     }
 
     // Part 2: compute g0t
     {
-      auto Xtmp = pool.acquire_matrix(ndim, ndim);
-      auto Ytmp = pool.acquire_matrix(ndim, ndim);
-      auto tmp = pool.acquire_matrix(ndim, ndim);
-
       const Matrix& vl = left.V();
       const Matrix& ur = right.U();
       const Matrix& vr = right.V();
 
+      auto Xtmp = pool.acquire_matrix(ndim, ndim);
       Xtmp->noalias() = vr.transpose() * vl;
+
+      auto Ytmp = pool.acquire_matrix(ndim, ndim);
       Ytmp->noalias() = ur.transpose() * left.U();
 
       scale_Xtmp_Ytmp_dl_dr(*Xtmp, *Ytmp, *drmax, *dlmax, *drmin, *dlmin);
 
+      auto tmp = pool.acquire_matrix(ndim, ndim);
       tmp->noalias() = *Xtmp + *Ytmp;
 
       auto B_for_solve = pool.acquire_matrix(ndim, ndim);
@@ -315,7 +312,7 @@ class NumericalStable {
 
       auto qr_solver = pool.acquire_qr_solver();
       Utils::LinearAlgebra::solve_X_times_A_eq_B(*Xtmp, *tmp, *B_for_solve, *qr_solver);
-      mult_v_d_u(*Xtmp, *drmin, ur.transpose(), g0t, *tmp);
+      mult_v_d_u(*Xtmp, *drmin, ur.transpose(), g0t, pool);
     }
   }
 };
