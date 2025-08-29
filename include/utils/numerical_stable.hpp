@@ -68,34 +68,47 @@ class NumericalStable {
   }
 
   /*
-   *  Subroutine to perform dense matrix * (diagonal matrix)^-1 * dense matrix
+   *  Subroutine to perform dense matrix * (diagonal matrix)^-1 * dense matrix.
    *  Input: vmat, dvec, umat
    *  Output: zmat
+   *  Workspace: temp_mat
    */
   static void mult_v_invd_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat,
-                            Matrix& zmat) {
+                            Matrix& zmat, Matrix& temp_mat) {
     DQMC_ASSERT(vmat.cols() == umat.cols());
     DQMC_ASSERT(vmat.cols() == zmat.cols());
     DQMC_ASSERT(vmat.rows() == umat.rows());
     DQMC_ASSERT(vmat.rows() == zmat.rows());
     DQMC_ASSERT(vmat.rows() == vmat.cols());
     DQMC_ASSERT(vmat.cols() == dvec.size());
-    zmat.noalias() = vmat * dvec.asDiagonal().inverse() * umat;
+    DQMC_ASSERT(temp_mat.rows() == vmat.rows() && temp_mat.cols() == vmat.cols());
+
+    // temp_mat = vmat * D^-1
+    temp_mat.noalias() = vmat * dvec.asDiagonal().inverse();
+    // zmat = temp_mat * umat
+    zmat.noalias() = temp_mat * umat;
   }
 
   /*
-   *  Subroutine to perform dense matrix * diagonal matrix * dense matrix
+   *  Subroutine to perform dense matrix * diagonal matrix * dense matrix.
    *  Input: vmat, dvec, umat
    *  Output: zmat
+   *  Workspace: temp_mat
    */
-  static void mult_v_d_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat, Matrix& zmat) {
+  static void mult_v_d_u(const Matrix& vmat, const Vector& dvec, const Matrix& umat, Matrix& zmat,
+                         Matrix& temp_mat) {
     DQMC_ASSERT(vmat.cols() == umat.cols());
     DQMC_ASSERT(vmat.cols() == zmat.cols());
     DQMC_ASSERT(vmat.rows() == umat.rows());
     DQMC_ASSERT(vmat.rows() == zmat.rows());
     DQMC_ASSERT(vmat.rows() == vmat.cols());
     DQMC_ASSERT(vmat.cols() == dvec.size());
-    zmat.noalias() = vmat * dvec.asDiagonal() * umat;
+    DQMC_ASSERT(temp_mat.rows() == vmat.rows() && temp_mat.cols() == vmat.cols());
+
+    // temp_mat = vmat * D
+    temp_mat.noalias() = vmat * dvec.asDiagonal();
+    // zmat = temp_mat * umat
+    zmat.noalias() = temp_mat * umat;
   }
 
   /*
@@ -264,7 +277,7 @@ class NumericalStable {
     compute_greens_function_common_part(left, right, ws);
     auto& Atmp = ws.Atmp;
 
-    mult_v_invd_u(Atmp, ws.dlmax, left.U().transpose(), gtt);
+    mult_v_invd_u(Atmp, ws.dlmax, left.U().transpose(), gtt, ws.tmp);
   }
 
   /*
@@ -294,7 +307,7 @@ class NumericalStable {
 
     compute_greens_function_common_part(left, right, ws);
     auto& Atmp = ws.Atmp;
-    mult_v_d_u(Atmp, ws.dlmin, left.V().transpose(), gt0);
+    mult_v_d_u(Atmp, ws.dlmin, left.V().transpose(), gt0, ws.tmp);
 
     auto& Xtmp = ws.Xtmp;
     auto& Ytmp = ws.Ytmp;
@@ -316,7 +329,7 @@ class NumericalStable {
     B_for_solve.noalias() = (-vl) * ws.dlmax.asDiagonal().inverse();
 
     Utils::LinearAlgebra::solve_X_times_A_eq_B(Xtmp, tmp, B_for_solve, ws.qr_solver);
-    mult_v_d_u(Xtmp, ws.drmin, ur.transpose(), g0t);
+    mult_v_d_u(Xtmp, ws.drmin, ur.transpose(), g0t, ws.tmp);
   }
 };
 }  // namespace Utils
