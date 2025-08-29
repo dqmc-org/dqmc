@@ -3,6 +3,7 @@ add_library(
   dqmc.cpp
   lattice/cubic.cpp
   lattice/square.cpp
+  lattice/chain.cpp
   lattice/honeycomb.cpp
   lattice/lattice_base.cpp
   svd_stack.cpp

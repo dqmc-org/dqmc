@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
 
   po::options_description lattice_opts("Lattice options");
   lattice_opts.add_options()
-    ("lattice.type", po::value<std::string>()->default_value("Square"),                         "Lattice type (Square, Cubic, Honeycomb)")
+    ("lattice.type", po::value<std::string>()->default_value("Square"),                         "Lattice type (Square, Cubic, Chain, Honeycomb)")
     ("lattice.size", po::value<std::vector<int>>()->multitoken()->default_value({4, 4}, "4 4"), "Lattice dimensions");
 
   po::options_description checkerboard_opts("Checkerboard options");

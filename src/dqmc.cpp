@@ -7,6 +7,7 @@
 #include <stdexcept>
 
 #include "checkerboard/square.h"
+#include "lattice/chain.h"
 #include "lattice/cubic.h"
 #include "lattice/square.h"
 #include "measure/measure_handler.h"
@@ -27,6 +28,9 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
   } else if (config.lattice_type == "Cubic") {
     DQMC_ASSERT(config.lattice_size.size() == 3);
     m_lattice = std::make_unique<Lattice::Cubic>(config.lattice_size);
+  } else if (config.lattice_type == "Chain") {
+    DQMC_ASSERT(config.lattice_size.size() == 1);
+    m_lattice = std::make_unique<Lattice::Chain>(config.lattice_size);
   } else {
     throw std::runtime_error(
         dqmc_format_error("unsupported lattice type: {}", config.lattice_type));
