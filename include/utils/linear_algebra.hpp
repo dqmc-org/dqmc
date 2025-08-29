@@ -25,31 +25,26 @@ class LinearAlgebra {
    *       A  ->  U * S * V^T
    *  Remind that V is returned in this subroutine, not V transpose.
    *
-   *  @param row -> number of rows.
-   *  @param col -> number of cols.
    *  @param mat -> arbitrary `row` * `col` real matrix to be solved.
    *  @param u -> u matrix of type Eigen::MatrixXd, `row` * `row`.
    *  @param s -> eigenvalues s of type Eigen::VectorXd, descending sorted.
    *  @param v -> v matrix of type Eigen::MatrixXd, `col` * `col`.
+   *  @param svd_solver -> A pre-allocated solver object.
    */
   static void dgesvd(const Eigen::MatrixXd& mat, Eigen::MatrixXd& u, Eigen::VectorXd& s,
-                     Eigen::MatrixXd& v) {
-    // BUG: Eigen Jacobi is not compatible with LAPACK dgesvd, make sure to
-    // enable EIGEN_USE_BLAS and EIGEN_USE_LAPACKE. BDCSVD lowers to JacobiSVD
-    // for sizes below or equal to 16. For more details:
+                     Eigen::MatrixXd& v, Eigen::JacobiSVD<Eigen::MatrixXd>& svd_solver) {
+    // BUG: Eigen is not compatible with LAPACK dgesvd, make sure to compile
+    // with EIGEN_USE_BLAS and EIGEN_USE_LAPACKE. For more details:
     // https://eigen.tuxfamily.org/dox-devel/TopicUsingBlasLapack.html
+    svd_solver.compute(mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
 
-    Eigen::JacobiSVD<Eigen::MatrixXd> svd(mat, Eigen::ComputeFullU | Eigen::ComputeFullV);
-
-    if (svd.info() != Eigen::Success) {
-      throw std::runtime_error(
-          "Utils::LinearAlgebra::dgesvd(): "
-          "SVD algorithm failed.");
+    if (svd_solver.info() != Eigen::Success) {
+      throw std::runtime_error(dqmc_format_error("SVD algorithm failed."));
     }
 
-    u = svd.matrixU();
-    s = svd.singularValues();
-    v = svd.matrixV();
+    u = svd_solver.matrixU();
+    s = svd_solver.singularValues();
+    v = svd_solver.matrixV();
   }
 
   /**
@@ -71,9 +66,7 @@ class LinearAlgebra {
     Eigen::SelfAdjointEigenSolver<Eigen::MatrixXd> solver(mat);
 
     if (solver.info() != Eigen::Success) {
-      throw std::runtime_error(
-          "Utils::LinearAlgebra::dsyev(): "
-          "failed to compute eigenvalues.");
+      throw std::runtime_error(dqmc_format_error("Failed to compute eigenvalues."));
     }
 
     s = solver.eigenvalues();

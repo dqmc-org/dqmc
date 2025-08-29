@@ -36,7 +36,7 @@ void SVD_stack::push(const Eigen::MatrixXd& matrix) {
 
   if (this->m_current_size == 0) {
     // First matrix: compute its SVD directly into the first slot.
-    Utils::LinearAlgebra::dgesvd(matrix, svd.U(), svd.S(), svd.V());
+    Utils::LinearAlgebra::dgesvd(matrix, svd.U(), svd.S(), svd.V(), this->m_svd_solver);
     this->m_prefix_V[0].noalias() = svd.V();
   } else {
     // Subsequent matrices: multiply with the previous decomposition.
@@ -47,7 +47,7 @@ void SVD_stack::push(const Eigen::MatrixXd& matrix) {
     m_tmp_buffer.noalias() = m_prod_buffer * this->S().asDiagonal();
 
     // Now m_tmp_buffer holds the final result, ready for SVD.
-    Utils::LinearAlgebra::dgesvd(m_tmp_buffer, svd.U(), svd.S(), svd.V());
+    Utils::LinearAlgebra::dgesvd(m_tmp_buffer, svd.U(), svd.S(), svd.V(), this->m_svd_solver);
 
     // Update the prefix V product
     this->m_prefix_V[this->m_current_size].noalias() =

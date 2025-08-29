@@ -13,6 +13,7 @@
  */
 
 #include <Eigen/Core>
+#include <Eigen/SVD>
 #include <vector>
 
 namespace Utils {
@@ -105,5 +106,8 @@ class SVD_stack {
   std::vector<Eigen::MatrixXd> m_prefix_V{};  // Pre-allocated pool for V matrices
   Eigen::MatrixXd m_tmp_buffer{};             // Buffer for SVD input
   Eigen::MatrixXd m_prod_buffer{};            // Buffer for intermediate products
+
+  // This object's internal memory will be reused across all 'push' calls.
+  Eigen::JacobiSVD<Eigen::MatrixXd> m_svd_solver{};
 };
 }  // namespace Utils
