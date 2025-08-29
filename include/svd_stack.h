@@ -103,6 +103,7 @@ class SVD_stack {
   int m_current_size{};                       // Current number of elements on the stack
   std::vector<SVD> m_stack{};                 // Pre-allocated pool of SVD decompositions
   std::vector<Eigen::MatrixXd> m_prefix_V{};  // Pre-allocated pool for V matrices
-  Eigen::MatrixXd m_tmp_buffer{};             // Temporary buffer
+  Eigen::MatrixXd m_tmp_buffer{};             // Buffer for SVD input
+  Eigen::MatrixXd m_prod_buffer{};            // Buffer for intermediate products
 };
 }  // namespace Utils

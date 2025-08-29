@@ -23,13 +23,14 @@ SVD_stack::SVD_stack(int dim, int stack_length) : m_dim(dim), m_current_size(0) 
 
   m_prefix_V.resize(stack_length, Eigen::MatrixXd(dim, dim));
   m_tmp_buffer.resize(dim, dim);
+  m_prod_buffer.resize(dim, dim);
 }
 
 void SVD_stack::clear() { this->m_current_size = 0; }
 
 void SVD_stack::push(const Eigen::MatrixXd& matrix) {
   DQMC_ASSERT(matrix.rows() == this->m_dim && matrix.cols() == this->m_dim);
-  DQMC_ASSERT(this->m_current_size < this->capacity() && "SVD_stack overflow");
+  DQMC_ASSERT(this->m_current_size < this->capacity());
 
   SVD& svd = this->m_stack[this->m_current_size];
 
@@ -39,7 +40,13 @@ void SVD_stack::push(const Eigen::MatrixXd& matrix) {
     this->m_prefix_V[0].noalias() = svd.V();
   } else {
     // Subsequent matrices: multiply with the previous decomposition.
-    m_tmp_buffer.noalias() = (matrix * this->U()) * this->S().asDiagonal();
+    // Step 1: Compute matrix * U into the dedicated product buffer.
+    m_prod_buffer.noalias() = matrix * this->U();
+
+    // Step 2: Scale the columns of the result by S and store in the SVD buffer.
+    m_tmp_buffer.noalias() = m_prod_buffer * this->S().asDiagonal();
+
+    // Now m_tmp_buffer holds the final result, ready for SVD.
     Utils::LinearAlgebra::dgesvd(m_tmp_buffer, svd.U(), svd.S(), svd.V());
 
     // Update the prefix V product
