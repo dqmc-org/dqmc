@@ -34,6 +34,12 @@ class SVD {
 
   explicit SVD(int dim) : m_u(dim, dim), m_s(dim), m_v(dim, dim) {}
 
+  void resize(int dim) {
+    this->m_u.resize(dim, dim);
+    this->m_s.resize(dim);
+    this->m_v.resize(dim, dim);
+  }
+
   Eigen::MatrixXd& U() { return this->m_u; }
   const Eigen::MatrixXd& U() const { return this->m_u; }
 
@@ -72,14 +78,13 @@ class SVD_stack {
 
   explicit SVD_stack(int dim, int stack_length);
 
-  bool empty() const { return this->m_stack.empty(); }
+  bool empty() const { return this->m_current_size == 0; }
   int dim() const { return this->m_dim; }
-  int size() const { return this->m_stack.size(); }
+  int size() const { return this->m_current_size; }
+  int capacity() const { return m_stack.size(); }
 
-  // Reset the stack to empty state
   void clear();
 
-  // Core operations for building the matrix product
   // Push: multiply a new matrix from the left: Product = matrix * Product
   // This updates the SVD decomposition incrementally to maintain stability
   void push(const Eigen::MatrixXd& matrix);
@@ -94,9 +99,10 @@ class SVD_stack {
   const Eigen::MatrixXd& V() const;  // Accumulated V matrix across all operations
 
  private:
-  int m_dim{};                                // Dimension of matrices (assumed square)
-  std::vector<SVD> m_stack{};                 // Stack of SVD decompositions
-  std::vector<Eigen::MatrixXd> m_prefix_v{};  // Prefix multiplication of V matrices
+  int m_dim{};
+  int m_current_size{};                       // Current number of elements on the stack
+  std::vector<SVD> m_stack{};                 // Pre-allocated pool of SVD decompositions
+  std::vector<Eigen::MatrixXd> m_prefix_V{};  // Pre-allocated pool for V matrices
   Eigen::MatrixXd m_tmp_buffer{};             // Temporary buffer
 };
 }  // namespace Utils

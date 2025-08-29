@@ -15,72 +15,58 @@ namespace Utils {
  * This prevents overflow/underflow that would occur with direct multiplication.
  */
 
-// Constructor: pre-allocate SVD storage for the specified stack depth
-// This avoids memory allocations during the simulation
-SVD_stack::SVD_stack(int dim, int stack_length) : m_dim(dim) {
-  this->m_stack.reserve(stack_length);
-  this->m_prefix_v.reserve(stack_length);
-  this->m_tmp_buffer = Eigen::MatrixXd(dim, dim);
+SVD_stack::SVD_stack(int dim, int stack_length) : m_dim(dim), m_current_size(0) {
+  m_stack.resize(stack_length);
+  for (auto& svd : m_stack) {
+    svd.resize(dim);
+  }
+
+  m_prefix_V.resize(stack_length, Eigen::MatrixXd(dim, dim));
+  m_tmp_buffer.resize(dim, dim);
 }
 
-// Basic stack state queries
-// Reset stack to empty state without deallocating memory
-void SVD_stack::clear() {
-  this->m_stack.clear();
-  this->m_prefix_v.clear();
-}
+void SVD_stack::clear() { this->m_current_size = 0; }
 
-// Add a matrix to the product from the left: Product = matrix * Product
-// This is the core of the numerical stabilization algorithm
 void SVD_stack::push(const Eigen::MatrixXd& matrix) {
   DQMC_ASSERT(matrix.rows() == this->m_dim && matrix.cols() == this->m_dim);
+  DQMC_ASSERT(this->m_current_size < this->capacity() && "SVD_stack overflow");
 
-  SVD svd(this->m_dim);
-  if (this->m_stack.empty()) {
-    // First matrix: just compute its SVD directly
+  SVD& svd = this->m_stack[this->m_current_size];
+
+  if (this->m_current_size == 0) {
+    // First matrix: compute its SVD directly into the first slot.
     Utils::LinearAlgebra::dgesvd(matrix, svd.U(), svd.S(), svd.V());
-    this->m_prefix_v.push_back(svd.V());
+    this->m_prefix_V[0].noalias() = svd.V();
   } else {
-    // Subsequent matrices: multiply with existing decomposition
-    // We compute matrix * U * S, then take SVD of the result
-    // The order of operations is crucial to avoid numerical issues:
-    // 1. First multiply matrix * U (preserves orthogonality)
-    // 2. Then scale by singular values S
-    // 3. Finally compute SVD of the combined result
+    // Subsequent matrices: multiply with the previous decomposition.
     m_tmp_buffer.noalias() = (matrix * this->U()) * this->S().asDiagonal();
     Utils::LinearAlgebra::dgesvd(m_tmp_buffer, svd.U(), svd.S(), svd.V());
-    this->m_prefix_v.push_back(this->m_prefix_v.back() * svd.V());
+
+    // Update the prefix V product
+    this->m_prefix_V[this->m_current_size].noalias() =
+        this->m_prefix_V[this->m_current_size - 1] * svd.V();
   }
-  this->m_stack.push_back(std::move(svd));
+  this->m_current_size++;
 }
 
-// Remove the most recent matrix from the stack
 void SVD_stack::pop() {
-  DQMC_ASSERT(!this->m_stack.empty());
-  this->m_stack.pop_back();
-  this->m_prefix_v.pop_back();
+  DQMC_ASSERT(this->m_current_size > 0 && "SVD_stack underflow");
+  this->m_current_size--;
 }
 
-// Get the current singular values of the accumulated product
 const Eigen::VectorXd& SVD_stack::S() const {
-  DQMC_ASSERT(!this->m_stack.empty());
-  return this->m_stack.back().S();
+  DQMC_ASSERT(this->m_current_size > 0);
+  return this->m_stack[this->m_current_size - 1].S();
 }
 
-// Get the current U matrix (left singular vectors) of the accumulated product
 const Eigen::MatrixXd& SVD_stack::U() const {
-  DQMC_ASSERT(!this->m_stack.empty());
-  return this->m_stack.back().U();
+  DQMC_ASSERT(this->m_current_size > 0);
+  return this->m_stack[this->m_current_size - 1].U();
 }
 
-// Get the accumulated V matrix across all operations in the stack
-// This requires multiplying all V matrices from bottom to top of stack
-// since each push() operation creates a new V that must be composed with
-// previous ones. We avoid performing these multiplications by storing the
-// partial left multiplications on a separated stack.
 const Eigen::MatrixXd& SVD_stack::V() const {
-  DQMC_ASSERT(!this->m_stack.empty());
-  return this->m_prefix_v.back();
+  DQMC_ASSERT(this->m_current_size > 0);
+  return this->m_prefix_V[this->m_current_size - 1];
 }
 
 }  // namespace Utils
