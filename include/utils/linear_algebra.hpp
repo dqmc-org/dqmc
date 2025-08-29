@@ -82,7 +82,7 @@ class LinearAlgebra {
     DQMC_ASSERT(X_out.cols() == A_mat.rows());
 
     solver.compute(A_mat.transpose());
-    X_out.noalias() = solver.solve(B_mat.transpose()).transpose();
+    X_out.transpose().noalias() = solver.solve(B_mat.transpose());
   }
 };
 }  // namespace Utils
