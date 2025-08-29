@@ -182,40 +182,52 @@ class NumericalStable {
 
   /*
    *  return (1 + USV^T)^-1, with method of QR decomposition
-   *  to obtain equal-time Green's functions G(t,t)
+   *  to obtain equal-time Green's functions G(t,t).
    */
-  static void compute_greens_00_bb(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gtt) {
-    // split S = Sbi^-1 * Ss
-    Vector Sbi(S.size());
-    Vector Ss(S.size());
+  static void compute_greens_00_bb(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gtt,
+                                   GreensWorkspace& ws) {
+    // Use workspace vectors for Sbi and Ss
+    auto& Sbi = ws.dlmax;
+    auto& Ss = ws.dlmin;
     computeSbiSs(S, Sbi, Ss);
 
-    // compute (1 + USV^T)^-1 in a stable manner
-    // note that H is good conditioned, which only contains information of small
-    // scale.
-    Matrix H = Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
+    // Use workspace matrices for H and the RHS of the solve
+    auto& H = ws.tmp;
+    auto& RHS = ws.Atmp;
 
-    // compute gtt using QR decomposition
-    gtt = H.colPivHouseholderQr().solve(Sbi.asDiagonal() * U.transpose());
+    // Compute H = D_Sbi * U^T + D_Ss * V^T
+    RHS.noalias() = Sbi.asDiagonal() * U.transpose();  // This is also the RHS
+    H.noalias() = RHS;
+    H.noalias() += Ss.asDiagonal() * V.transpose();
+
+    // Compute gtt using the workspace QR solver
+    ws.qr_solver.compute(H);
+    gtt.noalias() = ws.qr_solver.solve(RHS);
   }
 
   /*
    *  return (1 + USV^T)^-1 * USV^T, with method of QR decomposition
-   *  to obtain time-displaced Green's functions G(beta, 0)
+   *  to obtain time-displaced Green's functions G(beta, 0).
    */
-  static void compute_greens_b0(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gt0) {
-    // split S = Sbi^-1 * Ss
-    Vector Sbi(S.size());
-    Vector Ss(S.size());
+  static void compute_greens_b0(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gt0,
+                                GreensWorkspace& ws) {
+    // Use workspace vectors for Sbi and Ss
+    auto& Sbi = ws.dlmax;
+    auto& Ss = ws.dlmin;
     computeSbiSs(S, Sbi, Ss);
 
-    // compute (1 + USV^T)^-1 * USV^T in a stable manner
-    // note that H is good conditioned, which only contains information of small
-    // scale.
-    Matrix H = Sbi.asDiagonal() * U.transpose() + Ss.asDiagonal() * V.transpose();
+    // Use workspace matrices for H and the RHS of the solve
+    auto& H = ws.tmp;
+    auto& RHS = ws.Atmp;
 
-    // compute gtt using QR decomposition
-    gt0 = H.colPivHouseholderQr().solve(Ss.asDiagonal() * V.transpose());
+    // Compute H = D_Sbi * U^T + D_Ss * V^T
+    RHS.noalias() = Ss.asDiagonal() * V.transpose();  // This is the RHS for this case
+    H.noalias() = Sbi.asDiagonal() * U.transpose();
+    H.noalias() += RHS;
+
+    // Compute gt0 using the workspace QR solver
+    ws.qr_solver.compute(H);
+    gt0.noalias() = ws.qr_solver.solve(RHS);
   }
 
   /*
@@ -266,11 +278,11 @@ class NumericalStable {
     ws.resize(ndim);
 
     if (left.empty()) {
-      compute_greens_00_bb(right.V(), right.S(), right.U(), gtt);
+      compute_greens_00_bb(right.V(), right.S(), right.U(), gtt, ws);
       return;
     }
     if (right.empty()) {
-      compute_greens_00_bb(left.U(), left.S(), left.V(), gtt);
+      compute_greens_00_bb(left.U(), left.S(), left.V(), gtt, ws);
       return;
     }
 
@@ -291,7 +303,7 @@ class NumericalStable {
     ws.resize(ndim);
 
     if (left.empty()) {
-      compute_greens_00_bb(right.V(), right.S(), right.U(), gt0);
+      compute_greens_00_bb(right.V(), right.S(), right.U(), gt0, ws);
 
       g0t.noalias() = gt0;
       g0t.diagonal().array() -= 1.0;
@@ -299,8 +311,8 @@ class NumericalStable {
     }
 
     if (right.empty()) {
-      compute_greens_b0(left.U(), left.S(), left.V(), gt0);
-      compute_greens_00_bb(left.U(), left.S(), left.V(), g0t);
+      compute_greens_b0(left.U(), left.S(), left.V(), gt0, ws);
+      compute_greens_00_bb(left.U(), left.S(), left.V(), g0t, ws);
       g0t *= -1.0;
       return;
     }
