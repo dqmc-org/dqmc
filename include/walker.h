@@ -77,8 +77,6 @@ class Walker {
   SvdStack m_svd_stack_right_up{};
   SvdStack m_svd_stack_right_down{};
 
-  // TODO: better descriptive name
-  Utils::GreensWorkspace m_greens_workspace{};
   Utils::TemporaryPool m_tmp_pool{};
 
   // pace of numerical stabilizations

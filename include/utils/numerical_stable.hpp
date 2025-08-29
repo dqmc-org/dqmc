@@ -12,26 +12,9 @@
 
 #include "linear_algebra.hpp"
 #include "svd_stack.h"
+#include "utils/temporary_pool.h"
 
 namespace Utils {
-
-struct GreensWorkspace {
-  int ndim = 0;
-
-  Eigen::VectorXd dlmax, dlmin, drmax, drmin;
-  Eigen::MatrixXd Atmp, Btmp, Xtmp, Ytmp, tmp, B_for_solve;
-
-  Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr_solver;
-
-  GreensWorkspace() = default;
-  ~GreensWorkspace() = default;
-  GreensWorkspace(const GreensWorkspace&) = delete;
-  GreensWorkspace& operator=(const GreensWorkspace&) = delete;
-  GreensWorkspace(GreensWorkspace&&) = default;
-  GreensWorkspace& operator=(GreensWorkspace&&) = default;
-
-  void resize(int n);
-};
 
 // ----------------------------------  Utils::NumericalStable class
 // ------------------------------------ including static subroutines for
@@ -129,13 +112,6 @@ class NumericalStable {
   /*
    *  Applies element-wise scaling to matrices Atmp and Btmp based on
    *  dlmax, drmax, dlmin, and drmin vectors.
-   *
-   *  Specifically:
-   *  Atmp(i, j) = Atmp(i, j) / (dlmax(i) * drmax(j))
-   *  Btmp(i, j) = Btmp(i, j) * (dlmin(i) * drmin(j))
-   *
-   *  Input/Output: Atmp, Btmp
-   *  Input: dlmax, drmax, dlmin, drmin
    */
   static void scale_Atmp_Btmp_dl_dr(Matrix& Atmp, Matrix& Btmp, const Vector& dlmax,
                                     const Vector& drmax, const Vector& dlmin, const Vector& drmin) {
@@ -155,14 +131,7 @@ class NumericalStable {
 
   /*
    *  Applies element-wise scaling to matrices Xtmp and Ytmp with swapped vector
-   * roles compared to scale_Atmp_Btmp_dl_dr.
-   *
-   *  Specifically:
-   *  Xtmp(i, j) = Xtmp(i, j) / (drmax(i) * dlmax(j))
-   *  Ytmp(i, j) = Ytmp(i, j) * (drmin(i) * dlmin(j))
-   *
-   *  Input/Output: Xtmp, Ytmp
-   *  Input: drmax, dlmax, drmin, dlmin
+   * roles.
    */
   static void scale_Xtmp_Ytmp_dl_dr(Matrix& Xtmp, Matrix& Ytmp, const Vector& drmax,
                                     const Vector& dlmax, const Vector& drmin, const Vector& dlmin) {
@@ -185,24 +154,22 @@ class NumericalStable {
    *  to obtain equal-time Green's functions G(t,t).
    */
   static void compute_greens_00_bb(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gtt,
-                                   GreensWorkspace& ws) {
-    // Use workspace vectors for Sbi and Ss
-    auto& Sbi = ws.dlmax;
-    auto& Ss = ws.dlmin;
-    computeSbiSs(S, Sbi, Ss);
+                                   TemporaryPool& pool) {
+    const int ndim = S.size();
+    auto Sbi = pool.acquire_vector(ndim);
+    auto Ss = pool.acquire_vector(ndim);
+    computeSbiSs(S, *Sbi, *Ss);
 
-    // Use workspace matrices for H and the RHS of the solve
-    auto& H = ws.tmp;
-    auto& RHS = ws.Atmp;
+    auto H = pool.acquire_matrix(ndim, ndim);
+    auto RHS = pool.acquire_matrix(ndim, ndim);
 
-    // Compute H = D_Sbi * U^T + D_Ss * V^T
-    RHS.noalias() = Sbi.asDiagonal() * U.transpose();  // This is also the RHS
-    H.noalias() = RHS;
-    H.noalias() += Ss.asDiagonal() * V.transpose();
+    RHS->noalias() = Sbi->asDiagonal() * U.transpose();
+    H->noalias() = *RHS;
+    H->noalias() += Ss->asDiagonal() * V.transpose();
 
-    // Compute gtt using the workspace QR solver
-    ws.qr_solver.compute(H);
-    gtt.noalias() = ws.qr_solver.solve(RHS);
+    auto qr_solver = pool.acquire_qr_solver();
+    qr_solver->compute(*H);
+    gtt.noalias() = qr_solver->solve(*RHS);
   }
 
   /*
@@ -210,39 +177,32 @@ class NumericalStable {
    *  to obtain time-displaced Green's functions G(beta, 0).
    */
   static void compute_greens_b0(const Matrix& U, const Vector& S, const Matrix& V, Matrix& gt0,
-                                GreensWorkspace& ws) {
-    // Use workspace vectors for Sbi and Ss
-    auto& Sbi = ws.dlmax;
-    auto& Ss = ws.dlmin;
-    computeSbiSs(S, Sbi, Ss);
+                                TemporaryPool& pool) {
+    const int ndim = S.size();
+    auto Sbi = pool.acquire_vector(ndim);
+    auto Ss = pool.acquire_vector(ndim);
+    computeSbiSs(S, *Sbi, *Ss);
 
-    // Use workspace matrices for H and the RHS of the solve
-    auto& H = ws.tmp;
-    auto& RHS = ws.Atmp;
+    auto H = pool.acquire_matrix(ndim, ndim);
+    auto RHS = pool.acquire_matrix(ndim, ndim);
 
-    // Compute H = D_Sbi * U^T + D_Ss * V^T
-    RHS.noalias() = Ss.asDiagonal() * V.transpose();  // This is the RHS for this case
-    H.noalias() = Sbi.asDiagonal() * U.transpose();
-    H.noalias() += RHS;
+    RHS->noalias() = Ss->asDiagonal() * V.transpose();
+    H->noalias() = Sbi->asDiagonal() * U.transpose();
+    H->noalias() += *RHS;
 
-    // Compute gt0 using the workspace QR solver
-    ws.qr_solver.compute(H);
-    gt0.noalias() = ws.qr_solver.solve(RHS);
+    auto qr_solver = pool.acquire_qr_solver();
+    qr_solver->compute(*H);
+    gt0.noalias() = qr_solver->solve(*RHS);
   }
 
   /*
    * Helper for common calculations in both compute_dynamic_greens and compute_equaltime_greens
    */
   static void compute_greens_function_common_part(const SVD_stack& left, const SVD_stack& right,
-                                                  GreensWorkspace& ws) {
-    auto& dlmax = ws.dlmax;
-    auto& dlmin = ws.dlmin;
-    auto& drmax = ws.drmax;
-    auto& drmin = ws.drmin;
-    auto& Atmp = ws.Atmp;
-    auto& Btmp = ws.Btmp;
-    auto& tmp = ws.tmp;
-
+                                                  Matrix& Atmp, Vector& dlmax, Vector& dlmin,
+                                                  Vector& drmax, Vector& drmin,
+                                                  TemporaryPool& pool) {
+    const int ndim = left.dim();
     const Matrix& ul = left.U();
     const Vector& dl = left.S();
     const Matrix& vl = left.V();
@@ -253,95 +213,110 @@ class NumericalStable {
     div_dvec_max_min(dl, dlmax, dlmin);
     div_dvec_max_min(dr, drmax, drmin);
 
+    auto Btmp = pool.acquire_matrix(ndim, ndim);
     Atmp.noalias() = ul.transpose() * ur;
-    Btmp.noalias() = vl.transpose() * vr;
+    Btmp->noalias() = vl.transpose() * vr;
 
-    scale_Atmp_Btmp_dl_dr(Atmp, Btmp, dlmax, drmax, dlmin, drmin);
+    scale_Atmp_Btmp_dl_dr(Atmp, *Btmp, dlmax, drmax, dlmin, drmin);
 
-    tmp.noalias() = Atmp + Btmp;
+    auto tmp = pool.acquire_matrix(ndim, ndim);
+    tmp->noalias() = Atmp + *Btmp;
 
-    auto& B_for_solve = ws.B_for_solve;
-    B_for_solve.noalias() = ur * drmax.asDiagonal().inverse();
+    auto B_for_solve = pool.acquire_matrix(ndim, ndim);
+    B_for_solve->noalias() = ur * drmax.asDiagonal().inverse();
 
-    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, tmp, B_for_solve, ws.qr_solver);
+    auto qr_solver = pool.acquire_qr_solver();
+    Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, *tmp, *B_for_solve, *qr_solver);
   }
 
   /*
-   *  return (1 + left * right^T)^-1 in a stable manner, with method of MGS
-   * factorization note: (1 + left * right^T)^-1 = (1 + (USV^T)_left *
-   * (VSU^T)_right)^-1
+   *  return (1 + left * right^T)^-1 in a stable manner.
    */
   static void compute_equaltime_greens(const SVD_stack& left, const SVD_stack& right, Matrix& gtt,
-                                       GreensWorkspace& ws) {
+                                       TemporaryPool& pool) {
     DQMC_ASSERT(left.dim() == right.dim());
     const int ndim = left.dim();
-    ws.resize(ndim);
 
     if (left.empty()) {
-      compute_greens_00_bb(right.V(), right.S(), right.U(), gtt, ws);
+      compute_greens_00_bb(right.V(), right.S(), right.U(), gtt, pool);
       return;
     }
     if (right.empty()) {
-      compute_greens_00_bb(left.U(), left.S(), left.V(), gtt, ws);
+      compute_greens_00_bb(left.U(), left.S(), left.V(), gtt, pool);
       return;
     }
 
-    compute_greens_function_common_part(left, right, ws);
-    auto& Atmp = ws.Atmp;
+    auto Atmp = pool.acquire_matrix(ndim, ndim);
+    auto dlmax = pool.acquire_vector(ndim);
+    auto dlmin = pool.acquire_vector(ndim);
+    auto drmax = pool.acquire_vector(ndim);
+    auto drmin = pool.acquire_vector(ndim);
 
-    mult_v_invd_u(Atmp, ws.dlmax, left.U().transpose(), gtt, ws.tmp);
+    compute_greens_function_common_part(left, right, *Atmp, *dlmax, *dlmin, *drmax, *drmin, pool);
+
+    auto tmp = pool.acquire_matrix(ndim, ndim);
+    mult_v_invd_u(*Atmp, *dlmax, left.U().transpose(), gtt, *tmp);
   }
 
   /*
-   *  return time-displaced Green's function in a stable manner,
-   *  with the method of MGS factorization
+   *  return time-displaced Green's function in a stable manner.
    */
   static void compute_dynamic_greens(const SVD_stack& left, const SVD_stack& right, Matrix& gt0,
-                                     Matrix& g0t, GreensWorkspace& ws) {
+                                     Matrix& g0t, TemporaryPool& pool) {
     DQMC_ASSERT(left.dim() == right.dim());
     const int ndim = left.dim();
-    ws.resize(ndim);
 
     if (left.empty()) {
-      compute_greens_00_bb(right.V(), right.S(), right.U(), gt0, ws);
-
+      compute_greens_00_bb(right.V(), right.S(), right.U(), gt0, pool);
       g0t.noalias() = gt0;
       g0t.diagonal().array() -= 1.0;
       return;
     }
 
     if (right.empty()) {
-      compute_greens_b0(left.U(), left.S(), left.V(), gt0, ws);
-      compute_greens_00_bb(left.U(), left.S(), left.V(), g0t, ws);
+      compute_greens_b0(left.U(), left.S(), left.V(), gt0, pool);
+      compute_greens_00_bb(left.U(), left.S(), left.V(), g0t, pool);
       g0t *= -1.0;
       return;
     }
 
-    compute_greens_function_common_part(left, right, ws);
-    auto& Atmp = ws.Atmp;
-    mult_v_d_u(Atmp, ws.dlmin, left.V().transpose(), gt0, ws.tmp);
+    auto dlmax = pool.acquire_vector(ndim);
+    auto dlmin = pool.acquire_vector(ndim);
+    auto drmax = pool.acquire_vector(ndim);
+    auto drmin = pool.acquire_vector(ndim);
 
-    auto& Xtmp = ws.Xtmp;
-    auto& Ytmp = ws.Ytmp;
-    auto& tmp = ws.tmp;
+    // Part 1: compute gt0
+    {
+      auto Atmp = pool.acquire_matrix(ndim, ndim);
+      compute_greens_function_common_part(left, right, *Atmp, *dlmax, *dlmin, *drmax, *drmin, pool);
+      auto tmp = pool.acquire_matrix(ndim, ndim);
+      mult_v_d_u(*Atmp, *dlmin, left.V().transpose(), gt0, *tmp);
+    }
 
-    const Matrix& ul = left.U();
-    const Matrix& vl = left.V();
-    const Matrix& ur = right.U();
-    const Matrix& vr = right.V();
+    // Part 2: compute g0t
+    {
+      auto Xtmp = pool.acquire_matrix(ndim, ndim);
+      auto Ytmp = pool.acquire_matrix(ndim, ndim);
+      auto tmp = pool.acquire_matrix(ndim, ndim);
 
-    Xtmp.noalias() = vr.transpose() * vl;
-    Ytmp.noalias() = ur.transpose() * ul;
+      const Matrix& vl = left.V();
+      const Matrix& ur = right.U();
+      const Matrix& vr = right.V();
 
-    scale_Xtmp_Ytmp_dl_dr(Xtmp, Ytmp, ws.drmax, ws.dlmax, ws.drmin, ws.dlmin);
+      Xtmp->noalias() = vr.transpose() * vl;
+      Ytmp->noalias() = ur.transpose() * left.U();
 
-    tmp.noalias() = Xtmp + Ytmp;
+      scale_Xtmp_Ytmp_dl_dr(*Xtmp, *Ytmp, *drmax, *dlmax, *drmin, *dlmin);
 
-    auto& B_for_solve = ws.B_for_solve;
-    B_for_solve.noalias() = (-vl) * ws.dlmax.asDiagonal().inverse();
+      tmp->noalias() = *Xtmp + *Ytmp;
 
-    Utils::LinearAlgebra::solve_X_times_A_eq_B(Xtmp, tmp, B_for_solve, ws.qr_solver);
-    mult_v_d_u(Xtmp, ws.drmin, ur.transpose(), g0t, ws.tmp);
+      auto B_for_solve = pool.acquire_matrix(ndim, ndim);
+      B_for_solve->noalias() = (-vl) * dlmax->asDiagonal().inverse();
+
+      auto qr_solver = pool.acquire_qr_solver();
+      Utils::LinearAlgebra::solve_X_times_A_eq_B(*Xtmp, *tmp, *B_for_solve, *qr_solver);
+      mult_v_d_u(*Xtmp, *drmin, ur.transpose(), g0t, *tmp);
+    }
   }
 };
 }  // namespace Utils

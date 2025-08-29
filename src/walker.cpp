@@ -114,10 +114,10 @@ void Walker::initial_greens_functions() {
   // which corresponds to imaginary-time tau = beta
   // the svd stacks should be initialized correctly ahead of time
   NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up, this->m_svd_stack_right_up,
-                                            this->m_green_tt_up, this->m_greens_workspace);
+                                            this->m_green_tt_up, this->m_tmp_pool);
   NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
                                             this->m_svd_stack_right_down, this->m_green_tt_down,
-                                            this->m_greens_workspace);
+                                            this->m_tmp_pool);
 }
 
 void Walker::initial_config_sign() {
@@ -255,10 +255,10 @@ void Walker::sweep_from_0_to_beta(ModelBase& model, std::default_random_engine& 
       // stack_right = B(t)^T * ... * B(ts-1)^T
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
                                                 this->m_svd_stack_right_up, *tmp_green_tt_up,
-                                                this->m_greens_workspace);
+                                                this->m_tmp_pool);
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
                                                 this->m_svd_stack_right_down, *tmp_green_tt_down,
-                                                this->m_greens_workspace);
+                                                this->m_tmp_pool);
 
       // compute wrapping errors
       NumericalStable::matrix_compare_error(*tmp_green_tt_up, this->m_green_tt_up,
@@ -335,10 +335,10 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
 
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
                                                 this->m_svd_stack_right_up, *tmp_green_tt_up,
-                                                this->m_greens_workspace);
+                                                this->m_tmp_pool);
       NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
                                                 this->m_svd_stack_right_down, *tmp_green_tt_down,
-                                                this->m_greens_workspace);
+                                                this->m_tmp_pool);
 
       // compute the wrapping errors
       NumericalStable::matrix_compare_error(*tmp_green_tt_up, this->m_green_tt_up,
@@ -378,10 +378,10 @@ void Walker::sweep_from_beta_to_0(ModelBase& model, std::default_random_engine& 
   this->m_svd_stack_right_down.push(*tmp_mat_down);
 
   NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up, this->m_svd_stack_right_up,
-                                            this->m_green_tt_up, this->m_greens_workspace);
+                                            this->m_green_tt_up, this->m_tmp_pool);
   NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
                                             this->m_svd_stack_right_down, this->m_green_tt_down,
-                                            this->m_greens_workspace);
+                                            this->m_tmp_pool);
 
   // end with fresh greens functions
   if (this->m_is_equaltime) {
@@ -476,16 +476,16 @@ void Walker::sweep_for_dynamic_greens(ModelBase& model) {
         // configurations
         NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_up,
                                                   this->m_svd_stack_right_up, this->m_green_tt_up,
-                                                  this->m_greens_workspace);
+                                                  this->m_tmp_pool);
         NumericalStable::compute_equaltime_greens(this->m_svd_stack_left_down,
                                                   this->m_svd_stack_right_down,
-                                                  this->m_green_tt_down, this->m_greens_workspace);
+                                                  this->m_green_tt_down, this->m_tmp_pool);
         NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_up,
                                                 this->m_svd_stack_right_up, *tmp_green_t0_up,
-                                                *tmp_green_0t_up, this->m_greens_workspace);
+                                                *tmp_green_0t_up, this->m_tmp_pool);
         NumericalStable::compute_dynamic_greens(this->m_svd_stack_left_down,
                                                 this->m_svd_stack_right_down, *tmp_green_t0_down,
-                                                *tmp_green_0t_down, this->m_greens_workspace);
+                                                *tmp_green_0t_down, this->m_tmp_pool);
 
         // compute wrapping errors
         NumericalStable::matrix_compare_error(*tmp_green_t0_up, this->m_green_t0_up,
