@@ -105,8 +105,8 @@ class ObservableBase {
 
   int counts() const { return this->m_count; }
 
-  int operator++() { return ++this->m_count; }
-  int operator+=(int i) { return this->m_count += i; }
+  void increment() { ++this->m_count; }
+  void increment(int amount) { this->m_count += amount; }
 };
 
 /**

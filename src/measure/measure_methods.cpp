@@ -22,7 +22,7 @@ using VectorType = Eigen::VectorXd;
 void Methods::measure_equaltime_config_sign(Observable::Scalar& equaltime_sign,
                                             const MeasureContext& ctx) {
   equaltime_sign.tmp_value() += ctx.walker.vec_config_sign().sum();
-  equaltime_sign += ctx.walker.time_size();
+  equaltime_sign.increment(ctx.walker.time_size());
 }
 
 // Filling number defined as \sum i ( n_up + n_dn )(i)
@@ -47,7 +47,7 @@ void Methods::measure_filling_number(Observable::Scalar& filling_number,
   }
 
   filling_number.tmp_value() += total_filling_contribution;
-  filling_number += time_size;
+  filling_number.increment(time_size);
 }
 
 // Double occupation defined as \sum i ( n_up * n_dn )(i)
@@ -73,7 +73,7 @@ void Methods::measure_double_occupancy(Observable::Scalar& double_occupancy,
   }
 
   double_occupancy.tmp_value() += total_double_occu / space_size;
-  double_occupancy += time_size;
+  double_occupancy.increment(time_size);
 }
 
 // Kinetic energy defined as -t \sum <ij> ( c^+_j c_i + h.c. )
@@ -102,7 +102,7 @@ void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
   }
 
   kinetic_energy.tmp_value() += prefactor * total_sum;
-  kinetic_energy += time_size;
+  kinetic_energy.increment(time_size);
 }
 
 // In general, spin correlations is defined as C(i,t) = < (n_up - n_dn)(i,t) *
@@ -132,7 +132,7 @@ void Methods::measure_local_spin_corr(Observable::Scalar& local_spin_corr,
   }
 
   local_spin_corr.tmp_value() += prefactor * total_sum;
-  local_spin_corr += time_size;
+  local_spin_corr.increment(time_size);
 }
 
 // Distribution of electrons in momentum space defined as n(k) = ( n_up + n_dn
@@ -162,7 +162,7 @@ void Methods::measure_momentum_distribution(Observable::Scalar& momentum_dist,
     total_sum += config_sign * (1 - norm_factor * tmp_momentum_dist);
   }
   momentum_dist.tmp_value() += total_sum;
-  momentum_dist += time_size;
+  momentum_dist.increment(time_size);
 }
 
 // Structure factor of spin density wave (SDW) defined as
@@ -202,7 +202,7 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
     }
 
     sdw_factor.tmp_value() += config_sign * tmp_sdw * inv_space_size_sq;
-    ++sdw_factor;
+    sdw_factor.increment();
   }
 }
 // Structure factor of charge density wave (CDW) defined as
@@ -248,7 +248,7 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
       }
     }
     cdw_factor.tmp_value() += config_sign * tmp_cdw * inv_space_size_sq;
-    ++cdw_factor;
+    cdw_factor.increment();
   }
 }
 
@@ -290,7 +290,7 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
     }
     // entensive quantity
     s_wave_pairing.tmp_value() += tmp_s_wave_pairing / ctx.lattice.space_size();
-    ++s_wave_pairing;
+    s_wave_pairing.increment();
   }
 }
 
@@ -301,7 +301,7 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
 void Methods::measure_dynamic_config_sign(Observable::Scalar& dynamic_sign,
                                           const MeasureContext& ctx) {
   dynamic_sign.tmp_value() += ctx.walker.config_sign();
-  ++dynamic_sign;
+  dynamic_sign.increment();
 }
 
 // Green's functions G(k,t) = < c(k,t) c^+(k,0) > in momentum space
@@ -340,7 +340,7 @@ void Methods::measure_greens_functions(Observable::Matrix& greens_functions,
       greens_functions.tmp_value()(k, t) += prefactor * current_k_t_sum;
     }
   }
-  ++greens_functions;
+  greens_functions.increment();
 }
 
 // Density of states D(t) defined as 1/N \sum i ( c(i,t) * c^+(i,0) )
@@ -364,7 +364,7 @@ void Methods::measure_density_of_states(Observable::Vector& density_of_states,
 
     density_of_states.tmp_value()(t) += prefactor * gt0_trace;
   }
-  ++density_of_states;
+  density_of_states.increment();
 }
 
 // The superfluid stiffness rho_s, also known as helicity modules, is defined as
@@ -447,7 +447,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   }
 
   superfluid_stiffness.tmp_value() += final_prefactor * config_sign * total_rho_s;
-  ++superfluid_stiffness;
+  superfluid_stiffness.increment();
 }
 
 // transverse relaxation time 1/T1, which is proportional to the (local) dynamic
@@ -493,7 +493,7 @@ void Methods::measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_sp
     dynamic_spin_susceptibility.tmp_value()(t) += prefactor * current_t_sum;
   }
 
-  ++dynamic_spin_susceptibility;
+  dynamic_spin_susceptibility.increment();
 }
 
 }  // namespace Measure
