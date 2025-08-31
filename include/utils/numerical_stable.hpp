@@ -14,11 +14,9 @@
 #include "utils/temporary_pool.h"
 
 namespace Utils {
-
-// ----------------------------------  Utils::NumericalStable class
-// ------------------------------------ including static subroutines for
-// numerical stabilizations
 namespace NumericalStable {
+
+using namespace LinearAlgebra;
 using Matrix = Eigen::MatrixXd;
 using Vector = Eigen::VectorXd;
 
@@ -225,7 +223,7 @@ inline void compute_greens_function_common_part(const SVD_stack& left, const SVD
   B_for_solve->noalias() = ur * drmax.asDiagonal().inverse();
 
   auto qr_solver = pool.acquire_qr_solver();
-  Utils::LinearAlgebra::solve_X_times_A_eq_B(Atmp, *tmp, *B_for_solve, *qr_solver);
+  solve_X_times_A_eq_B(Atmp, *tmp, *B_for_solve, *qr_solver);
 }
 
 /*
@@ -310,7 +308,7 @@ inline void compute_dynamic_greens(const SVD_stack& left, const SVD_stack& right
     B_for_solve->noalias() = (-vl) * dlmax->asDiagonal().inverse();
 
     auto qr_solver = pool.acquire_qr_solver();
-    Utils::LinearAlgebra::solve_X_times_A_eq_B(*Xtmp, *tmp, *B_for_solve, *qr_solver);
+    solve_X_times_A_eq_B(*Xtmp, *tmp, *B_for_solve, *qr_solver);
     mult_v_d_u(*Xtmp, *drmin, ur.transpose(), g0t, pool);
   }
 }

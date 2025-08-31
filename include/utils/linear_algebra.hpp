@@ -1,14 +1,5 @@
 #pragma once
 
-/**
- *  This source file includes some diagonalizing tools with C++/Eigen interface
- *  for diagonalizing real matrices.
- *  including:
- *    1. generalized SVD decomposition for arbitrary M * N matrices
- *    2. optimized diagonalizing mechanism for N * N real symmetric matrix
- *  The calculation accuracy and efficiency are guaranteed.
- */
-
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <Eigen/SVD>
@@ -17,9 +8,7 @@
 #include "utils/assert.h"
 
 namespace Utils {
-
-class LinearAlgebra {
- public:
+namespace LinearAlgebra {
   /**
    *  SVD decomposition of arbitrary M * N real matrix:
    *       A  ->  U * S * V^T
@@ -31,7 +20,7 @@ class LinearAlgebra {
    *  @param v -> v matrix of type Eigen::MatrixXd, `col` * `col`.
    *  @param svd_solver -> A pre-allocated solver object.
    */
-  static void dgesvd(const Eigen::MatrixXd& mat, Eigen::MatrixXd& u, Eigen::VectorXd& s,
+  inline void dgesvd(const Eigen::MatrixXd& mat, Eigen::MatrixXd& u, Eigen::VectorXd& s,
                      Eigen::MatrixXd& v, Eigen::JacobiSVD<Eigen::MatrixXd>& svd_solver) {
     // BUG: Eigen is not compatible with LAPACK dgesvd, make sure to compile
     // with EIGEN_USE_BLAS and EIGEN_USE_LAPACKE. For more details:
@@ -59,7 +48,7 @@ class LinearAlgebra {
    *  @param s -> diagonal eigen matrix.
    *  @param t -> rotation matrix, whose columns are corresponding eigenstates.
    */
-  static void dsyev(const Eigen::MatrixXd& mat, Eigen::VectorXd& s, Eigen::MatrixXd& t) {
+  inline void dsyev(const Eigen::MatrixXd& mat, Eigen::VectorXd& s, Eigen::MatrixXd& t) {
     DQMC_ASSERT(mat.rows() == mat.cols());
     DQMC_ASSERT(mat.isApprox(mat.transpose(), 1e-12));
 
@@ -73,7 +62,7 @@ class LinearAlgebra {
     t = solver.eigenvectors();
   }
 
-  static void solve_X_times_A_eq_B(Eigen::MatrixXd& X_out, const Eigen::MatrixXd& A_mat,
+  inline void solve_X_times_A_eq_B(Eigen::MatrixXd& X_out, const Eigen::MatrixXd& A_mat,
                                    const Eigen::MatrixXd& B_mat,
                                    Eigen::ColPivHouseholderQR<Eigen::MatrixXd>& solver) {
     DQMC_ASSERT(A_mat.rows() == A_mat.cols());
@@ -84,5 +73,5 @@ class LinearAlgebra {
     solver.compute(A_mat.transpose());
     X_out.transpose().noalias() = solver.solve(B_mat.transpose());
   }
-};
+} // namespace LinearAlgebra
 }  // namespace Utils
