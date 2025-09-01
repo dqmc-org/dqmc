@@ -113,26 +113,26 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
 void MeasureHandler::equaltime_measure(const Walker& walker, const ModelBase& model,
                                        const LatticeBase& lattice) {
   for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
-    scalar_obs->measure(*this, walker, model, lattice);
+    scalar_obs->measure(*this, walker, model, lattice, m_pool);
   }
   for (auto& vector_obs : this->m_eqtime_vector_obs) {
-    vector_obs->measure(*this, walker, model, lattice);
+    vector_obs->measure(*this, walker, model, lattice, m_pool);
   }
   for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
-    matrix_obs->measure(*this, walker, model, lattice);
+    matrix_obs->measure(*this, walker, model, lattice, m_pool);
   }
 }
 
 void MeasureHandler::dynamic_measure(const Walker& walker, const ModelBase& model,
                                      const LatticeBase& lattice) {
   for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
-    scalar_obs->measure(*this, walker, model, lattice);
+    scalar_obs->measure(*this, walker, model, lattice, m_pool);
   }
   for (auto& vector_obs : this->m_dynamic_vector_obs) {
-    vector_obs->measure(*this, walker, model, lattice);
+    vector_obs->measure(*this, walker, model, lattice, m_pool);
   }
   for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
-    matrix_obs->measure(*this, walker, model, lattice);
+    matrix_obs->measure(*this, walker, model, lattice, m_pool);
   }
 }
 

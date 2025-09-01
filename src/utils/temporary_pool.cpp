@@ -1,10 +1,13 @@
 #include "utils/temporary_pool.h"
 
+#include "utils/eigen_malloc_guard.h"
+
 namespace Utils {
 
 TemporaryPool::MatrixPtr TemporaryPool::acquire_matrix(int rows, int cols) {
   std::unique_ptr<Matrix> resource;
   if (m_matrix_pool.empty()) {
+    EigenMallocGuard<true> alloc_guard;
     resource = std::make_unique<Matrix>(rows, cols);
   } else {
     resource = std::move(m_matrix_pool.back());
@@ -17,6 +20,7 @@ TemporaryPool::MatrixPtr TemporaryPool::acquire_matrix(int rows, int cols) {
 TemporaryPool::VectorPtr TemporaryPool::acquire_vector(int size) {
   std::unique_ptr<Vector> resource;
   if (m_vector_pool.empty()) {
+    EigenMallocGuard<true> alloc_guard;
     resource = std::make_unique<Vector>(size);
   } else {
     resource = std::move(m_vector_pool.back());
@@ -29,6 +33,7 @@ TemporaryPool::VectorPtr TemporaryPool::acquire_vector(int size) {
 TemporaryPool::QRSolverPtr TemporaryPool::acquire_qr_solver() {
   std::unique_ptr<QRSolver> resource;
   if (m_solver_pool.empty()) {
+    EigenMallocGuard<true> alloc_guard;
     resource = std::make_unique<QRSolver>();
   } else {
     resource = std::move(m_solver_pool.back());

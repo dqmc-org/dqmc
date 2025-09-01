@@ -41,6 +41,7 @@ void Walker::initial(const LatticeBase& lattice, const MeasureHandler& meas_hand
 
 void Walker::allocate_svd_stacks() {
   // allocate memory for SvdStack classes
+  EigenMallocGuard<true> alloc_guard;
   this->m_svd_stack_left_up = SvdStack(this->m_space_size, this->m_time_size);
   this->m_svd_stack_left_down = SvdStack(this->m_space_size, this->m_time_size);
   this->m_svd_stack_right_up = SvdStack(this->m_space_size, this->m_time_size);
@@ -49,6 +50,7 @@ void Walker::allocate_svd_stacks() {
 
 void Walker::allocate_greens_functions() {
   // allocate memory for greens functions
+  EigenMallocGuard<true> alloc_guard;
   this->m_green_tt_up = GreensFunc(this->m_space_size, this->m_space_size);
   this->m_green_tt_down = GreensFunc(this->m_space_size, this->m_space_size);
 
@@ -121,6 +123,7 @@ void Walker::initial_greens_functions() {
 void Walker::initial_config_sign() {
   // allocate memory for config sign vector
   // if equal-time measurements are to be performed
+  EigenMallocGuard<true> alloc_guard;
   if (this->m_is_equaltime) {
     this->m_vec_config_sign = Eigen::VectorXd(this->m_time_size);
   }

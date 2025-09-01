@@ -15,6 +15,7 @@
 #include "model/attractive_hubbard.h"
 #include "model/repulsive_hubbard.h"
 #include "utils/assert.h"
+#include "utils/eigen_malloc_guard.h"
 #include "utils/progressbar.hpp"
 #include "walker.h"
 
@@ -118,6 +119,7 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
 Dqmc::~Dqmc() = default;
 
 void Dqmc::run() {
+  EigenMallocGuard<false> no_alloc_guard;
   m_begin_time = std::chrono::steady_clock::now();
   thermalize();
   measure();

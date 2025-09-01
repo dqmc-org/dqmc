@@ -19,6 +19,8 @@
 
 #include "measure/measure_context.h"
 #include "utils/assert.h"
+#include "utils/eigen_malloc_guard.h"
+#include "utils/temporary_pool.h"
 
 // forward declaration
 namespace DQMC {
@@ -176,8 +178,8 @@ class Observable : public ObservableBase {
 
   // perform one step of measurement
   void measure(const MeasureHandler& meas_handler, const Walker& walker, const ModelBase& model,
-               const LatticeBase& lattice) {
-    Measure::MeasureContext ctx(meas_handler, walker, model, lattice);
+               const LatticeBase& lattice, Utils::TemporaryPool& pool) {
+    Measure::MeasureContext ctx(meas_handler, walker, model, lattice, pool);
     this->m_method(*this, ctx);
   }
 
@@ -223,8 +225,11 @@ class Observable : public ObservableBase {
  private:
   // calculating mean value of the measurement
   void calculate_mean_value() {
-    this->m_mean_value =
-        std::accumulate(this->m_bin_data.begin(), this->m_bin_data.end(), this->m_zero_elem);
+    {
+      EigenMallocGuard<true> alloc_guard;
+      this->m_mean_value =
+          std::accumulate(this->m_bin_data.begin(), this->m_bin_data.end(), this->m_zero_elem);
+    }
     this->m_mean_value /= this->bin_num();
   }
 

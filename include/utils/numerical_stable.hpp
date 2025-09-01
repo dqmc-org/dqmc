@@ -11,6 +11,7 @@
 
 #include "linear_algebra.hpp"
 #include "svd_stack.h"
+#include "utils/eigen_malloc_guard.h"
 #include "utils/temporary_pool.h"
 
 namespace Utils {
@@ -166,8 +167,12 @@ inline void compute_greens_00_bb(const Matrix& U, const Vector& S, const Matrix&
   H->noalias() += Ss->asDiagonal() * V.transpose();
 
   auto qr_solver = pool.acquire_qr_solver();
-  qr_solver->compute(*H);
-  gtt.noalias() = qr_solver->solve(*RHS);
+
+  {
+    EigenMallocGuard<true> alloc_guard;
+    qr_solver->compute(*H);
+    gtt.noalias() = qr_solver->solve(*RHS);
+  }
 }
 
 /*
@@ -189,8 +194,12 @@ inline void compute_greens_b0(const Matrix& U, const Vector& S, const Matrix& V,
   H->noalias() += *RHS;
 
   auto qr_solver = pool.acquire_qr_solver();
-  qr_solver->compute(*H);
-  gt0.noalias() = qr_solver->solve(*RHS);
+
+  {
+    EigenMallocGuard<true> alloc_guard;
+    qr_solver->compute(*H);
+    gt0.noalias() = qr_solver->solve(*RHS);
+  }
 }
 
 /*
@@ -249,8 +258,11 @@ inline void compute_equaltime_greens(const SVD_stack& left, const SVD_stack& rig
   auto drmax = pool.acquire_vector(ndim);
   auto drmin = pool.acquire_vector(ndim);
 
+  auto left_U_transp = pool.acquire_matrix(ndim, ndim);
+  left_U_transp->noalias() = left.U().transpose();
+
   compute_greens_function_common_part(left, right, *Atmp, *dlmax, *dlmin, *drmax, *drmin, pool);
-  mult_v_invd_u(*Atmp, *dlmax, left.U().transpose(), gtt, pool);
+  mult_v_invd_u(*Atmp, *dlmax, *left_U_transp, gtt, pool);
 }
 
 /*
@@ -284,7 +296,11 @@ inline void compute_dynamic_greens(const SVD_stack& left, const SVD_stack& right
   {
     auto Atmp = pool.acquire_matrix(ndim, ndim);
     compute_greens_function_common_part(left, right, *Atmp, *dlmax, *dlmin, *drmax, *drmin, pool);
-    mult_v_d_u(*Atmp, *dlmin, left.V().transpose(), gt0, pool);
+
+    auto left_V_transp = pool.acquire_matrix(ndim, ndim);
+    left_V_transp->noalias() = left.V().transpose();
+
+    mult_v_d_u(*Atmp, *dlmin, *left_V_transp, gt0, pool);
   }
 
   // Part 2: compute g0t
@@ -309,7 +325,11 @@ inline void compute_dynamic_greens(const SVD_stack& left, const SVD_stack& right
 
     auto qr_solver = pool.acquire_qr_solver();
     solve_X_times_A_eq_B(*Xtmp, *tmp, *B_for_solve, *qr_solver);
-    mult_v_d_u(*Xtmp, *drmin, ur.transpose(), g0t, pool);
+
+    auto ur_transp = pool.acquire_matrix(ndim, ndim);
+    ur_transp->noalias() = ur.transpose();
+
+    mult_v_d_u(*Xtmp, *drmin, *ur_transp, g0t, pool);
   }
 }
 }  // namespace NumericalStable

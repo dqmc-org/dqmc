@@ -1,5 +1,7 @@
 #pragma once
 
+#include "utils/temporary_pool.h"
+
 // forward declarations
 namespace Model {
 class ModelBase;
@@ -25,8 +27,10 @@ struct MeasureContext {
   const Walker& walker;
   const ModelBase& model;
   const LatticeBase& lattice;
+  Utils::TemporaryPool& pool;
 
-  MeasureContext(const MeasureHandler& h, const Walker& w, const ModelBase& m, const LatticeBase& l)
-      : handler(h), walker(w), model(m), lattice(l) {}
+  MeasureContext(const MeasureHandler& h, const Walker& w, const ModelBase& m, const LatticeBase& l,
+                 Utils::TemporaryPool& p)
+      : handler(h), walker(w), model(m), lattice(l), pool(p) {}
 };
 }  // namespace Measure

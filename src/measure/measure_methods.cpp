@@ -174,8 +174,11 @@ void Methods::measure_spin_density_structure_factor(Observable::Scalar& sdw_fact
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
   const int K_vector = ctx.handler.momentum();
 
-  MatrixType guc(space_size, space_size);
-  MatrixType gdc(space_size, space_size);
+  auto tmp1 = ctx.pool.acquire_matrix(space_size, space_size);
+  auto tmp2 = ctx.pool.acquire_matrix(space_size, space_size);
+
+  MatrixType& guc = *tmp1;
+  MatrixType& gdc = *tmp2;
 
   for (auto t = 0; t < ctx.walker.time_size(); ++t) {
     const GreensFunc& gu = ctx.walker.green_tt_up(t);
@@ -215,8 +218,11 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
   const int K_vector = ctx.handler.momentum();
   const double inv_space_size_sq = 1.0 / (static_cast<double>(space_size) * space_size);
 
-  std::vector<double> n_up(space_size);
-  std::vector<double> n_dn(space_size);
+  auto tmp1 = ctx.pool.acquire_vector(space_size);
+  auto tmp2 = ctx.pool.acquire_vector(space_size);
+
+  Eigen::VectorXd& n_up = *tmp1;
+  Eigen::VectorXd& n_dn = *tmp2;
 
   for (auto t = 0; t < time_size; ++t) {
     const GreensFunc& gu = ctx.walker.green_tt_up(t);
@@ -224,16 +230,16 @@ void Methods::measure_charge_density_structure_factor(Observable::Scalar& cdw_fa
     const double config_sign = ctx.walker.config_sign(t);
 
     for (int i = 0; i < space_size; ++i) {
-      n_up[i] = 1.0 - gu(i, i);
-      n_dn[i] = 1.0 - gd(i, i);
+      n_up(i) = 1.0 - gu(i, i);
+      n_dn(i) = 1.0 - gd(i, i);
     }
 
     double tmp_cdw = 0.0;
     for (auto i = 0; i < space_size; ++i) {
-      const double ni = n_up[i] + n_dn[i];
+      const double ni = n_up(i) + n_dn(i);
 
       for (auto j = 0; j < space_size; ++j) {
-        const double nj = n_up[j] + n_dn[j];
+        const double nj = n_up(j) + n_dn(j);
         const double density_term = ni * nj;
 
         const double guc_ij = (i == j) - gu(j, i);
@@ -263,8 +269,11 @@ void Methods::measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing,
                                           const MeasureContext& ctx) {
   const int space_size = ctx.lattice.space_size();
 
-  MatrixType guc(space_size, space_size);
-  MatrixType gdc(space_size, space_size);
+  auto tmp1 = ctx.pool.acquire_matrix(space_size, space_size);
+  auto tmp2 = ctx.pool.acquire_matrix(space_size, space_size);
+
+  MatrixType& guc = *tmp1;
+  MatrixType& gdc = *tmp2;
 
   for (auto t = 0; t < ctx.walker.time_size(); ++t) {
     //  g(i,j) = < c_i * c^+_j > are the greens functions
@@ -389,15 +398,18 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
   const double hopping_t2 = ctx.model.HoppingT() * ctx.model.HoppingT();
   const double final_prefactor = 0.25 * hopping_t2 / (static_cast<double>(space_size) * space_size);
 
-  std::vector<double> uncorrelated_i_vals(space_size);
-  std::vector<double> uncorrelated_j_vals(space_size);
+  auto tmp1 = ctx.pool.acquire_vector(space_size);
+  auto tmp2 = ctx.pool.acquire_vector(space_size);
+
+  Eigen::VectorXd& uncorrelated_i_vals = *tmp1;
+  Eigen::VectorXd& uncorrelated_j_vals = *tmp2;
 
   const GreensFunc& g00up = ctx.walker.green_tt_up(time_size - 1);
   const GreensFunc& g00dn = ctx.walker.green_tt_down(time_size - 1);
 
   for (auto i = 0; i < space_size; ++i) {
     const auto ipx = ctx.lattice.nearest_neighbor(i, 0);
-    uncorrelated_i_vals[i] = g00up(i, ipx) - g00up(ipx, i) + g00dn(i, ipx) - g00dn(ipx, i);
+    uncorrelated_i_vals(i) = g00up(i, ipx) - g00up(ipx, i) + g00dn(i, ipx) - g00dn(ipx, i);
   }
 
   double total_rho_s = 0.0;
@@ -414,7 +426,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
 
     for (auto j = 0; j < space_size; ++j) {
       const auto jpx = ctx.lattice.nearest_neighbor(j, 0);
-      uncorrelated_j_vals[j] = gttup(j, jpx) - gttup(jpx, j) + gttdn(j, jpx) - gttdn(jpx, j);
+      uncorrelated_j_vals(j) = gttup(j, jpx) - gttup(jpx, j) + gttdn(j, jpx) - gttdn(jpx, j);
     }
 
     double t_slice_sum = 0.0;
@@ -440,7 +452,7 @@ void Methods::measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffn
         const double correlated_part = up_contribution + down_contribution;
 
         t_slice_sum +=
-            fourier_factor * (-uncorrelated_j_vals[j] * uncorrelated_i_vals[i] - correlated_part);
+            fourier_factor * (-uncorrelated_j_vals(j) * uncorrelated_i_vals(i) - correlated_part);
       }
     }
     total_rho_s += t_slice_sum;

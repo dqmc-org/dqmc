@@ -8,6 +8,7 @@
 
 #include "measure/observable_handler.h"
 #include "utils/assert.h"
+#include "utils/temporary_pool.h"
 
 // forward declaration
 namespace Model {
@@ -45,6 +46,8 @@ class MeasureHandler : public Observable::ObservableHandler {
   // lattice momentum for the momentum-dependent measurements
   int m_momentum{};
   std::vector<int> m_momentum_list{};
+
+  Utils::TemporaryPool m_pool{};
 
  public:
   explicit MeasureHandler(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins,
