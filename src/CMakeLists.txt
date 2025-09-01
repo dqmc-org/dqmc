@@ -42,6 +42,7 @@ target_compile_definitions(
   PUBLIC
   EIGEN_USE_BLAS
   EIGEN_USE_LAPACKE
+  EIGEN_RUNTIME_NO_MALLOC
 )
 
 add_executable(

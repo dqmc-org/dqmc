@@ -17,7 +17,6 @@ template <bool Enable>
 class EigenMallocGuard {
  public:
   EigenMallocGuard() { Eigen::internal::set_is_malloc_allowed(Enable); }
-
   ~EigenMallocGuard() { Eigen::internal::set_is_malloc_allowed(!Enable); }
 
   EigenMallocGuard(const EigenMallocGuard&) = delete;
@@ -26,7 +25,7 @@ class EigenMallocGuard {
   EigenMallocGuard& operator=(EigenMallocGuard&&) = delete;
 };
 #else
-template <typename T>
+template <bool Enable = true>
 class EigenMallocGuard {
  public:
   EigenMallocGuard() = default;
