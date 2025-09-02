@@ -26,13 +26,14 @@ const std::unordered_map<std::string, ObservableHandler::ObservableProperties> O
     {"charge_density_structure_factor",{"CDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_charge_density_structure_factor)}},
     {"s_wave_pairing_corr",            {"S-wave pairing correlation",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_s_wave_pairing_corr)}},
     {"equaltime_sign",                 {"Averaged sign (equal-time)",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_equaltime_config_sign)}},
-
+    {"pair_pair_corr_Q",               { "Pair–pair correlation at Q", ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_pair_pair_corr_Q)}},
     // --- Dynamic Observables ---
     {"greens_functions",               {"Green's functions",           ObsTimeType::Dynamic,   ObsDataType::Matrix, make_observable<Matrix>(Measure::Methods::measure_greens_functions)}},
     {"density_of_states",              {"Density of states",           ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_density_of_states)}},
     {"superfluid_stiffness",           {"Superfluid stiffness",        ObsTimeType::Dynamic,   ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_superfluid_stiffness)}},
     {"dynamic_spin_susceptibility",    {"Dynamic Spin Susceptibility", ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_dynamic_spin_susceptibility)}},
     {"dynamic_sign",                   {"Averaged sign (dynamical)",   ObsTimeType::Dynamic,   ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_dynamic_config_sign)}},
+    {"dynamic_pair_corr",              {"Dynamic pair correlator P(Q,tau)", ObsTimeType::Dynamic, ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_dynamic_pair_corr)}},
 };
 // clang-format on
 

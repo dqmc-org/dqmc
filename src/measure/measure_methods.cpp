@@ -508,4 +508,81 @@ void Methods::measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_sp
   dynamic_spin_susceptibility.increment();
 }
 
+// Pair–pair correlation function at momentum Q:
+//   P(Q) = < d_Q^† d_Q >
+//        = (1/N) sum_{i,j} exp(i Q · (r_i - r_j))
+//          * < c†_{i,down} c†_{i,up} c_{j,up} c_{j,down} >
+// Evaluated via Wick contractions using equal-time Green's.
+void Methods::measure_pair_pair_corr_Q(Observable::Scalar& pair_corr_Q, const MeasureContext& ctx) {
+  const int space_size = ctx.lattice.space_size();
+  const int time_size = ctx.walker.time_size();
+  const auto& Q = ctx.handler.momentum();  // momentum vector
+  const double invN = 1.0 / static_cast<double>(space_size);
+
+  double total = 0.0;
+
+  for (int t = 0; t < time_size; ++t) {
+    const GreensFunc& gu = ctx.walker.green_tt_up(t);    // G_up(i,j) = < c_i c_j^† >
+    const GreensFunc& gd = ctx.walker.green_tt_down(t);  // G_dn(i,j)
+    const double config_sign = ctx.walker.config_sign(t);
+
+    double sum_ij = 0.0;
+
+    for (int i = 0; i < space_size; ++i) {
+      for (int j = 0; j < space_size; ++j) {
+        // < c_i^† c_j > = δ_ij - G(j,i)
+        const double gij_up = (i == j ? 1.0 : 0.0) - gu(j, i);
+        const double gij_dn = (i == j ? 1.0 : 0.0) - gd(j, i);
+
+        const double fourier = ctx.lattice.fourier_factor(ctx.lattice.displacement(i, j), Q);
+
+        sum_ij += fourier * gij_up * gij_dn;
+      }
+    }
+    total += config_sign * sum_ij * invN;
+  }
+
+  pair_corr_Q.tmp_value() += total;
+  pair_corr_Q.increment(time_size);
+}
+
+// Dynamic pair correlator P(Q, tau) = < d_Q(tau) d_Q^†(0) >
+// where d_Q = (1/sqrt(N)) sum_i e^{-i Q · r_i} c_{i↑} c_{i↓}.
+// Returns a Vector over tau (indexed like other dynamic Vector observables).
+void Methods::measure_dynamic_pair_corr(Observable::Vector& dynamic_pair_corr,
+                                        const MeasureContext& ctx) {
+  const int time_size = ctx.walker.time_size();
+  const int space_size = ctx.lattice.space_size();
+  const int K_vector = ctx.handler.momentum();  // single momentum index/vector
+  const double prefactor_base = 1.0 / static_cast<double>(space_size);
+
+  for (auto t = 0; t < time_size; ++t) {
+    const int tau = (t == 0) ? time_size - 1 : t - 1;
+
+    const GreensFunc& gup = (t == 0) ? ctx.walker.green_tt_up(tau) : ctx.walker.green_t0_up(tau);
+    const GreensFunc& gdn =
+        (t == 0) ? ctx.walker.green_tt_down(tau) : ctx.walker.green_t0_down(tau);
+
+    const double config_sign = ctx.walker.config_sign();
+
+    double sum_ij = 0.0;
+    // double sum over site indices i,j
+    for (auto i = 0; i < space_size; ++i) {
+      for (auto j = 0; j < space_size; ++j) {
+        const double G_up_ij = gup(i, j);
+        const double G_dn_ij = gdn(i, j);
+
+        const double fourier = ctx.lattice.fourier_factor(ctx.lattice.displacement(i, j),
+                                                          K_vector);  // e^{i Q · (r_i - r_j)}
+
+        sum_ij += fourier * (G_up_ij * G_dn_ij);
+      }
+    }
+
+    dynamic_pair_corr.tmp_value()(t) += config_sign * prefactor_base * sum_ij;
+  }
+
+  dynamic_pair_corr.increment();
+}
+
 }  // namespace Measure

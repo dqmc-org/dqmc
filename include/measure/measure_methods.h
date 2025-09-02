@@ -81,5 +81,10 @@ class Methods {
 
   static void measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_spin_susceptibility,
                                                   const MeasureContext& ctx);
+
+  static void measure_pair_pair_corr_Q(Observable::Scalar& pair_corr_Q, const MeasureContext& ctx);
+
+  static void measure_dynamic_pair_corr(Observable::Vector& dynamic_pair_corr,
+                                        const MeasureContext& ctx);
 };
 }  // namespace Measure
