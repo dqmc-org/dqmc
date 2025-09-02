@@ -6,7 +6,6 @@
  */
 
 #include <array>
-#include <unordered_map>
 
 #include "lattice/lattice_base.h"
 
@@ -27,9 +26,6 @@ class Cubic : public LatticeBase {
   std::vector<int> m_lambda_line_index{};  // (0,0,0)   ->  (pi,pi,pi)
   std::vector<int> m_s_line_index{};       // (pi,0,0)  ->  (pi,pi,pi)
   std::vector<int> m_t_line_index{};       // (pi,pi,0) ->  (pi,pi,pi)
-
-  std::unordered_map<std::string, int> m_momentum_points;
-  std::unordered_map<std::string, std::vector<int>> m_momentum_lists;
 
  public:
   explicit Cubic(const std::vector<int>& lattice_size);
