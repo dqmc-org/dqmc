@@ -13,6 +13,7 @@ add_library(
   measure/measure_methods.cpp
   measure/measure_handler.cpp
   measure/observable_handler.cpp
+  measure/binning_analyzer.cpp
   model/model_base.cpp
   model/attractive_hubbard.cpp
   model/repulsive_hubbard.cpp
