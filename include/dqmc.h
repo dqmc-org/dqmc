@@ -15,6 +15,7 @@
 #include <string>
 #include <vector>
 
+#include "measure/binning_analyzer.h"
 #include "walker.h"
 
 namespace Model {
@@ -57,9 +58,11 @@ struct Config {
 
   // Measure
   int sweeps_warmup;
-  int bin_num;
-  int bin_size;
-  int sweeps_between_bins;
+  std::string autobinning_target_observable;
+  double autobinning_target_rel_error;
+  int autobinning_max_sweeps;
+  int autobinning_min_sweeps;
+  int block_size;
 
   // Observables
   std::vector<std::string> observables;
@@ -115,7 +118,9 @@ class Dqmc {
   std::unique_ptr<Walker> m_walker;
   std::unique_ptr<Measure::MeasureHandler> m_handler;
   std::unique_ptr<CheckerBoard::CheckerBoardBase> m_checkerboard;
+  std::unique_ptr<Measure::BinningAnalyzer> m_binning_analyzer;
 
+  const Config& m_config;  // Store config for easy access
   std::default_random_engine m_rng;
   int m_seed;
 

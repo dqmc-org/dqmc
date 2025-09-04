@@ -37,14 +37,21 @@ void BinningAnalyzer::update_analysis() {
   m_mean = sample_mean(m_time_series);
   const double raw_var = sample_variance(m_time_series, m_mean);
 
+  // Pre-allocate vectors to avoid heap allocation during analysis
   std::vector<int> bin_sizes;
-  for (int B = 1; B * 4 <= N; B *= 2) {
+  bin_sizes.reserve(20);  // Reasonable upper bound for log2 scaling
+  for (int B = 1; B * 4 <= N;) {
     bin_sizes.push_back(B);
+    int nextB = B * 3 / 2;
+    if (nextB == B) nextB += 1;
+    B = nextB;
   }
   if (bin_sizes.empty()) bin_sizes.push_back(1);
 
   std::vector<double> plateau_variances;
+  plateau_variances.reserve(bin_sizes.size());
   std::vector<double> bin_mean_variances;
+  bin_mean_variances.reserve(bin_sizes.size());
 
   for (int B : bin_sizes) {
     const int n_bins = N / B;
@@ -61,7 +68,7 @@ void BinningAnalyzer::update_analysis() {
   }
 
   // Heuristic plateau detection: Find the first bin size where the next 3
-  // values are within 5%
+  // values are within 10%
   int plateau_idx = -1;
   for (size_t i = 0; i < plateau_variances.size(); ++i) {
     if (plateau_variances[i] <= 0.0) continue;

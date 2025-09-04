@@ -35,11 +35,7 @@ class MeasureHandler : public Observable::ObservableHandler {
   bool m_is_equaltime{};  // whether to perform equal-time measurements or not
   bool m_is_dynamic{};    // whether to perform dynamic measurements or not
 
-  int m_sweeps_warmup{};        // number of the MC sweeps for the warm-up process
-  int m_bin_num{};              // number of measuring bins
-  int m_bin_size{};             // number of samples in one measuring bin
-  int m_sweeps_between_bins{};  // number of the MC sweeps between two adjoining
-                                // bins
+  int m_sweeps_warmup{};  // number of the MC sweeps for the warm-up process
 
   std::vector<std::string> m_obs_list{};  // list of observables to be measured
 
@@ -50,8 +46,8 @@ class MeasureHandler : public Observable::ObservableHandler {
   Utils::TemporaryPool m_pool{};
 
  public:
-  explicit MeasureHandler(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins,
-                          const std::vector<std::string>& observables, int measured_momentum_idx,
+  explicit MeasureHandler(int sweeps_warmup, const std::vector<std::string>& observables,
+                          int measured_momentum_idx,
                           const std::vector<int>& measured_momentum_list);
 
   MeasureHandler() = delete;
@@ -64,7 +60,7 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ---------------------------  Set up measuring params and observables
   // ------------------------------
 
-  void set_measure_params(int sweeps_warmup, int bin_num, int bin_size, int sweeps_between_bins);
+  void set_measure_params(int sweeps_warmup);
 
   void set_observables(const std::vector<std::string>& obs_list);
 
@@ -88,11 +84,6 @@ class MeasureHandler : public Observable::ObservableHandler {
 
   int warm_up_sweeps() const { return this->m_sweeps_warmup; }
 
-  int sweep_between_bins() const { return this->m_sweeps_between_bins; }
-
-  int bins_num() const { return this->m_bin_num; }
-  int bins_size() const { return this->m_bin_size; }
-
   int momentum() const { return this->m_momentum; }
 
   const std::vector<int>& momentum_list() const { return this->m_momentum_list; }
@@ -114,11 +105,11 @@ class MeasureHandler : public Observable::ObservableHandler {
   // normalize the observable samples
   void normalize_stats();
 
-  // bin collections of the observable samples
-  void write_stats_to_bins(int bin);
-
-  // analyse the statistics by calculating means and errors
-  void analyse_stats();
+  // New block lifecycle methods
+  void start_new_block();
+  void finalize_block();
+  double get_last_block_avg(const std::string& obs_name) const;
+  void analyse(int optimal_bin_size_blocks);
 
   // clear the temporary data
   void clear_temporary();

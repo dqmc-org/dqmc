@@ -47,12 +47,14 @@ int main(int argc, char* argv[]) {
     ("mc.time_size",          po::value<double>()->default_value(160),                         "Imaginary time discretization")
     ("mc.stabilization_pace", po::value<int>()->default_value(10),                             "QR decomposition frequency");
 
-  po::options_description measure_opts("Measurement options");
+  po::options_description measure_opts("Measurement options (Adaptive Binning)");
   measure_opts.add_options()
-    ("measure.sweeps_warmup",       po::value<int>()->default_value(512),                      "Warmup sweeps")
-    ("measure.bin_num",             po::value<int>()->default_value(20),                       "Number of bins")
-    ("measure.bin_size",            po::value<int>()->default_value(100),                      "Bin size")
-    ("measure.sweeps_between_bins", po::value<int>()->default_value(20),                       "Sweeps between bins");
+    ("measure.sweeps_warmup",                   po::value<int>()->default_value(512),            "Warmup sweeps")
+    ("measure.block_size",                      po::value<int>()->default_value(100),            "Number of sweeps per block for averaging")
+    ("measure.autobinning_target_observable",  po::value<std::string>()->default_value("double_occupancy"), "Scalar observable to monitor for convergence")
+    ("measure.autobinning_target_rel_error",   po::value<double>()->default_value(0.01),        "Target relative error for convergence (e.g., 0.01 for 1%)")
+    ("measure.autobinning_max_sweeps",         po::value<int>()->default_value(2000000),        "Maximum measurement sweeps (safety cutoff)")
+    ("measure.autobinning_min_sweeps",         po::value<int>()->default_value(20000),          "Minimum sweeps before convergence checks");
 
   po::options_description observable_opts("Observable options");
   observable_opts.add_options()
@@ -165,9 +167,12 @@ int main(int argc, char* argv[]) {
     config.stabilization_pace = vm["mc.stabilization_pace"].as<int>();
 
     config.sweeps_warmup = vm["measure.sweeps_warmup"].as<int>();
-    config.bin_num = vm["measure.bin_num"].as<int>();
-    config.bin_size = vm["measure.bin_size"].as<int>();
-    config.sweeps_between_bins = vm["measure.sweeps_between_bins"].as<int>();
+    config.block_size = vm["measure.block_size"].as<int>();
+    config.autobinning_target_observable =
+        vm["measure.autobinning_target_observable"].as<std::string>();
+    config.autobinning_target_rel_error = vm["measure.autobinning_target_rel_error"].as<double>();
+    config.autobinning_max_sweeps = vm["measure.autobinning_max_sweeps"].as<int>();
+    config.autobinning_min_sweeps = vm["measure.autobinning_min_sweeps"].as<int>();
 
     config.observables = vm["observables"].as<std::vector<std::string>>();
 

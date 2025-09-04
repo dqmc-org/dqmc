@@ -9,26 +9,18 @@
 
 namespace Measure {
 
-MeasureHandler::MeasureHandler(int sweeps_warmup, int bin_num, int bin_size,
-                               int sweeps_between_bins, const std::vector<std::string>& observables,
+MeasureHandler::MeasureHandler(int sweeps_warmup, const std::vector<std::string>& observables,
                                int measured_momentum_idx,
                                const std::vector<int>& measured_momentum_list) {
-  set_measure_params(sweeps_warmup, bin_num, bin_size, sweeps_between_bins);
+  set_measure_params(sweeps_warmup);
   set_observables(observables);
   set_measured_momentum(measured_momentum_idx);
   set_measured_momentum_list(measured_momentum_list);
 }
 
-void MeasureHandler::set_measure_params(int sweeps_warmup, int bin_num, int bin_size,
-                                        int sweeps_between_bins) {
-  DQMC_ASSERT(sweeps_warmup >= 0);
-  DQMC_ASSERT(bin_num >= 0);
-  DQMC_ASSERT(bin_size >= 0);
+void MeasureHandler::set_measure_params(int sweeps_warmup) {
   DQMC_ASSERT(sweeps_warmup >= 0);
   this->m_sweeps_warmup = sweeps_warmup;
-  this->m_bin_num = bin_num;
-  this->m_bin_size = bin_size;
-  this->m_sweeps_between_bins = sweeps_between_bins;
 }
 
 void MeasureHandler::set_observables(const std::vector<std::string>& obs_list) {
@@ -58,21 +50,18 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
   if (this->m_is_equaltime) {
     for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
       scalar_obs->set_zero_element(0.0);
-      scalar_obs->set_number_of_bins(this->m_bin_num);
       scalar_obs->allocate();
     }
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
       // note that the dimensions of the observable should be adjusted or
       // specialized here
       vector_obs->set_zero_element(Eigen::VectorXd::Zero(time_size));
-      vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
       // specialize dimensions for certain observables if needed
       matrix_obs->set_zero_element(
           Eigen::MatrixXd::Zero(lattice.space_size(), lattice.space_size()));
-      matrix_obs->set_number_of_bins(this->m_bin_num);
       matrix_obs->allocate();
     }
   }
@@ -81,13 +70,11 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
   if (this->m_is_dynamic) {
     for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
       scalar_obs->set_zero_element(0.0);
-      scalar_obs->set_number_of_bins(this->m_bin_num);
       scalar_obs->allocate();
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
       // specialize dimensions for certain observables if needed
       vector_obs->set_zero_element(Eigen::VectorXd::Zero(time_size));
-      vector_obs->set_number_of_bins(this->m_bin_num);
       vector_obs->allocate();
     }
     for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
@@ -97,13 +84,11 @@ void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
         // momentum and the columns represent imaginary-time grids.
         matrix_obs->set_zero_element(
             Eigen::MatrixXd::Zero(this->m_momentum_list.size(), time_size));
-        matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       } else {
         // otherwise initialize by default
         matrix_obs->set_zero_element(
             Eigen::MatrixXd::Zero(lattice.space_size(), lattice.space_size()));
-        matrix_obs->set_number_of_bins(this->m_bin_num);
         matrix_obs->allocate();
       }
     }
@@ -183,54 +168,88 @@ void MeasureHandler::normalize_stats() {
   }
 }
 
-void MeasureHandler::write_stats_to_bins(int bin) {
+void MeasureHandler::start_new_block() {
   if (this->m_is_equaltime) {
     for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
-      scalar_obs->bin_data(bin) = scalar_obs->tmp_value();
+      scalar_obs->start_new_block();
     }
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
-      vector_obs->bin_data(bin) = vector_obs->tmp_value();
+      vector_obs->start_new_block();
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
-      matrix_obs->bin_data(bin) = matrix_obs->tmp_value();
+      matrix_obs->start_new_block();
     }
   }
 
   if (this->m_is_dynamic) {
     for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
-      scalar_obs->bin_data(bin) = scalar_obs->tmp_value();
+      scalar_obs->start_new_block();
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
-      vector_obs->bin_data(bin) = vector_obs->tmp_value();
+      vector_obs->start_new_block();
     }
     for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
-      matrix_obs->bin_data(bin) = matrix_obs->tmp_value();
+      matrix_obs->start_new_block();
     }
   }
 }
 
-void MeasureHandler::analyse_stats() {
+void MeasureHandler::finalize_block() {
   if (this->m_is_equaltime) {
     for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
-      scalar_obs->analyse();
+      scalar_obs->finalize_block();
     }
     for (auto& vector_obs : this->m_eqtime_vector_obs) {
-      vector_obs->analyse();
+      vector_obs->finalize_block();
     }
     for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
-      matrix_obs->analyse();
+      matrix_obs->finalize_block();
     }
   }
 
   if (this->m_is_dynamic) {
     for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
-      scalar_obs->analyse();
+      scalar_obs->finalize_block();
     }
     for (auto& vector_obs : this->m_dynamic_vector_obs) {
-      vector_obs->analyse();
+      vector_obs->finalize_block();
     }
     for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
-      matrix_obs->analyse();
+      matrix_obs->finalize_block();
+    }
+  }
+}
+
+double MeasureHandler::get_last_block_avg(const std::string& obs_name) const {
+  // Try to find the observable in scalar observables first
+  if (auto* scalar_obs = this->find<Observable::Scalar>(obs_name)) {
+    return scalar_obs->get_last_block_average();
+  }
+  throw std::runtime_error("Observable '" + obs_name + "' not found or not a scalar observable");
+}
+
+void MeasureHandler::analyse(int optimal_bin_size_blocks) {
+  if (this->m_is_equaltime) {
+    for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
+      scalar_obs->analyse(optimal_bin_size_blocks);
+    }
+    for (auto& vector_obs : this->m_eqtime_vector_obs) {
+      vector_obs->analyse(optimal_bin_size_blocks);
+    }
+    for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
+      matrix_obs->analyse(optimal_bin_size_blocks);
+    }
+  }
+
+  if (this->m_is_dynamic) {
+    for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
+      scalar_obs->analyse(optimal_bin_size_blocks);
+    }
+    for (auto& vector_obs : this->m_dynamic_vector_obs) {
+      vector_obs->analyse(optimal_bin_size_blocks);
+    }
+    for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
+      matrix_obs->analyse(optimal_bin_size_blocks);
     }
   }
 }
@@ -278,10 +297,7 @@ void MeasureHandler::output_measuring_info(std::ostream& ostream) const {
           << fmt_str("Equal-time measure", bool_to_str(this->is_equaltime()))
           << fmt_str("Dynamical measure", bool_to_str(this->is_dynamic())) << std::endl;
 
-  ostream << fmt_int("Sweeps for warmup", this->warm_up_sweeps())
-          << fmt_int("Number of bins", this->bins_num())
-          << fmt_int("Sweeps per bin", this->bins_size())
-          << fmt_int("Sweeps between bins", this->sweep_between_bins()) << std::endl;
+  ostream << fmt_int("Sweeps for warmup", this->warm_up_sweeps()) << std::endl;
 }
 
 }  // namespace Measure

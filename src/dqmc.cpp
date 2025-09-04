@@ -21,7 +21,7 @@
 
 namespace DQMC {
 
-Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) {
+Dqmc::Dqmc(const Config& config) : m_config(config), m_rng(42 + config.seed), m_seed(config.seed) {
   // 1. Create Lattice
   if (config.lattice_type == "Square") {
     DQMC_ASSERT(config.lattice_size.size() == 2);
@@ -58,9 +58,8 @@ Dqmc::Dqmc(const Config& config) : m_rng(42 + config.seed), m_seed(config.seed) 
   }
 
   // 4. Create MeasureHandler
-  m_handler = std::make_unique<Measure::MeasureHandler>(
-      config.sweeps_warmup, config.bin_num, config.bin_size, config.sweeps_between_bins,
-      config.observables, momentum_idx, momentum_list_indices);
+  m_handler = std::make_unique<Measure::MeasureHandler>(config.sweeps_warmup, config.observables,
+                                                        momentum_idx, momentum_list_indices);
   m_handler->initial(*m_lattice, config.time_size);
 
   // 5. Create Walker
@@ -252,47 +251,83 @@ void Dqmc::thermalize() {
 }
 
 void Dqmc::measure() {
-  if (m_handler->is_equaltime() || m_handler->is_dynamic()) {
-    // create progress bar
-    ProgressBar progressbar(m_handler->bins_num() * m_handler->bins_size() / 2,
-                            m_progress_bar_width, m_progress_bar_complete_char,
-                            m_progress_bar_incomplete_char);
+  if (!m_handler->is_equaltime() && !m_handler->is_dynamic()) return;
 
-    // measuring sweeps
-    for (auto bin = 0; bin < m_handler->bins_num(); ++bin) {
-      for (auto sweep = 1; sweep <= m_handler->bins_size() / 2; ++sweep) {
-        // update and measure
-        sweep_forth_and_back();
+  m_binning_analyzer = std::make_unique<Measure::BinningAnalyzer>();
+  int total_sweeps = 0;
+  int sweeps_in_current_block = 0;
+  const int min_sweeps = m_config.autobinning_min_sweeps;
+  const int block_target_count = min_sweeps / m_config.block_size / 2;
 
-        // record the tick
-        ++progressbar;
-        if (m_show_progress_bar && (sweep % m_refresh_rate == 1)) {
-          std::cout << " Measuring  ";
-          progressbar.display();
+  ProgressBar progressbar(m_config.autobinning_max_sweeps / 2, m_progress_bar_width,
+                          m_progress_bar_complete_char, m_progress_bar_incomplete_char);
+  m_handler->start_new_block();
+
+  while (total_sweeps < m_config.autobinning_max_sweeps) {
+    sweep_forth_and_back();  // This now accumulates into current block
+    total_sweeps += 2;
+    sweeps_in_current_block += 2;
+
+    if (sweeps_in_current_block >= m_config.block_size) {
+      m_handler->normalize_stats();  // Normalize block accumulator
+      m_handler->finalize_block();   // Push block average to time-series
+
+      double tracked_value = m_handler->get_last_block_avg(m_config.autobinning_target_observable);
+      m_binning_analyzer->add_data_point(tracked_value);
+
+      const int num_blocks = m_binning_analyzer->get_num_data_points();
+      std::cout << total_sweeps << " " << num_blocks << "\n";
+      if (total_sweeps >= min_sweeps && (num_blocks % block_target_count == 0)) {
+        m_binning_analyzer->update_analysis();
+        std::cout << "Rebinning...\n";
+        std::cout << std::format(
+            "total_sweeps: {}\n mean: {}\n error: {}\n autocorrelation_time: {}\n "
+            "optimal_bin_size: "
+            "{}\n "
+            "num_data_points: {}\n",
+            total_sweeps, m_binning_analyzer->get_mean(), m_binning_analyzer->get_error(),
+            m_binning_analyzer->get_autocorrelation_time(),
+            m_binning_analyzer->get_optimal_bin_size(), m_binning_analyzer->get_num_data_points());
+
+        if (m_binning_analyzer->is_converged(m_config.autobinning_target_rel_error)) {
+          std::cout << "\n>> Convergence target reached after " << total_sweeps << " sweeps.\n";
+          break;
         }
       }
 
-      // store the collected data in the MeasureHandler
-      m_handler->normalize_stats();
-      m_handler->write_stats_to_bins(bin);
-      m_handler->clear_temporary();
-
-      // avoid correlations between adjoining bins
-      for (auto sweep = 0; sweep < m_handler->sweep_between_bins() / 2; ++sweep) {
-        m_walker->sweep_from_0_to_beta(*m_model, m_rng);
-        m_walker->sweep_from_beta_to_0(*m_model, m_rng);
-      }
+      m_handler->start_new_block();
+      sweeps_in_current_block = 0;
     }
 
-    // progress bar finish
-    if (m_show_progress_bar) {
+    ++progressbar;  // Or progressbar += 2, depending on its logic
+    if (m_show_progress_bar && (total_sweeps % (m_refresh_rate * 2) == 0)) {
       std::cout << " Measuring  ";
-      progressbar.done();
+      progressbar.display();
     }
+  }
+
+  if (total_sweeps >= m_config.autobinning_max_sweeps) {
+    std::cout << "\n>> Maximum number of sweeps reached.\n";
+  }
+  if (m_show_progress_bar) {
+    std::cout << " Measuring  ";
+    progressbar.done();
   }
 }
 
-void Dqmc::analyse() { m_handler->analyse_stats(); }
+void Dqmc::analyse() {
+  // Get the optimal bin size (in blocks) from the analyzer
+  const int optimal_bin_size_blocks = m_binning_analyzer->get_optimal_bin_size();
+
+  if (optimal_bin_size_blocks > 0) {
+    // Pass this to the handler to perform final analysis on all observables
+    m_handler->analyse(optimal_bin_size_blocks);
+  } else {
+    std::cerr << "Warning: Not enough data for a reliable analysis. Reporting raw statistics from "
+                 "blocks.\n";
+    m_handler->analyse(1);  // Fallback: treat each block as a bin
+  }
+}
 
 void Dqmc::initial_message(std::ostream& ostream) const {
   if (!ostream) {

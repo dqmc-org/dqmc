@@ -60,7 +60,12 @@ struct error_bar_calculator<ScalarType> {
       error_bar += std::pow(data, 2);
     }
     error_bar /= bin_num;
-    error_bar = std::sqrt(error_bar - std::pow(mean_value, 2)) / std::sqrt(bin_num - 1);
+    const double variance = error_bar - std::pow(mean_value, 2);
+    if (variance < 0.0 || bin_num <= 1) {
+      error_bar = 0.0;  // Set to zero if variance is negative or insufficient data
+    } else {
+      error_bar = std::sqrt(variance) / std::sqrt(bin_num - 1);
+    }
   }
 };
 
@@ -135,7 +140,8 @@ class Observable : public ObservableBase {
   DataType m_tmp_value{};   // temporary value during sample collections
   DataType m_zero_elem{};   // zero element to clear temporary values
 
-  std::vector<DataType> m_bin_data{};  // collected data in bins
+  std::vector<DataType> m_block_averages{};  // time-series of block averages
+  std::vector<DataType> m_final_bins{};      // final binned data for file output
 
   std::function<Method> m_method{};  // user-defined measuring method
 
@@ -157,16 +163,60 @@ class Observable : public ObservableBase {
   DataType& tmp_value() { return this->m_tmp_value; }
 
   const DataType& bin_data(int bin) const {
-    DQMC_ASSERT(bin >= 0 && bin < this->m_bin_num);
-    return this->m_bin_data[bin];
+    DQMC_ASSERT(bin >= 0 && bin < static_cast<int>(this->m_final_bins.size()));
+    return this->m_final_bins[bin];
   }
 
   DataType& bin_data(int bin) {
-    DQMC_ASSERT(bin >= 0 && bin < this->m_bin_num);
-    return this->m_bin_data[bin];
+    DQMC_ASSERT(bin >= 0 && bin < static_cast<int>(this->m_final_bins.size()));
+    return this->m_final_bins[bin];
   }
 
-  std::vector<DataType>& bin_data() { return this->m_bin_data; }
+  std::vector<DataType>& bin_data() { return this->m_final_bins; }
+
+  // New block management methods
+  void start_new_block() {
+    // Reset temporary accumulator for the new block
+    this->clear_temporary();
+  }
+
+  void finalize_block() {
+    // Store the normalized tmp_value as the block average
+    EigenMallocGuard<true> alloc_guard;
+    this->m_block_averages.push_back(this->m_tmp_value);
+  }
+
+  // Get the last computed block average
+  const DataType& get_last_block_average() const {
+    DQMC_ASSERT(!this->m_block_averages.empty());
+    return this->m_block_averages.back();
+  }
+
+  // Create final binned data from block averages using optimal bin size
+  void create_final_bins(int optimal_bin_size_blocks) {
+    EigenMallocGuard<true> alloc_guard;
+    const int num_blocks = static_cast<int>(this->m_block_averages.size());
+
+    if (optimal_bin_size_blocks <= 0 || optimal_bin_size_blocks > num_blocks) {
+      // Fallback: treat each block as a bin
+      this->m_final_bins = this->m_block_averages;
+      this->set_number_of_bins(num_blocks);
+    } else {
+      // Create bins from blocks using optimal bin size
+      const int num_final_bins = num_blocks / optimal_bin_size_blocks;
+      this->m_final_bins.clear();
+      this->m_final_bins.reserve(num_final_bins);
+
+      for (int i = 0; i < num_final_bins; ++i) {
+        DataType bin_sum = this->m_zero_elem;
+        for (int j = 0; j < optimal_bin_size_blocks; ++j) {
+          bin_sum += this->m_block_averages[i * optimal_bin_size_blocks + j];
+        }
+        this->m_final_bins.push_back(bin_sum / optimal_bin_size_blocks);
+      }
+      this->set_number_of_bins(num_final_bins);
+    }
+  }
 
   // ---------------------------------  Set up parameters and methods
   // ------------------------------------
@@ -189,11 +239,8 @@ class Observable : public ObservableBase {
     this->m_error_bar = this->m_zero_elem;
     this->m_tmp_value = this->m_zero_elem;
 
-    std::vector<DataType>().swap(this->m_bin_data);
-    this->m_bin_data.reserve(this->m_bin_num);
-    for (int i = 0; i < this->m_bin_num; ++i) {
-      this->m_bin_data.emplace_back(this->m_zero_elem);
-    }
+    std::vector<DataType>().swap(this->m_block_averages);
+    this->m_block_averages.clear();
   }
 
   // clear statistical data, preparing for a new measurement
@@ -208,18 +255,15 @@ class Observable : public ObservableBase {
     this->m_count = 0;
   }
 
-  // clear data of bin collections
-  void clear_bin_data() {
-    for (auto& bin_data : this->m_bin_data) {
-      bin_data = this->m_zero_elem;
-    }
-  }
+  // clear data of block collections
+  void clear_bin_data() { this->m_block_averages.clear(); }
 
   // perform data analysis, especially computing the mean and error
-  void analyse() {
+  void analyse(int optimal_bin_size_blocks) {
+    this->create_final_bins(optimal_bin_size_blocks);
     this->clear_stats();
     this->calculate_mean_value();
-    this->calculate_error_bar();
+    this->calculate_error_bar(optimal_bin_size_blocks);
   }
 
  private:
@@ -228,15 +272,17 @@ class Observable : public ObservableBase {
     {
       EigenMallocGuard<true> alloc_guard;
       this->m_mean_value =
-          std::accumulate(this->m_bin_data.begin(), this->m_bin_data.end(), this->m_zero_elem);
+          std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(), this->m_zero_elem);
     }
-    this->m_mean_value /= this->bin_num();
+    this->m_mean_value /= static_cast<int>(this->m_final_bins.size());
   }
 
   // estimate error bar of the measurement
-  void calculate_error_bar() {
+  void calculate_error_bar(int optimal_bin_size_blocks) {
+    // Use the already-created final bins
+    const int num_final_bins = static_cast<int>(this->m_final_bins.size());
     detail::error_bar_calculator<DataType>::calculate(this->m_error_bar, this->m_mean_value,
-                                                      this->m_bin_data, this->bin_num());
+                                                      this->m_final_bins, num_final_bins);
   }
 };
 

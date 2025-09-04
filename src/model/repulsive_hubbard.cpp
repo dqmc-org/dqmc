@@ -161,6 +161,7 @@ void RepulsiveHubbard::update_greens_function(Walker& walker, TimeIndex time_ind
       (1 + (1 - green_tt_dn(space_index, space_index)) *
                (exp(+2 * this->m_alpha * this->m_bosonic_field(time_index, space_index)) - 1));
 
+  EigenMallocGuard<true> alloc_guard;
   green_tt_up -= factor_up * green_tt_up.col(space_index) *
                  (Eigen::VectorXd::Unit(this->m_space_size, space_index).transpose() -
                   green_tt_up.row(space_index));
