@@ -284,16 +284,14 @@ void Dqmc::measure() {
       // std::cout << total_sweeps << " " << num_blocks << "\n";
       if (total_sweeps >= min_sweeps && (num_blocks % block_target_count == 0)) {
         m_binning_analyzer->update_analysis();
-        // std::cout << "Rebinning...\n";
-        // std::cout << std::format(
-        //     "total_sweeps: {}\n mean: {}\n error: {}\n autocorrelation_time: {}\n "
-        //     "optimal_bin_size: "
-        //     "{}\n "
-        //     "num_data_points: {}\n",
-        //     total_sweeps, m_binning_analyzer->get_mean(), m_binning_analyzer->get_error(),
-        //     m_binning_analyzer->get_autocorrelation_time(),
-        //     m_binning_analyzer->get_optimal_bin_size(),
-        //     m_binning_analyzer->get_num_data_points());
+
+        m_logger.debug("Binning statistics:");
+        m_logger.debug("total_sweeps: {}", total_sweeps);
+        m_logger.debug("mean: {}", m_binning_analyzer->get_mean());
+        m_logger.debug("error: {}", m_binning_analyzer->get_error());
+        m_logger.debug("autocorrelation_time: {}", m_binning_analyzer->get_autocorrelation_time());
+        m_logger.debug("optimal_bin_size: {}", m_binning_analyzer->get_optimal_bin_size());
+        m_logger.debug("num_data_points: {}", m_binning_analyzer->get_num_data_points());
 
         if (m_binning_analyzer->is_converged(m_config.autobinning_target_rel_error)) {
           m_logger.info("Convergence target reached after {} sweeps.", total_sweeps);
