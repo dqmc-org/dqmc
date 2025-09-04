@@ -17,7 +17,7 @@
 #include "utils/assert.h"
 #include "utils/eigen_malloc_guard.h"
 #include "utils/logger.h"
-#include "utils/progressbar.hpp"
+#include "utils/spinner.h"
 #include "walker.h"
 
 namespace DQMC {
@@ -184,19 +184,6 @@ void Dqmc::write_results(const std::string& out_path) const {
 // -----------------------------------  Useful tools
 // --------------------------------------
 
-// set up whether to show the process bar or not
-void Dqmc::show_progress_bar(bool show) { m_show_progress_bar = show; }
-
-// set up the format of the progress bar
-void Dqmc::progress_bar_format(unsigned int width, char complete, char incomplete) {
-  m_progress_bar_width = width;
-  m_progress_bar_complete_char = complete;
-  m_progress_bar_incomplete_char = incomplete;
-}
-
-// set up the rate of refreshing the progress bar
-void Dqmc::set_refresh_rate(unsigned int refresh_rate) { m_refresh_rate = refresh_rate; }
-
 std::chrono::milliseconds Dqmc::timer_as_duration() const {
   return std::chrono::duration_cast<std::chrono::milliseconds>(m_end_time - m_begin_time);
 }
@@ -229,28 +216,15 @@ void Dqmc::sweep_forth_and_back() {
 
 void Dqmc::thermalize() {
   if (m_handler->is_warmup()) {
-    // create progress bar
-    ProgressBar progressbar(m_handler->warm_up_sweeps() / 2, m_progress_bar_width,
-                            m_progress_bar_complete_char, m_progress_bar_incomplete_char);
+    m_logger.info("Warming up...");
+    Utils::Spinner spinner{};
 
     // warm-up sweeps
     for (auto sweep = 1; sweep <= m_handler->warm_up_sweeps() / 2; ++sweep) {
       // sweep forth and back without measuring
       m_walker->sweep_from_0_to_beta(*m_model, m_rng);
       m_walker->sweep_from_beta_to_0(*m_model, m_rng);
-
-      // record the tick
-      ++progressbar;
-      if (m_show_progress_bar && (sweep % m_refresh_rate == 1)) {
-        std::cout << " Warming up ";
-        progressbar.display();
-      }
-    }
-
-    // progress bar finish
-    if (m_show_progress_bar) {
-      std::cout << " Warming up ";
-      progressbar.done();
+      spinner.spin();
     }
   }
 }
@@ -264,8 +238,9 @@ void Dqmc::measure() {
   const int min_sweeps = m_config.autobinning_min_sweeps;
   const int block_target_count = min_sweeps / m_config.block_size / 2;
 
-  ProgressBar progressbar(m_config.autobinning_max_sweeps / 2, m_progress_bar_width,
-                          m_progress_bar_complete_char, m_progress_bar_incomplete_char);
+  m_logger.info("Measuring...");
+  Utils::Spinner spinner{};
+
   m_handler->start_new_block();
 
   while (total_sweeps < m_config.autobinning_max_sweeps) {
@@ -281,11 +256,11 @@ void Dqmc::measure() {
       m_binning_analyzer->add_data_point(tracked_value);
 
       const int num_blocks = m_binning_analyzer->get_num_data_points();
-      // std::cout << total_sweeps << " " << num_blocks << "\n";
       if (total_sweeps >= min_sweeps && (num_blocks % block_target_count == 0)) {
         m_binning_analyzer->update_analysis();
 
         m_logger.debug("Binning statistics:");
+        m_logger.debug("tracking observable: {}", m_config.autobinning_target_observable);
         m_logger.debug("total_sweeps: {}", total_sweeps);
         m_logger.debug("mean: {}", m_binning_analyzer->get_mean());
         m_logger.debug("error: {}", m_binning_analyzer->get_error());
@@ -303,19 +278,11 @@ void Dqmc::measure() {
       sweeps_in_current_block = 0;
     }
 
-    ++progressbar;  // Or progressbar += 2, depending on its logic
-    if (m_show_progress_bar && (total_sweeps % (m_refresh_rate * 2) == 0)) {
-      std::cout << " Measuring  ";
-      progressbar.display();
-    }
+    spinner.spin();
   }
 
   if (total_sweeps >= m_config.autobinning_max_sweeps) {
     m_logger.info("Maximum number of sweeps reached.");
-  }
-  if (m_show_progress_bar) {
-    std::cout << " Measuring  ";
-    progressbar.done();
   }
 }
 

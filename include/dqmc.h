@@ -83,9 +83,6 @@ class Dqmc {
   void write_results(const std::string& out_path) const;
 
   // ---------------------------------------- Useful tools
-  void show_progress_bar(bool show);
-  void progress_bar_format(unsigned int width, char complete, char incomplete);
-  void set_refresh_rate(unsigned int refresh_rate);
   std::chrono::milliseconds timer_as_duration() const;
 
   // ------------------------------------ Accessors for I/O
@@ -124,13 +121,6 @@ class Dqmc {
   const Config& m_config;  // Store config for easy access
   std::default_random_engine m_rng;
   int m_seed;
-
-  // Progress bar settings
-  bool m_show_progress_bar{true};
-  unsigned int m_progress_bar_width{70};
-  unsigned int m_refresh_rate{10};
-  char m_progress_bar_complete_char{'='};
-  char m_progress_bar_incomplete_char{' '};
 
   // Timer
   std::chrono::steady_clock::time_point m_begin_time, m_end_time;

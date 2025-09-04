@@ -188,11 +188,6 @@ int main(int argc, char* argv[]) {
     // 3. Output initialization info
     simulation.initial_message(std::cout);
 
-    // Optional: Configure progress bar
-    simulation.show_progress_bar(true);
-    simulation.progress_bar_format(60, '=', ' ');
-    simulation.set_refresh_rate(10);
-
     // 4. Run the entire simulation
     simulation.run();
 
