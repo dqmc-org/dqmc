@@ -7,6 +7,9 @@ In this repository, we present a general C++ implementation of determinant Quant
 
 Currently, simulations of the fermionic Hubbard model with both attractive and repulsive interaction are supported. Different lattices, e.g. 2d square lattice, 2d honeycomb lattice (todo) and 3d cubic lattice (todo) are supported or scheduled to be implemented.
 
+<img src="./assets/plot.png" width="450">
+
+
 ---
 
 ## Installation ##
