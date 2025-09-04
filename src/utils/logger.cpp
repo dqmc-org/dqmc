@@ -9,7 +9,7 @@
 #include <sstream>
 
 namespace Utils {
-Logger::Logger() : m_level(LogLevel::INFO), m_console(true), m_file(nullptr) {
+Logger::Logger() : m_level(LogLevel::Info), m_console(true), m_file(nullptr) {
   pid_t pid = getpid();
 
   auto now = std::chrono::system_clock::now();
@@ -45,13 +45,13 @@ bool Logger::set_file(const std::string& filename) {
 
 std::string Logger::level_to_string(LogLevel level) const {
   switch (level) {
-    case LogLevel::DEBUG:
+    case LogLevel::Debug:
       return "DEBUG";
-    case LogLevel::INFO:
+    case LogLevel::Info:
       return "INFO";
-    case LogLevel::WARNING:
+    case LogLevel::Warning:
       return "WARN";
-    case LogLevel::ERROR:
+    case LogLevel::Error:
       return "ERROR";
     default:
       return "UNKNOWN";
@@ -80,11 +80,11 @@ void Logger::log(LogLevel level, const std::string& message) {
   }
 }
 
-void Logger::debug(const std::string& message) { log(LogLevel::DEBUG, message); }
+void Logger::debug(const std::string& message) { log(LogLevel::Debug, message); }
 
-void Logger::info(const std::string& message) { log(LogLevel::INFO, message); }
+void Logger::info(const std::string& message) { log(LogLevel::Info, message); }
 
-void Logger::warn(const std::string& message) { log(LogLevel::WARNING, message); }
+void Logger::warn(const std::string& message) { log(LogLevel::Warning, message); }
 
-void Logger::error(const std::string& message) { log(LogLevel::ERROR, message); }
+void Logger::error(const std::string& message) { log(LogLevel::Error, message); }
 }  // namespace Utils

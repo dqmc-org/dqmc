@@ -8,7 +8,7 @@
 namespace Utils {
 class Logger {
  public:
-  enum class LogLevel { DEBUG, INFO, WARNING, ERROR };
+  enum class LogLevel { Debug, Info, Warning, Error };
 
   Logger(const Logger&) = delete;
   Logger& operator=(const Logger&) = delete;
@@ -37,19 +37,19 @@ class Logger {
 
   template <typename... Args>
   void debug(std::format_string<Args...> fmt, Args&&... args) {
-    log_fmt(LogLevel::DEBUG, fmt, std::forward<Args>(args)...);
+    log_fmt(LogLevel::Debug, fmt, std::forward<Args>(args)...);
   }
   template <typename... Args>
   void info(std::format_string<Args...> fmt, Args&&... args) {
-    log_fmt(LogLevel::INFO, fmt, std::forward<Args>(args)...);
+    log_fmt(LogLevel::Info, fmt, std::forward<Args>(args)...);
   }
   template <typename... Args>
   void warn(std::format_string<Args...> fmt, Args&&... args) {
-    log_fmt(LogLevel::WARNING, fmt, std::forward<Args>(args)...);
+    log_fmt(LogLevel::Warning, fmt, std::forward<Args>(args)...);
   }
   template <typename... Args>
   void error(std::format_string<Args...> fmt, Args&&... args) {
-    log_fmt(LogLevel::ERROR, fmt, std::forward<Args>(args)...);
+    log_fmt(LogLevel::Error, fmt, std::forward<Args>(args)...);
   }
 
  private:
