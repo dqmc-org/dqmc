@@ -1,0 +1,90 @@
+#include "utils/logger.h"
+
+#include <unistd.h>
+
+#include <chrono>
+#include <ctime>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
+
+namespace Utils {
+Logger::Logger() : m_level(LogLevel::INFO), m_console(true), m_file(nullptr) {
+  pid_t pid = getpid();
+
+  auto now = std::chrono::system_clock::now();
+  auto now_c = std::chrono::system_clock::to_time_t(now);
+  std::tm now_tm;
+
+  localtime_r(&now_c, &now_tm);
+
+  std::ostringstream timestamp_stream;
+  timestamp_stream << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S");
+  std::string timestamp = timestamp_stream.str();
+
+  set_file(timestamp + "_" + std::to_string(pid) + ".log");
+}
+
+void Logger::set_level(LogLevel level) { m_level = level; }
+
+void Logger::set_to_console(bool enable) { m_console = enable; }
+
+bool Logger::set_file(const std::string& filename) {
+  m_path = filename;
+  auto newFile = std::make_unique<std::ofstream>(m_path, std::ios::app);
+
+  if (newFile && newFile->is_open()) {
+    m_file = std::move(newFile);
+    return true;
+  } else {
+    std::cerr << "Error: Could not open log file: " << m_path << std::endl;
+    m_file.reset();
+    return false;
+  }
+}
+
+std::string Logger::level_to_string(LogLevel level) const {
+  switch (level) {
+    case LogLevel::DEBUG:
+      return "DEBUG";
+    case LogLevel::INFO:
+      return "INFO";
+    case LogLevel::WARNING:
+      return "WARN";
+    case LogLevel::ERROR:
+      return "ERROR";
+    default:
+      return "UNKNOWN";
+  }
+}
+
+void Logger::log(LogLevel level, const std::string& message) {
+  if (level < m_level) {
+    return;
+  }
+  std::string entry = " [" + level_to_string(level) + "] " + message;
+
+  if (m_console) {
+    std::cout << entry << std::endl;
+  }
+
+  if (m_file && m_file->is_open()) {
+    *m_file << entry << std::endl;
+  } else if (!m_path.empty()) {
+    if (m_console) {
+      std::cerr << "[ERROR] Failed to write to log file: " << m_path << std::endl;
+    } else {
+      std::cerr << "[ERROR] Failed to write to log file: " << m_path << std::endl;
+      std::cerr << "[ERROR] Original message: " << message << std::endl;
+    }
+  }
+}
+
+void Logger::debug(const std::string& message) { log(LogLevel::DEBUG, message); }
+
+void Logger::info(const std::string& message) { log(LogLevel::INFO, message); }
+
+void Logger::warn(const std::string& message) { log(LogLevel::WARNING, message); }
+
+void Logger::error(const std::string& message) { log(LogLevel::ERROR, message); }
+}  // namespace Utils

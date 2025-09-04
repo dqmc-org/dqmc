@@ -7,6 +7,7 @@
 #include <string>
 
 #include "dqmc.h"
+#include "utils/logger.h"
 
 // the main program
 int main(int argc, char* argv[]) {
@@ -15,6 +16,8 @@ int main(int argc, char* argv[]) {
   std::string config_file{};
   std::string out_path{};
   int seed = 0;
+
+  auto& logger = Utils::Logger::the();
 
   // clang-format off
   po::options_description general("General options");
@@ -110,11 +113,11 @@ int main(int argc, char* argv[]) {
         po::store(po::parse_config_file(ifs, config_file_options), vm);
         po::notify(vm);
       } else {
-        std::cerr << "Warning: Could not open config file: " << config_file << std::endl;
+        logger.warn("Could not open config file: {}", config_file);
       }
     }
   } catch (const po::error& e) {
-    std::cerr << "Error: " << e.what() << std::endl;
+    logger.error("Command line parsing error: {}", e.what());
     return 1;
   }
 
@@ -136,12 +139,12 @@ int main(int argc, char* argv[]) {
   const auto current_sys_time = std::chrono::system_clock::now();
   const auto local_zone_ptr = std::chrono::current_zone();
   const auto zoned_local_time = std::chrono::zoned_time(local_zone_ptr, current_sys_time);
-  std::cout << std::format(">> Current time: {:%Y-%m-%d %H:%M:%S}\n", zoned_local_time);
+  logger.info("Current time: {:%Y-%m-%d %H:%M:%S}", zoned_local_time);
 
   // ------------------------------------------------------------------------------------------------
   //                                Output run information
   // ------------------------------------------------------------------------------------------------
-  std::cout << std::format(">> Starting DQMC run with seed: {}\n", seed);
+  logger.info("Starting DQMC run with seed: {}", seed);
 
   // ------------------------------------------------------------------------------------------------
   //                                 Process of DQMC simulation
@@ -203,7 +206,7 @@ int main(int argc, char* argv[]) {
     simulation.write_results(out_path);
 
   } catch (const std::exception& e) {
-    std::cerr << e.what() << std::endl;
+    logger.error("Simulation error: {}", e.what());
     return 1;
   }
 
