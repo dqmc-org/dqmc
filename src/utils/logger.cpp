@@ -62,7 +62,7 @@ void Logger::log(LogLevel level, const std::string& message) {
   if (level < m_level) {
     return;
   }
-  std::string entry = " [" + level_to_string(level) + "] " + message;
+  std::string entry = "[" + level_to_string(level) + "] " + message;
 
   if (m_console) {
     std::cout << entry << std::endl;

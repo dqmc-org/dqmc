@@ -16,12 +16,17 @@
 #include "model/repulsive_hubbard.h"
 #include "utils/assert.h"
 #include "utils/eigen_malloc_guard.h"
+#include "utils/logger.h"
 #include "utils/progressbar.hpp"
 #include "walker.h"
 
 namespace DQMC {
 
-Dqmc::Dqmc(const Config& config) : m_config(config), m_rng(42 + config.seed), m_seed(config.seed) {
+Dqmc::Dqmc(const Config& config)
+    : m_config(config),
+      m_rng(42 + config.seed),
+      m_seed(config.seed),
+      m_logger(Utils::Logger::the()) {
   // 1. Create Lattice
   if (config.lattice_type == "Square") {
     DQMC_ASSERT(config.lattice_size.size() == 2);
@@ -99,14 +104,14 @@ Dqmc::Dqmc(const Config& config) : m_config(config), m_rng(42 + config.seed), m_
   // 9. Initialize auxiliary fields
   if (config.fields_file.empty()) {
     m_model->set_bosonic_fields_to_random(m_rng);
-    std::cout << ">> Configurations of the bosonic fields set to random.\n";
+    m_logger.info("Configurations of the bosonic fields set to random.");
   } else {
     std::ifstream infile(config.fields_file);
     if (!infile.is_open()) {
       throw std::runtime_error("Dqmc::Dqmc(): failed to open file");
     }
     m_model->read_auxiliary_field_from_stream(infile);
-    std::cout << ">> Configurations of the bosonic fields read from the input config file.\n";
+    m_logger.info("Configurations of the bosonic fields read from the input config file.");
   }
 
   // 10. Final DQMC preparations
@@ -276,21 +281,22 @@ void Dqmc::measure() {
       m_binning_analyzer->add_data_point(tracked_value);
 
       const int num_blocks = m_binning_analyzer->get_num_data_points();
-      std::cout << total_sweeps << " " << num_blocks << "\n";
+      // std::cout << total_sweeps << " " << num_blocks << "\n";
       if (total_sweeps >= min_sweeps && (num_blocks % block_target_count == 0)) {
         m_binning_analyzer->update_analysis();
-        std::cout << "Rebinning...\n";
-        std::cout << std::format(
-            "total_sweeps: {}\n mean: {}\n error: {}\n autocorrelation_time: {}\n "
-            "optimal_bin_size: "
-            "{}\n "
-            "num_data_points: {}\n",
-            total_sweeps, m_binning_analyzer->get_mean(), m_binning_analyzer->get_error(),
-            m_binning_analyzer->get_autocorrelation_time(),
-            m_binning_analyzer->get_optimal_bin_size(), m_binning_analyzer->get_num_data_points());
+        // std::cout << "Rebinning...\n";
+        // std::cout << std::format(
+        //     "total_sweeps: {}\n mean: {}\n error: {}\n autocorrelation_time: {}\n "
+        //     "optimal_bin_size: "
+        //     "{}\n "
+        //     "num_data_points: {}\n",
+        //     total_sweeps, m_binning_analyzer->get_mean(), m_binning_analyzer->get_error(),
+        //     m_binning_analyzer->get_autocorrelation_time(),
+        //     m_binning_analyzer->get_optimal_bin_size(),
+        //     m_binning_analyzer->get_num_data_points());
 
         if (m_binning_analyzer->is_converged(m_config.autobinning_target_rel_error)) {
-          std::cout << "\n>> Convergence target reached after " << total_sweeps << " sweeps.\n";
+          m_logger.info("Convergence target reached after {} sweeps.", total_sweeps);
           break;
         }
       }
@@ -307,7 +313,7 @@ void Dqmc::measure() {
   }
 
   if (total_sweeps >= m_config.autobinning_max_sweeps) {
-    std::cout << "\n>> Maximum number of sweeps reached.\n";
+    m_logger.info("Maximum number of sweeps reached.");
   }
   if (m_show_progress_bar) {
     std::cout << " Measuring  ";
@@ -323,8 +329,7 @@ void Dqmc::analyse() {
     // Pass this to the handler to perform final analysis on all observables
     m_handler->analyse(optimal_bin_size_blocks);
   } else {
-    std::cerr << "Warning: Not enough data for a reliable analysis. Reporting raw statistics from "
-                 "blocks.\n";
+    m_logger.warn("Not enough data for a reliable analysis. Reporting raw statistics from blocks.");
     m_handler->analyse(1);  // Fallback: treat each block as a bin
   }
 }
@@ -344,11 +349,7 @@ void Dqmc::initial_message(std::ostream& ostream) const {
   m_handler->output_measuring_info(ostream);
 }
 
-void Dqmc::info_message(std::ostream& ostream) const {
-  if (!ostream) {
-    throw std::runtime_error(dqmc_format_error("output stream is not valid."));
-  }
-
+void Dqmc::info_message() const {
   auto duration = this->timer_as_duration();
 
   auto d = std::chrono::duration_cast<std::chrono::days>(duration);
@@ -363,10 +364,10 @@ void Dqmc::info_message(std::ostream& ostream) const {
   auto s = std::chrono::duration_cast<std::chrono::seconds>(duration);
   duration -= s;
 
-  ostream << std::format("\n>> The simulation finished in {}d {}h {}m {}s {}ms.\n", d.count(),
-                         h.count(), m.count(), s.count(), duration.count());
+  m_logger.info("The simulation finished in {}d {}h {}m {}s {}ms.", d.count(), h.count(), m.count(),
+                s.count(), duration.count());
 
-  ostream << std::format(">> Maximum of the wrapping error: {:.5e}\n", m_walker->wrap_error());
+  m_logger.info("Maximum of the wrapping error: {:.5e}", m_walker->wrap_error());
 }
 
 void Dqmc::output_results(std::ostream& ostream) const {

@@ -16,6 +16,7 @@
 #include <vector>
 
 #include "measure/binning_analyzer.h"
+#include "utils/logger.h"
 #include "walker.h"
 
 namespace Model {
@@ -96,7 +97,7 @@ class Dqmc {
 
   // Output
   void initial_message(std::ostream& ostream) const;
-  void info_message(std::ostream& ostream) const;
+  void info_message() const;
   void output_results(std::ostream& ostream) const;
 
  private:
@@ -133,5 +134,8 @@ class Dqmc {
 
   // Timer
   std::chrono::steady_clock::time_point m_begin_time, m_end_time;
+
+  // Logger reference
+  Utils::Logger& m_logger;
 };
 }  // namespace DQMC

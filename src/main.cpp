@@ -197,7 +197,7 @@ int main(int argc, char* argv[]) {
     simulation.run();
 
     // 5. Output ending info
-    simulation.info_message(std::cout);
+    simulation.info_message();
 
     // 6. Output scalar results to console
     simulation.output_results(std::cout);
