@@ -181,20 +181,6 @@ void Dqmc::write_results(const std::string& out_path) const {
   }
 }
 
-// -----------------------------------  Useful tools
-// --------------------------------------
-
-std::chrono::milliseconds Dqmc::timer_as_duration() const {
-  return std::chrono::duration_cast<std::chrono::milliseconds>(m_end_time - m_begin_time);
-}
-
-// ------------------------------------ Accessors for I/O -------------------------------------
-const Model::ModelBase& Dqmc::model() const { return *m_model; }
-const Lattice::LatticeBase& Dqmc::lattice() const { return *m_lattice; }
-const Walker& Dqmc::walker() const { return *m_walker; }
-const Measure::MeasureHandler& Dqmc::handler() const { return *m_handler; }
-const CheckerBoard::CheckerBoardBase* Dqmc::checkerboard() const { return m_checkerboard.get(); }
-
 // -----------------------------------  Implementation of private methods
 // --------------------------------------
 

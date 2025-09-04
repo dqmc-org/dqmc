@@ -83,14 +83,16 @@ class Dqmc {
   void write_results(const std::string& out_path) const;
 
   // ---------------------------------------- Useful tools
-  std::chrono::milliseconds timer_as_duration() const;
+  std::chrono::milliseconds timer_as_duration() const {
+    return std::chrono::duration_cast<std::chrono::milliseconds>(m_end_time - m_begin_time);
+  }
 
   // ------------------------------------ Accessors for I/O
-  const Model::ModelBase& model() const;
-  const Lattice::LatticeBase& lattice() const;
-  const Walker& walker() const;
-  const Measure::MeasureHandler& handler() const;
-  const CheckerBoard::CheckerBoardBase* checkerboard() const;
+  const Model::ModelBase& model() const { return *m_model; }
+  const Lattice::LatticeBase& lattice() const { return *m_lattice; }
+  const Walker& walker() const { return *m_walker; }
+  const Measure::MeasureHandler& handler() const { return *m_handler; }
+  const CheckerBoard::CheckerBoardBase* checkerboard() const { return m_checkerboard.get(); }
 
   // Output
   void initial_message(std::ostream& ostream) const;
