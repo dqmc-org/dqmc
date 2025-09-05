@@ -65,7 +65,7 @@ Dqmc::Dqmc(const Config& config)
   // 4. Create MeasureHandler
   m_handler = std::make_unique<Measure::MeasureHandler>(config.sweeps_warmup, config.observables,
                                                         momentum_idx, momentum_list_indices);
-  m_handler->initial(*m_lattice, config.time_size);
+  m_handler->initial();
 
   // 5. Create Walker
   m_walker = std::make_unique<Walker>(config.beta, config.time_size, config.stabilization_pace);

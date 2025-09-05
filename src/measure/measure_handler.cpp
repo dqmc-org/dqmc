@@ -33,7 +33,7 @@ void MeasureHandler::set_measured_momentum_list(const std::vector<int>& momentum
   this->m_momentum_list = momentum_index_list;
 }
 
-void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
+void MeasureHandler::initial() {
   Observable::ObservableHandler::initial(this->m_obs_list);
 
   this->m_is_warmup = (this->m_sweeps_warmup != 0);

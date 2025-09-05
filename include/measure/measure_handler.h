@@ -73,7 +73,7 @@ class MeasureHandler : public Observable::ObservableHandler {
   // ------------------------------------  Initializations
   // ---------------------------------------------
 
-  void initial(const LatticeBase& lattice, int time_size);
+  void initial();
 
   // ---------------------------------------  Interfaces
   // -----------------------------------------------
