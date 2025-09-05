@@ -2,8 +2,6 @@
 
 #include <format>
 
-#include "lattice/lattice_base.h"
-#include "model/model_base.h"
 #include "utils/assert.h"
 #include "walker.h"
 
@@ -36,7 +34,6 @@ void MeasureHandler::set_measured_momentum_list(const std::vector<int>& momentum
 }
 
 void MeasureHandler::initial(const LatticeBase& lattice, int time_size) {
-  // initialize ObservableHandler
   Observable::ObservableHandler::initial(this->m_obs_list);
 
   this->m_is_warmup = (this->m_sweeps_warmup != 0);
@@ -76,19 +73,19 @@ void MeasureHandler::normalize_stats() {
   if (this->m_is_equaltime) {
     if (auto* equaltime_sign = this->find<Observable::Scalar>("equaltime_sign")) {
       // normalize the sign measurement first
-      equaltime_sign->accumulator() /= equaltime_sign->counts();
+      equaltime_sign->accumulator() /= equaltime_sign->bin_size();
 
       // normalize observables by the countings and the mean value of the sign
       for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
         if (scalar_obs->name() != "equaltime_sign") {
-          scalar_obs->accumulator() /= scalar_obs->counts() * equaltime_sign->accumulator();
+          scalar_obs->accumulator() /= scalar_obs->bin_size() * equaltime_sign->accumulator();
         }
       }
       for (auto& vector_obs : this->m_eqtime_vector_obs) {
-        vector_obs->accumulator() /= vector_obs->counts() * equaltime_sign->accumulator();
+        vector_obs->accumulator() /= vector_obs->bin_size() * equaltime_sign->accumulator();
       }
       for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
-        matrix_obs->accumulator() /= matrix_obs->counts() * equaltime_sign->accumulator();
+        matrix_obs->accumulator() /= matrix_obs->bin_size() * equaltime_sign->accumulator();
       }
 
       // record the absolute value of sign
@@ -99,18 +96,18 @@ void MeasureHandler::normalize_stats() {
   if (this->m_is_dynamic) {
     if (auto* dynamic_sign = this->find<Observable::Scalar>("dynamic_sign")) {
       // normalize the sign measurment first
-      dynamic_sign->accumulator() /= dynamic_sign->counts();
+      dynamic_sign->accumulator() /= dynamic_sign->bin_size();
 
       for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
         if (scalar_obs->name() != "dynamic_sign") {
-          scalar_obs->accumulator() /= scalar_obs->counts() * dynamic_sign->accumulator();
+          scalar_obs->accumulator() /= scalar_obs->bin_size() * dynamic_sign->accumulator();
         }
       }
       for (auto& vector_obs : this->m_dynamic_vector_obs) {
-        vector_obs->accumulator() /= vector_obs->counts() * dynamic_sign->accumulator();
+        vector_obs->accumulator() /= vector_obs->bin_size() * dynamic_sign->accumulator();
       }
       for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
-        matrix_obs->accumulator() /= matrix_obs->counts() * dynamic_sign->accumulator();
+        matrix_obs->accumulator() /= matrix_obs->bin_size() * dynamic_sign->accumulator();
       }
 
       // record the absolute value of sign
@@ -201,33 +198,6 @@ void MeasureHandler::analyse(int optimal_bin_size_blocks) {
     }
     for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
       matrix_obs->analyse(optimal_bin_size_blocks);
-    }
-  }
-}
-
-void MeasureHandler::clear_temporary() {
-  // clear the temporary data for all the observables
-  if (this->m_is_equaltime) {
-    for (auto& scalar_obs : this->m_eqtime_scalar_obs) {
-      scalar_obs->clear_temporary();
-    }
-    for (auto& vector_obs : this->m_eqtime_vector_obs) {
-      vector_obs->clear_temporary();
-    }
-    for (auto& matrix_obs : this->m_eqtime_matrix_obs) {
-      matrix_obs->clear_temporary();
-    }
-  }
-
-  if (this->m_is_dynamic) {
-    for (auto& scalar_obs : this->m_dynamic_scalar_obs) {
-      scalar_obs->clear_temporary();
-    }
-    for (auto& vector_obs : this->m_dynamic_vector_obs) {
-      vector_obs->clear_temporary();
-    }
-    for (auto& matrix_obs : this->m_dynamic_matrix_obs) {
-      matrix_obs->clear_temporary();
     }
   }
 }

@@ -111,9 +111,6 @@ class MeasureHandler : public Observable::ObservableHandler {
   double get_last_block_avg(const std::string& obs_name) const;
   void analyse(int optimal_bin_size_blocks);
 
-  // clear the temporary data
-  void clear_temporary();
-
   // output measuring parameters in a self-documenting format
   void output_measuring_info(std::ostream& ostream) const;
 };

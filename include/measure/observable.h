@@ -88,25 +88,25 @@ Scalar zeros_like(const Scalar&) {
  */
 class ObservableBase {
  protected:
-  std::string m_name;  // name of the observable
-  std::string m_desc;  // description of the observable
-  int m_bin_num{0};    // total number of bins
-  int m_count{0};      // countings within a bin
+  std::string m_name;         // name of the observable
+  std::string m_description;  // description of the observable
+  int m_bin_count{0};         // total number of bins
+  int m_bin_size{0};          // countings within a bin
 
   ObservableBase() = default;
 
   explicit ObservableBase(const std::string& name, const std::string& desc)
-      : m_name(name), m_desc(desc) {}
+      : m_name(name), m_description(desc) {}
 
  public:
   virtual ~ObservableBase() = default;
 
   const std::string& name() const { return this->m_name; }
-  const std::string& description() const { return this->m_desc; }
-  int bin_num() const { return this->m_bin_num; }
-  void set_number_of_bins(int bin_num) { this->m_bin_num = bin_num; }
+  const std::string& description() const { return this->m_description; }
+  int bin_count() const { return this->m_bin_count; }
+  int bin_size() const { return this->m_bin_size; }
 
-  int counts() const { return this->m_count; }
+  void set_bin_count(int bin_num) { this->m_bin_count = bin_num; }
 };
 
 /**
@@ -155,7 +155,7 @@ class Observable : public ObservableBase {
 
   void accumulate(const DataType& data, size_t count = 1) {
     m_accumulator += data;
-    m_count += count;
+    m_bin_size += count;
   }
 
   const DataType& bin_data(int bin) const {
@@ -163,12 +163,7 @@ class Observable : public ObservableBase {
     return this->m_final_bins[bin];
   }
 
-  DataType& bin_data(int bin) {
-    DQMC_ASSERT(bin >= 0 && bin < static_cast<int>(this->m_final_bins.size()));
-    return this->m_final_bins[bin];
-  }
-
-  std::vector<DataType>& bin_data() { return this->m_final_bins; }
+  const std::vector<DataType>& bin_data() const { return this->m_final_bins; }
 
   void start_new_block() { this->clear_temporary(); }
 
@@ -189,7 +184,7 @@ class Observable : public ObservableBase {
     if (optimal_bin_size_blocks <= 0 || optimal_bin_size_blocks > num_blocks) {
       // Fallback: treat each block as a bin
       this->m_final_bins = this->m_block_averages;
-      this->set_number_of_bins(num_blocks);
+      this->set_bin_count(num_blocks);
     } else {
       // Create bins from blocks using optimal bin size
       const int num_final_bins = num_blocks / optimal_bin_size_blocks;
@@ -201,10 +196,10 @@ class Observable : public ObservableBase {
         for (int j = 0; j < optimal_bin_size_blocks; ++j) {
           bin_sum += this->m_block_averages[i * optimal_bin_size_blocks + j];
         }
-        EigenMallocGuard<true> alloc_guard;
-        this->m_final_bins.push_back(bin_sum / optimal_bin_size_blocks);
+        bin_sum /= optimal_bin_size_blocks;
+        this->m_final_bins.push_back(std::move(bin_sum));
       }
-      this->set_number_of_bins(num_final_bins);
+      this->set_bin_count(num_final_bins);
     }
   }
 
@@ -218,36 +213,28 @@ class Observable : public ObservableBase {
     this->m_method(*this, ctx);
   }
 
-  // clear statistical data, preparing for a new measurement
-  void clear_stats() {
-    this->m_mean_value = detail::zeros_like(m_accumulator);
-    this->m_error_bar = detail::zeros_like(m_accumulator);
-  }
-
   // clear temporary data
   void clear_temporary() {
     this->m_accumulator = detail::zeros_like(m_accumulator);
-    this->m_count = 0;
+    this->m_bin_size = 0;
   }
 
   // perform data analysis, especially computing the mean and error
   void analyse(int optimal_bin_size_blocks) {
     this->create_final_bins(optimal_bin_size_blocks);
-    this->clear_stats();
     this->calculate_mean_value();
     this->calculate_error_bar();
   }
 
  private:
-  // calculating mean value of the measurement
   void calculate_mean_value() {
     this->m_mean_value = std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(),
                                          detail::zeros_like(m_accumulator));
     this->m_mean_value /= this->m_final_bins.size();
   }
 
-  // estimate error bar of the measurement
   void calculate_error_bar() {
+    this->m_error_bar = detail::zeros_like(m_accumulator);
     detail::calculate_error_bar(this->m_error_bar, this->m_mean_value, this->m_final_bins);
   }
 };
@@ -345,7 +332,7 @@ void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<
   // for scalar observables
   if constexpr (std::is_same_v<ObsType, ScalarType>) {
     // output bin data of scalar observable
-    const int number_of_bins = obs.bin_num();
+    const int number_of_bins = obs.bin_count();
     ostream << std::format("{:>20d}\n", number_of_bins);
     for (auto bin = 0; bin < number_of_bins; ++bin) {
       ostream << std::format("{:>20d}{:>20.10f}\n", bin, obs.bin_data(bin));
@@ -355,7 +342,7 @@ void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<
   // for vector observables
   else if constexpr (std::is_same_v<ObsType, VectorType>) {
     // output bin data of vector observable
-    const int number_of_bins = obs.bin_num();
+    const int number_of_bins = obs.bin_count();
     const int size = obs.mean_value().size();
     ostream << std::format("{:>20d}{:>20d}\n", number_of_bins, size);
     for (auto bin = 0; bin < number_of_bins; ++bin) {
@@ -368,7 +355,7 @@ void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<
   // for matrix observables
   else if constexpr (std::is_same_v<ObsType, MatrixType>) {
     // output bin data of matrix observable
-    const int number_of_bins = obs.bin_num();
+    const int number_of_bins = obs.bin_count();
     const int row = obs.mean_value().rows();
     const int col = obs.mean_value().cols();
     ostream << std::format("{:>20d}{:>20d}{:>20d}\n", number_of_bins, row, col);
