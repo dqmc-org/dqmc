@@ -122,6 +122,7 @@ class ModelBase {
   virtual void set_model_params(RealScalar, RealScalar, RealScalar) = 0;
 
   virtual RealScalar HoppingT() const = 0;
+  virtual RealScalar OnSiteU() const = 0;
   virtual RealScalar ChemicalPotential() const = 0;
 
   // output model information to stream with consistent formatting

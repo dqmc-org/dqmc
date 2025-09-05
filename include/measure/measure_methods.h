@@ -39,6 +39,8 @@ void measure_double_occupancy(Observable::Scalar& double_occupancy, const Measur
 
 void measure_kinetic_energy(Observable::Scalar& kinetic_energy, const MeasureContext& ctx);
 
+void measure_total_energy(Observable::Scalar& total_energy, const MeasureContext& ctx);
+
 void measure_local_spin_corr(Observable::Scalar& local_spin_corr, const MeasureContext& ctx);
 
 void measure_momentum_distribution(Observable::Scalar& momentum_dist, const MeasureContext& ctx);

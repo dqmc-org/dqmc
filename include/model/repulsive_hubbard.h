@@ -58,7 +58,7 @@ class RepulsiveHubbard : public ModelBase {
 
  public:
   RealScalar HoppingT() const override;
-  RealScalar OnSiteU() const;
+  RealScalar OnSiteU() const override;
   RealScalar ChemicalPotential() const override;
 
   // output model information to stream with consistent formatting

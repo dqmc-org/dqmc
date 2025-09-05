@@ -20,6 +20,7 @@ const std::unordered_map<std::string, ObservableHandler::ObservableProperties> O
     {"filling_number",                 {"Filling number",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_filling_number)}},
     {"double_occupancy",               {"Double occupation",           ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_double_occupancy)}},
     {"kinetic_energy",                 {"Kinetic energy",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_kinetic_energy)}},
+    {"total_energy",                 {"Total energy",              ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_total_energy)}},
     {"momentum_distribution",          {"Momentum distribution",       ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_momentum_distribution)}},
     {"local_spin_corr",                {"Local spin correlation",      ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_local_spin_corr)}},
     {"spin_density_structure_factor",  {"SDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_spin_density_structure_factor)}},

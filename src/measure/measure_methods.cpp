@@ -105,6 +105,55 @@ void Methods::measure_kinetic_energy(Observable::Scalar& kinetic_energy,
   kinetic_energy.increment(time_size);
 }
 
+// Total energy: E = Kinetic + U * DoubleOccupancy - mu * Filling
+void Methods::measure_total_energy(Observable::Scalar& total_energy, const MeasureContext& ctx) {
+  const int time_size = ctx.walker.time_size();
+  const int space_size = ctx.lattice.space_size();
+
+  const double t_hop = ctx.model.HoppingT();
+  const double U = ctx.model.OnSiteU();
+  const double mu = ctx.model.ChemicalPotential();
+
+  double acum_kinetic = 0.0;
+  double acum_double_occ = 0.0;
+  double acum_density = 0.0;
+
+  for (auto tt = 0; tt < time_size; ++tt) {
+    const auto& g_up = ctx.walker.green_tt_up(tt);
+    const auto& g_dn = ctx.walker.green_tt_down(tt);
+    const double config_sign = ctx.walker.config_sign(tt);
+
+    double sum_hop = 0.0;
+    for (int i = 0; i < space_size; ++i) {
+      for (const auto j : ctx.lattice.get_neighbors(i)) {
+        sum_hop += g_up(i, j) + g_dn(i, j);
+      }
+    }
+    acum_kinetic += config_sign * sum_hop;
+
+    double sum_double_t = 0.0;
+    for (int i = 0; i < space_size; ++i) {
+      sum_double_t += (1.0 - g_up(i, i)) * (1.0 - g_dn(i, i));
+    }
+    acum_double_occ += config_sign * sum_double_t;
+
+    const double combined_trace = g_up.trace() + g_dn.trace();
+    const double density_per_site = 2.0 - (combined_trace / static_cast<double>(space_size));
+    acum_density += config_sign * density_per_site;
+  }
+
+  const double kinetic_prefactor = t_hop / static_cast<double>(space_size);
+  const double kinetic = kinetic_prefactor * acum_kinetic;
+
+  const double double_occ_per_site = acum_double_occ / static_cast<double>(space_size);
+  const double potential = U * double_occ_per_site;
+
+  const double mu_term = -mu * (acum_density);
+
+  total_energy.tmp_value() += (kinetic + potential + mu_term);
+  total_energy.increment(time_size);
+}
+
 // In general, spin correlations is defined as C(i,t) = < (n_up - n_dn)(i,t) *
 // (n_up - n_dn)(0,0) > which measure the correlations of spins between two
 // space-time points. the local correlations are the limit of i = 0 and t = 0.
