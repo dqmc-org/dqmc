@@ -15,6 +15,7 @@
 #include <iostream>
 #include <numeric>
 #include <string>
+#include <type_traits>
 #include <vector>
 
 #include "measure/measure_context.h"
@@ -82,6 +83,18 @@ struct error_bar_calculator<
         (error_bar.array() - mean_value.array().square()).sqrt().matrix() / std::sqrt(bin_num - 1);
   }
 };
+
+template <typename Derived>
+typename Derived::PlainObject zeros_like(const Eigen::MatrixBase<Derived>& expr) {
+  EigenMallocGuard<true> alloc_guard;
+  using PlainObjectType = typename Derived::PlainObject;
+  return PlainObjectType::Zero(expr.rows(), expr.cols());
+}
+
+template <typename Scalar, typename = std::enable_if_t<std::is_arithmetic_v<Scalar>>>
+Scalar zeros_like(const Scalar&) {
+  return static_cast<Scalar>(0);
+}
 }  // namespace detail
 
 /**
@@ -135,10 +148,9 @@ class Observable : public ObservableBase {
   using MeasureHandler = Measure::MeasureHandler;
   using Method = void(Observable<DataType>&, const Measure::MeasureContext&);
 
-  DataType m_mean_value{};  // statistical mean value
-  DataType m_error_bar{};   // estimated error bar
-  DataType m_tmp_value{};   // temporary value during sample collections
-  DataType m_zero_elem{};   // zero element to clear temporary values
+  DataType m_mean_value{};   // statistical mean value
+  DataType m_error_bar{};    // estimated error bar
+  DataType m_accumulator{};  // temporary value during sample collections
 
   std::vector<DataType> m_block_averages{};  // time-series of block averages
   std::vector<DataType> m_final_bins{};      // final binned data for file output
@@ -155,12 +167,16 @@ class Observable : public ObservableBase {
   // -------------------------------------  Interface functions
   // ------------------------------------------
 
-  const DataType& zero_element() const { return this->m_zero_elem; }
   const DataType& mean_value() const { return this->m_mean_value; }
   const DataType& error_bar() const { return this->m_error_bar; }
 
-  const DataType& tmp_value() const { return this->m_tmp_value; }
-  DataType& tmp_value() { return this->m_tmp_value; }
+  const DataType& accumulator() const { return this->m_accumulator; }
+  DataType& accumulator() { return this->m_accumulator; }
+
+  void accumulate(const DataType& data, size_t count = 1) {
+    m_accumulator += data;
+    m_count += count;
+  }
 
   const DataType& bin_data(int bin) const {
     DQMC_ASSERT(bin >= 0 && bin < static_cast<int>(this->m_final_bins.size()));
@@ -183,7 +199,7 @@ class Observable : public ObservableBase {
   void finalize_block() {
     // Store the normalized tmp_value as the block average
     EigenMallocGuard<true> alloc_guard;
-    this->m_block_averages.push_back(this->m_tmp_value);
+    this->m_block_averages.push_back(this->m_accumulator);
   }
 
   // Get the last computed block average
@@ -208,20 +224,16 @@ class Observable : public ObservableBase {
       this->m_final_bins.reserve(num_final_bins);
 
       for (int i = 0; i < num_final_bins; ++i) {
-        DataType bin_sum = this->m_zero_elem;
+        DataType bin_sum = detail::zeros_like(m_accumulator);
         for (int j = 0; j < optimal_bin_size_blocks; ++j) {
           bin_sum += this->m_block_averages[i * optimal_bin_size_blocks + j];
         }
+        EigenMallocGuard<true> alloc_guard;
         this->m_final_bins.push_back(bin_sum / optimal_bin_size_blocks);
       }
       this->set_number_of_bins(num_final_bins);
     }
   }
-
-  // ---------------------------------  Set up parameters and methods
-  // ------------------------------------
-
-  void set_zero_element(const DataType& zero_elem) { this->m_zero_elem = zero_elem; }
 
   // -------------------------------------  Other member functions
   // ---------------------------------------
@@ -233,25 +245,15 @@ class Observable : public ObservableBase {
     this->m_method(*this, ctx);
   }
 
-  // allocate memory
-  void allocate() {
-    this->m_mean_value = this->m_zero_elem;
-    this->m_error_bar = this->m_zero_elem;
-    this->m_tmp_value = this->m_zero_elem;
-
-    std::vector<DataType>().swap(this->m_block_averages);
-    this->m_block_averages.clear();
-  }
-
   // clear statistical data, preparing for a new measurement
   void clear_stats() {
-    this->m_mean_value = this->m_zero_elem;
-    this->m_error_bar = this->m_zero_elem;
+    this->m_mean_value = detail::zeros_like(m_accumulator);
+    this->m_error_bar = detail::zeros_like(m_accumulator);
   }
 
   // clear temporary data
   void clear_temporary() {
-    this->m_tmp_value = this->m_zero_elem;
+    this->m_accumulator = detail::zeros_like(m_accumulator);
     this->m_count = 0;
   }
 
@@ -271,8 +273,8 @@ class Observable : public ObservableBase {
   void calculate_mean_value() {
     {
       EigenMallocGuard<true> alloc_guard;
-      this->m_mean_value =
-          std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(), this->m_zero_elem);
+      this->m_mean_value = std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(),
+                                           detail::zeros_like(m_accumulator));
     }
     this->m_mean_value /= static_cast<int>(this->m_final_bins.size());
   }

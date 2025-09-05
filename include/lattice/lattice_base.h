@@ -87,6 +87,8 @@ class LatticeBase {
 
   const Eigen::MatrixXd& fourier_factor() const { return this->m_fourier_factor_table; }
 
+  const Eigen::MatrixXi& displacement() const { return this->m_displacement_table; }
+
   int displacement(int site1_index, int site2_index) const {
     DQMC_ASSERT(site1_index >= 0 && site1_index < this->m_space_size);
     DQMC_ASSERT(site2_index >= 0 && site2_index < this->m_space_size);

@@ -53,6 +53,8 @@ void measure_charge_density_structure_factor(Observable::Scalar& cdw_factor,
 
 void measure_s_wave_pairing_corr(Observable::Scalar& s_wave_pairing, const MeasureContext& ctx);
 
+void measure_pair_pair_corr_Q(Observable::Vector& pair_corr_Q, const MeasureContext& ctx);
+
 // Dynamical Measurements:
 //    1. Dynamical green's functions in momentum space: G(k,t) = < c(k,t) *
 //    c^+(k,0) >
@@ -74,8 +76,6 @@ void measure_superfluid_stiffness(Observable::Scalar& superfluid_stiffness,
 
 void measure_dynamic_spin_susceptibility(Observable::Vector& dynamic_spin_susceptibility,
                                          const MeasureContext& ctx);
-
-void measure_pair_pair_corr_Q(Observable::Scalar& pair_corr_Q, const MeasureContext& ctx);
 
 void measure_dynamic_pair_corr(Observable::Vector& dynamic_pair_corr, const MeasureContext& ctx);
 }  // namespace Methods

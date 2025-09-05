@@ -27,7 +27,7 @@ const std::unordered_map<std::string, ObservableHandler::ObservableProperties> O
     {"charge_density_structure_factor",{"CDW order parameter",         ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_charge_density_structure_factor)}},
     {"s_wave_pairing_corr",            {"S-wave pairing correlation",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_s_wave_pairing_corr)}},
     {"equaltime_sign",                 {"Averaged sign (equal-time)",  ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_equaltime_config_sign)}},
-    {"pair_pair_corr_Q",               { "Pair–pair correlation at Q", ObsTimeType::EqualTime, ObsDataType::Scalar, make_observable<Scalar>(Measure::Methods::measure_pair_pair_corr_Q)}},
+    {"pair_pair_corr_Q",               { "Pair–pair correlation at Q", ObsTimeType::EqualTime, ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_pair_pair_corr_Q)}},
     // --- Dynamic Observables ---
     {"greens_functions",               {"Green's functions",           ObsTimeType::Dynamic,   ObsDataType::Matrix, make_observable<Matrix>(Measure::Methods::measure_greens_functions)}},
     {"density_of_states",              {"Density of states",           ObsTimeType::Dynamic,   ObsDataType::Vector, make_observable<Vector>(Measure::Methods::measure_density_of_states)}},
