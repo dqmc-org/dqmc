@@ -18,6 +18,13 @@ TemporaryPool::MatrixPtr TemporaryPool::acquire_matrix(int rows, int cols) {
     m_debug_info.matrix_stats.allocations++;
 #endif
   } else {
+    for (auto& elm : m_matrix_pool) {
+      if (elm->rows() == rows && elm->cols() == cols) {
+        std::swap(elm, m_matrix_pool.back());
+        break;
+      }
+    }
+
     resource = std::move(m_matrix_pool.back());
     m_matrix_pool.pop_back();
     resource->resize(rows, cols);
@@ -45,6 +52,13 @@ TemporaryPool::VectorPtr TemporaryPool::acquire_vector(int size) {
     m_debug_info.vector_stats.allocations++;
 #endif
   } else {
+    for (auto& elm : m_vector_pool) {
+      if (elm->size() == size) {
+        std::swap(elm, m_vector_pool.back());
+        break;
+      }
+    }
+
     resource = std::move(m_vector_pool.back());
     m_vector_pool.pop_back();
     resource->resize(size);
