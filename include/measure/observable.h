@@ -45,26 +45,25 @@ using MatrixType = Eigen::MatrixXd;
 
 namespace detail {
 template <typename T>
-void calculate_error_bar(T& error_bar, const T& mean_value, const std::vector<T>& bin_data,
-                         int bin_num) {
+void calculate_error_bar(T& error_bar, const T& mean_value, const std::vector<T>& bin_data) {
   if constexpr (std::is_floating_point<T>{}) {
     for (const auto& data : bin_data) {
       error_bar += std::pow(data, 2);
     }
-    error_bar /= bin_num;
+    error_bar /= bin_data.size();
     const auto variance = error_bar - std::pow(mean_value, 2);
-    if (variance < 0.0 || bin_num <= 1) {
+    if (variance < 0.0 || bin_data.size() <= 1) {
       error_bar = 0.0;
     } else {
-      error_bar = std::sqrt(variance) / std::sqrt(bin_num - 1);
+      error_bar = std::sqrt(variance) / std::sqrt(bin_data.size() - 1);
     }
   } else if constexpr (std::is_base_of_v<Eigen::MatrixBase<T>, T>) {
     for (const auto& data : bin_data) {
       error_bar += data.array().square().matrix();
     }
-    error_bar /= bin_num;
-    error_bar =
-        (error_bar.array() - mean_value.array().square()).sqrt().matrix() / std::sqrt(bin_num - 1);
+    error_bar /= bin_data.size();
+    error_bar = (error_bar.array() - mean_value.array().square()).sqrt().matrix() /
+                std::sqrt(bin_data.size() - 1);
   }
 }
 
@@ -108,9 +107,6 @@ class ObservableBase {
   void set_number_of_bins(int bin_num) { this->m_bin_num = bin_num; }
 
   int counts() const { return this->m_count; }
-
-  void increment() { ++this->m_count; }
-  void increment(int amount) { this->m_count += amount; }
 };
 
 /**
@@ -174,25 +170,18 @@ class Observable : public ObservableBase {
 
   std::vector<DataType>& bin_data() { return this->m_final_bins; }
 
-  // New block management methods
-  void start_new_block() {
-    // Reset temporary accumulator for the new block
-    this->clear_temporary();
-  }
+  void start_new_block() { this->clear_temporary(); }
 
   void finalize_block() {
-    // Store the normalized tmp_value as the block average
     EigenMallocGuard<true> alloc_guard;
     this->m_block_averages.push_back(this->m_accumulator);
   }
 
-  // Get the last computed block average
   const DataType& get_last_block_average() const {
     DQMC_ASSERT(!this->m_block_averages.empty());
     return this->m_block_averages.back();
   }
 
-  // Create final binned data from block averages using optimal bin size
   void create_final_bins(int optimal_bin_size_blocks) {
     EigenMallocGuard<true> alloc_guard;
     const int num_blocks = static_cast<int>(this->m_block_averages.size());
@@ -241,32 +230,25 @@ class Observable : public ObservableBase {
     this->m_count = 0;
   }
 
-  // clear data of block collections
-  void clear_bin_data() { this->m_block_averages.clear(); }
-
   // perform data analysis, especially computing the mean and error
   void analyse(int optimal_bin_size_blocks) {
     this->create_final_bins(optimal_bin_size_blocks);
     this->clear_stats();
     this->calculate_mean_value();
-    this->calculate_error_bar(optimal_bin_size_blocks);
+    this->calculate_error_bar();
   }
 
  private:
   // calculating mean value of the measurement
   void calculate_mean_value() {
-    {
-      EigenMallocGuard<true> alloc_guard;
-      this->m_mean_value = std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(),
-                                           detail::zeros_like(m_accumulator));
-    }
+    this->m_mean_value = std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(),
+                                         detail::zeros_like(m_accumulator));
     this->m_mean_value /= this->m_final_bins.size();
   }
 
   // estimate error bar of the measurement
-  void calculate_error_bar(int optimal_bin_size_blocks) {
-    detail::calculate_error_bar(this->m_error_bar, this->m_mean_value, this->m_final_bins,
-                                this->m_final_bins.size());
+  void calculate_error_bar() {
+    detail::calculate_error_bar(this->m_error_bar, this->m_mean_value, this->m_final_bins);
   }
 };
 
