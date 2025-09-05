@@ -44,37 +44,21 @@ using VectorType = Eigen::VectorXd;
 using MatrixType = Eigen::MatrixXd;
 
 namespace detail {
-
-template <typename DataType, typename = void>
-struct error_bar_calculator {
-  static void calculate(DataType&, const DataType&, const std::vector<DataType>&, int) {
-    static_assert(sizeof(DataType) == 0,
-                  "Observable::calculate_error_bar(): Unsupported observable type.");
-  }
-};
-
-template <>
-struct error_bar_calculator<ScalarType> {
-  static void calculate(ScalarType& error_bar, const ScalarType& mean_value,
-                        const std::vector<ScalarType>& bin_data, int bin_num) {
+template <typename T>
+void calculate_error_bar(T& error_bar, const T& mean_value, const std::vector<T>& bin_data,
+                         int bin_num) {
+  if constexpr (std::is_floating_point<T>{}) {
     for (const auto& data : bin_data) {
       error_bar += std::pow(data, 2);
     }
     error_bar /= bin_num;
-    const double variance = error_bar - std::pow(mean_value, 2);
+    const auto variance = error_bar - std::pow(mean_value, 2);
     if (variance < 0.0 || bin_num <= 1) {
-      error_bar = 0.0;  // Set to zero if variance is negative or insufficient data
+      error_bar = 0.0;
     } else {
       error_bar = std::sqrt(variance) / std::sqrt(bin_num - 1);
     }
-  }
-};
-
-template <typename EigenType>
-struct error_bar_calculator<
-    EigenType, std::enable_if_t<std::is_base_of_v<Eigen::DenseBase<EigenType>, EigenType>>> {
-  static void calculate(EigenType& error_bar, const EigenType& mean_value,
-                        const std::vector<EigenType>& bin_data, int bin_num) {
+  } else if constexpr (std::is_base_of_v<Eigen::MatrixBase<T>, T>) {
     for (const auto& data : bin_data) {
       error_bar += data.array().square().matrix();
     }
@@ -82,7 +66,7 @@ struct error_bar_calculator<
     error_bar =
         (error_bar.array() - mean_value.array().square()).sqrt().matrix() / std::sqrt(bin_num - 1);
   }
-};
+}
 
 template <typename Derived>
 typename Derived::PlainObject zeros_like(const Eigen::MatrixBase<Derived>& expr) {
@@ -91,7 +75,7 @@ typename Derived::PlainObject zeros_like(const Eigen::MatrixBase<Derived>& expr)
   return PlainObjectType::Zero(expr.rows(), expr.cols());
 }
 
-template <typename Scalar, typename = std::enable_if_t<std::is_arithmetic_v<Scalar>>>
+template <std::floating_point Scalar>
 Scalar zeros_like(const Scalar&) {
   return static_cast<Scalar>(0);
 }
@@ -276,15 +260,13 @@ class Observable : public ObservableBase {
       this->m_mean_value = std::accumulate(this->m_final_bins.begin(), this->m_final_bins.end(),
                                            detail::zeros_like(m_accumulator));
     }
-    this->m_mean_value /= static_cast<int>(this->m_final_bins.size());
+    this->m_mean_value /= this->m_final_bins.size();
   }
 
   // estimate error bar of the measurement
   void calculate_error_bar(int optimal_bin_size_blocks) {
-    // Use the already-created final bins
-    const int num_final_bins = static_cast<int>(this->m_final_bins.size());
-    detail::error_bar_calculator<DataType>::calculate(this->m_error_bar, this->m_mean_value,
-                                                      this->m_final_bins, num_final_bins);
+    detail::calculate_error_bar(this->m_error_bar, this->m_mean_value, this->m_final_bins,
+                                this->m_final_bins.size());
   }
 };
 
