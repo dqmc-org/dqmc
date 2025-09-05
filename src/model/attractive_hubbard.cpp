@@ -104,6 +104,8 @@ void AttractiveHubbard::initial_KV_matrices(const LatticeBase& lattice, const Wa
 }
 
 void AttractiveHubbard::initial(const LatticeBase& lattice, const Walker& walker) {
+  EigenMallocGuard<true> alloc_guard;
+
   // initialize model params and allocate memory for bosonic fields
   this->initial_params(lattice, walker);
 
