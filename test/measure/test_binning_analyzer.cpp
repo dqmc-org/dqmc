@@ -44,7 +44,7 @@ TEST_F(BinningAnalyzerTest, InitialState) {
   EXPECT_EQ(analyzer.get_mean(), 0.0);
   EXPECT_TRUE(std::isinf(analyzer.get_error()));
   EXPECT_TRUE(std::isinf(analyzer.get_autocorrelation_time()));
-  EXPECT_EQ(analyzer.get_optimal_bin_size(), 0);
+  EXPECT_EQ(analyzer.get_optimal_window_size(), 0);
   EXPECT_FALSE(analyzer.is_converged(0.01));
 }
 
@@ -63,7 +63,7 @@ TEST_F(BinningAnalyzerTest, InsufficientData) {
   // With < 16 points, analysis should not produce finite error/tau
   EXPECT_TRUE(std::isinf(analyzer.get_error()));
   EXPECT_TRUE(std::isinf(analyzer.get_autocorrelation_time()));
-  EXPECT_EQ(analyzer.get_optimal_bin_size(), 0);
+  EXPECT_EQ(analyzer.get_optimal_window_size(), 0);
 }
 
 TEST_F(BinningAnalyzerTest, UncorrelatedDataWhiteNoise) {
@@ -122,7 +122,7 @@ TEST_F(BinningAnalyzerTest, ModeratelyCorrelatedData) {
   EXPECT_NEAR(analyzer.get_autocorrelation_time(), theoretical_tau, 0.2);
 
   // For tau=1, a common rule of thumb is that the optimal bin size should be > 2*tau.
-  EXPECT_GE(analyzer.get_optimal_bin_size(), 2 * theoretical_tau);
+  EXPECT_GE(analyzer.get_optimal_window_size(), 2 * theoretical_tau);
 }
 
 TEST_F(BinningAnalyzerTest, StronglyCorrelatedData) {
@@ -148,7 +148,7 @@ TEST_F(BinningAnalyzerTest, StronglyCorrelatedData) {
   EXPECT_NEAR(analyzer.get_autocorrelation_time(), theoretical_tau, 3.5);
 
   // Optimal bin size should be significantly larger now.
-  EXPECT_GE(analyzer.get_optimal_bin_size(), 2 * theoretical_tau);
+  EXPECT_GE(analyzer.get_optimal_window_size(), 2 * theoretical_tau);
 }
 
 TEST_F(BinningAnalyzerTest, ConvergenceCheck) {

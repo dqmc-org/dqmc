@@ -1,6 +1,7 @@
 #include "measure/binning_analyzer.h"
 
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 
 namespace Measure {
@@ -25,76 +26,105 @@ double BinningAnalyzer::sample_variance(const std::vector<double>& v, double mea
 }
 
 void BinningAnalyzer::update_analysis() {
-  const int N = static_cast<int>(m_time_series.size());
-  if (N < 16) {  // Need sufficient data for analysis
+  const int N = static_cast<int>(
+      m_time_series.size());  // Need sufficient data for analysis. The Wolff method needs N >> tau,
+  // so we use a more conservative threshold than typical binning.
+  if (N < 64) {
     m_mean = sample_mean(m_time_series);
     m_error = std::numeric_limits<double>::infinity();
     m_tau = std::numeric_limits<double>::infinity();
-    m_optimal_bin_size_blocks = 0;
+    m_optimal_window_size = 0;
     return;
   }
 
   m_mean = sample_mean(m_time_series);
   const double raw_var = sample_variance(m_time_series, m_mean);
 
-  // Pre-allocate vectors to avoid heap allocation during analysis
-  std::vector<int> bin_sizes;
-  bin_sizes.reserve(20);  // Reasonable upper bound for log2 scaling
-  for (int B = 1; B * 4 <= N;) {
-    bin_sizes.push_back(B);
-    int nextB = B * 3 / 2;
-    if (nextB == B) nextB += 1;
-    B = nextB;
-  }
-  if (bin_sizes.empty()) bin_sizes.push_back(1);
-
-  std::vector<double> plateau_variances;
-  plateau_variances.reserve(bin_sizes.size());
-  std::vector<double> bin_mean_variances;
-  bin_mean_variances.reserve(bin_sizes.size());
-
-  for (int B : bin_sizes) {
-    const int n_bins = N / B;
-    std::vector<double> bin_means;
-    bin_means.reserve(n_bins);
-    for (int i = 0; i < n_bins; ++i) {
-      double sum =
-          std::accumulate(m_time_series.begin() + i * B, m_time_series.begin() + (i + 1) * B, 0.0);
-      bin_means.push_back(sum / static_cast<double>(B));
-    }
-    double var_bmeans = sample_variance(bin_means, sample_mean(bin_means));
-    bin_mean_variances.push_back(var_bmeans);
-    plateau_variances.push_back(static_cast<double>(B) * var_bmeans);
+  if (raw_var < 1e-12) {  // Handle constant data series
+    m_error = 0.0;
+    m_tau = 0.0;
+    m_optimal_window_size = 0;
+    return;
   }
 
-  // Heuristic plateau detection: Find the first bin size where the next 3
-  // values are within 10%
-  int plateau_idx = -1;
-  for (size_t i = 0; i < plateau_variances.size(); ++i) {
-    if (plateau_variances[i] <= 0.0) continue;
-    bool is_stable = true;
-    for (size_t j = i + 1; j < std::min(plateau_variances.size(), i + 4); ++j) {
-      if (std::abs(plateau_variances[j] - plateau_variances[i]) / plateau_variances[i] > 0.05) {
-        is_stable = false;
-        break;
-      }
+  // --- Ulli Wolff's method for automatic windowing (hep-lat/0306017) ---
+
+  // 1. Calculate the un-normalized autocorrelation function Gamma(t).
+  // The window search can go up to W_max. Cap at N/4.
+  const int W_max = N / 4;
+  std::vector<double> gamma(W_max + 1);
+  gamma[0] = raw_var;
+  for (int t = 1; t <= W_max; ++t) {
+    double sum = 0.0;
+    for (int i = 0; i < N - t; ++i) {
+      sum += (m_time_series[i] - m_mean) * (m_time_series[i + t] - m_mean);
     }
-    if (is_stable) {
-      plateau_idx = static_cast<int>(i);
+    gamma[t] = sum / static_cast<double>(N - t);  // Unbiased estimator for Gamma(t)
+  }
+
+  // 2. Find the optimal summation window W_opt.
+  int W_opt = -1;
+  const double S = 1.5;  // S = tau / tau_int, recommended value from the paper.
+  double C_F_W = gamma[0];
+
+  // Loop over possible window sizes W.
+  for (int W = 1; W <= W_max; ++W) {
+    C_F_W += 2.0 * gamma[W];
+
+    // If C_F(W) becomes negative, the sum is dominated by noise.
+    // The previous W was the last reliable one.
+    if (C_F_W <= 0) {
+      W_opt = W - 1;
+      break;
+    }
+
+    double tau_int_W = C_F_W / (2.0 * gamma[0]);
+
+    // The paper's condition requires an estimate of the exponential decay time tau,
+    // which it calls tau_hat.
+    double tau_hat_W;
+    if (tau_int_W <= 0.5) {
+      // If tau_int is small, correlations are negligible.
+      // Setting tau_hat to a tiny value makes g(W) negative, terminating the search.
+      tau_hat_W = 1e-9;
+    } else {
+      // Invert eq. (51) to get tau_hat from tau_int
+      double x = 2.0 * tau_int_W;
+      tau_hat_W = S / (2.0 * std::atanh(1.0 / x));
+    }
+
+    // Check the self-consistency condition (eq. 52).
+    // The optimal W is where the systematic error exp(-W/tau)
+    // becomes smaller than the statistical noise term tau/sqrt(W*N).
+    double g_W = std::exp(-static_cast<double>(W) / tau_hat_W) -
+                 tau_hat_W / std::sqrt(static_cast<double>(W) * static_cast<double>(N));
+
+    if (g_W < 0) {
+      W_opt = W;
       break;
     }
   }
 
-  if (plateau_idx == -1) plateau_idx = bin_sizes.size() - 1;  // Fallback to largest
+  // Fallback: if the condition is never met, use the largest window.
+  if (W_opt == -1) {
+    W_opt = W_max;
+  }
+  m_optimal_window_size = W_opt;
 
-  m_optimal_bin_size_blocks = bin_sizes[plateau_idx];
-  const int n_bins_final = N / m_optimal_bin_size_blocks;
-  m_error = std::sqrt(bin_mean_variances[plateau_idx] / n_bins_final);
+  // 3. Calculate final error and tau_int using W_opt.
+  double C_F_opt = gamma[0];
+  for (int t = 1; t <= W_opt; ++t) {
+    C_F_opt += 2.0 * gamma[t];
+  }
 
-  if (raw_var > 1e-12) {
-    m_tau = 0.5 * (plateau_variances[plateau_idx] / raw_var - 1.0);
+  if (C_F_opt <= 0) {  // Safety check
+    m_error = std::numeric_limits<double>::infinity();
+    m_tau = std::numeric_limits<double>::infinity();
   } else {
-    m_tau = 0.0;
+    // Final error is sqrt(C_F / N)
+    m_error = std::sqrt(C_F_opt / static_cast<double>(N));
+    // Integrated autocorrelation time tau_int = C_F / (2 * Var)
+    m_tau = C_F_opt / (2.0 * raw_var);
   }
 }
 

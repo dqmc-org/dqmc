@@ -251,7 +251,7 @@ void Dqmc::measure() {
         m_logger.debug("mean: {}", m_binning_analyzer->get_mean());
         m_logger.debug("error: {}", m_binning_analyzer->get_error());
         m_logger.debug("autocorrelation_time: {}", m_binning_analyzer->get_autocorrelation_time());
-        m_logger.debug("optimal_bin_size: {}", m_binning_analyzer->get_optimal_bin_size());
+        m_logger.debug("optimal_window_size: {}", m_binning_analyzer->get_optimal_window_size());
         m_logger.debug("num_data_points: {}", m_binning_analyzer->get_num_data_points());
 
         if (m_binning_analyzer->is_converged(m_config.autobinning_target_rel_error)) {
@@ -273,8 +273,8 @@ void Dqmc::measure() {
 }
 
 void Dqmc::analyse() {
-  // Get the optimal bin size (in blocks) from the analyzer
-  const int optimal_bin_size_blocks = m_binning_analyzer->get_optimal_bin_size();
+  // Get the optimal window size (in blocks) from the analyzer
+  const int optimal_bin_size_blocks = m_binning_analyzer->get_optimal_window_size();
 
   if (optimal_bin_size_blocks > 0) {
     // Pass this to the handler to perform final analysis on all observables
