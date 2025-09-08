@@ -17,6 +17,7 @@
 #include "model/repulsive_hubbard.h"
 #include "utils/assert.h"
 #include "utils/eigen_malloc_guard.h"
+#include "utils/format_output.h"
 #include "utils/logger.h"
 #include "utils/spinner.h"
 #include "walker.h"
@@ -294,19 +295,17 @@ void Dqmc::analyse() {
   }
 }
 
-void Dqmc::initial_message(std::ostream& ostream) const {
-  if (!ostream) {
-    throw std::runtime_error(dqmc_format_error("output stream is not valid."));
-  }
+void Dqmc::initial_message() const {
+  std::stringstream ss;
 
-  m_model->output_model_info(ostream);
-  m_lattice->output_lattice_info(ostream, m_handler->momentum());
+  m_model->output_model_info(ss);
+  m_lattice->output_lattice_info(ss, m_handler->momentum());
 
-  ostream << std::format("{:>30s}{:>7s}{:>24s}\n\n", "Checkerboard breakups", "->",
-                         checkerboard() ? "True" : "False");
+  ss << Utils::FormatOutput::display("Checkerboard breakups", checkerboard() ? "True" : "False");
 
-  m_walker->output_montecarlo_info(ostream);
-  m_handler->output_measuring_info(ostream);
+  m_walker->output_montecarlo_info(ss);
+  m_handler->output_measuring_info(ss);
+  m_logger.info(ss.str());
 }
 
 void Dqmc::info_message() const {
@@ -330,11 +329,13 @@ void Dqmc::info_message() const {
   m_logger.info("Maximum of the wrapping error: {:.5e}", m_walker->wrap_error());
 }
 
-void Dqmc::output_results(std::ostream& ostream) const {
+void Dqmc::output_results() const {
+  std::stringstream ss;
   for (const auto& obs_name : m_handler->observables_list()) {
     if (auto obs = m_handler->find<Observable::Scalar>(obs_name)) {
-      Observable::output_observable_to_console(ostream, *obs);
+      Observable::output_observable_to_console(ss, *obs);
     }
   }
+  m_logger.info(ss.str());
 }
 }  // namespace DQMC

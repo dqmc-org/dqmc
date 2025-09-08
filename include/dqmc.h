@@ -97,9 +97,9 @@ class Dqmc {
   const CheckerBoard::CheckerBoardBase* checkerboard() const { return m_checkerboard.get(); }
 
   // Output
-  void initial_message(std::ostream& ostream) const;
+  void initial_message() const;
   void info_message() const;
-  void output_results(std::ostream& ostream) const;
+  void output_results() const;
 
  private:
   // ------------------------------------ Private subroutines
