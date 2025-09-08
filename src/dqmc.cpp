@@ -1,6 +1,7 @@
 #include "dqmc.h"
 
 #include <algorithm>
+#include <filesystem>
 #include <format>
 #include <fstream>
 #include <iostream>
@@ -23,10 +24,7 @@
 namespace DQMC {
 
 Dqmc::Dqmc(const Config& config)
-    : m_config(config),
-      m_rng(42 + config.seed),
-      m_seed(config.seed),
-      m_logger(Utils::Logger::the()) {
+    : m_config(config), m_rng(config.seed), m_seed(config.seed), m_logger(Utils::Logger::the()) {
   // 1. Create Lattice
   if (config.lattice_type == "Square") {
     DQMC_ASSERT(config.lattice_size.size() == 2);
@@ -132,39 +130,56 @@ void Dqmc::run() {
 }
 
 void Dqmc::write_results(const std::string& out_path) const {
+  std::string seeded_out_path = out_path + "_" + std::to_string(m_seed);
+  const std::filesystem::path results_path = std::filesystem::path(seeded_out_path) / "results";
+  const std::filesystem::path bins_path = std::filesystem::path(seeded_out_path) / "bins";
+
+  std::filesystem::create_directories(results_path);
+  std::filesystem::create_directories(bins_path);
+
   std::ofstream outfile;
 
   // Output bosonic fields
-  outfile.open(std::format("{}/bosonic_fields_{}.csv", out_path, m_seed));
+  outfile.open(results_path / "bosonic_fields.csv");
   if (!outfile.is_open()) {
-    throw std::runtime_error(dqmc_format_error("failed to open file"));
+    throw std::runtime_error(dqmc_format_error("failed to open bosonic_fields file"));
   }
   m_model->output_configuration(outfile);
   outfile.close();
 
   // Output k stars
-  outfile.open(std::format("{}/kstars.csv", out_path));
+  outfile.open(results_path / "kstars.csv");
   if (!outfile.is_open()) {
-    throw std::runtime_error(dqmc_format_error("failed to open file"));
+    throw std::runtime_error(dqmc_format_error("failed to open kstars file"));
   }
   m_lattice->output_k_points(outfile);
   outfile.close();
 
   // Output imaginary-time grids
-  outfile.open(std::format("{}/imaginary_time_grids.csv", out_path));
+  outfile.open(results_path / "imaginary_time_grids.csv");
   if (!outfile.is_open()) {
-    throw std::runtime_error(dqmc_format_error("failed to open file"));
+    throw std::runtime_error(dqmc_format_error("failed to open imaginary_time_grids file"));
   }
   m_walker->output_imaginary_time_grids(outfile);
   outfile.close();
 
   // Helper lambda for observables
   auto output_observable_files = [&](const auto& obs, const std::string& obs_name) {
-    outfile.open(std::format("{}/{}_{}.csv", out_path, obs_name, m_seed));
+    // Result file
+    outfile.open(results_path / std::format("{}.csv", obs_name));
+    if (!outfile.is_open()) {
+      throw std::runtime_error(
+          dqmc_format_error("failed to open file for observable results: {}", obs_name));
+    }
     Observable::output_observable_to_file(outfile, *obs);
     outfile.close();
 
-    outfile.open(std::format("{}/{}.bins.csv", out_path, obs_name));
+    // Bin file
+    outfile.open(bins_path / std::format("{}.csv", obs_name));
+    if (!outfile.is_open()) {
+      throw std::runtime_error(
+          dqmc_format_error("failed to open file for observable bins: {}", obs_name));
+    }
     Observable::output_observable_in_bins_to_file(outfile, *obs);
     outfile.close();
   };
