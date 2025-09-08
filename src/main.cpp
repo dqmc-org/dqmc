@@ -190,7 +190,7 @@ int main(int argc, char* argv[]) {
     DQMC::Dqmc simulation(config);
 
     // 3. Output initialization info
-    simulation.initial_message(std::cout);
+    simulation.initial_message();
 
     // 4. Run the entire simulation
     simulation.run();
@@ -199,7 +199,7 @@ int main(int argc, char* argv[]) {
     simulation.info_message();
 
     // 6. Output scalar results to console
-    simulation.output_results(std::cout);
+    simulation.output_results();
 
     // 7. Write all detailed results to files
     simulation.write_results(results_path, bins_path);

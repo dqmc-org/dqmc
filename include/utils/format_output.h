@@ -11,7 +11,7 @@ static constexpr int ARROW_WIDTH = 7;
 static constexpr int VALUE_WIDTH = 24;
 
 template <typename T>
-inline std::string display(const std::string& desc, T value) {
+inline std::string display(const std::string& desc, const T& value) {
   if constexpr (std::floating_point<T>) {
     return std::format("{:>{}}{:>{}}{:>{}.3f}\n", desc, DESC_WIDTH, "->", ARROW_WIDTH, value,
                        VALUE_WIDTH);
