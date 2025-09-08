@@ -129,14 +129,8 @@ void Dqmc::run() {
   m_end_time = std::chrono::steady_clock::now();
 }
 
-void Dqmc::write_results(const std::string& out_path) const {
-  std::string seeded_out_path = out_path + "_" + std::to_string(m_seed);
-  const std::filesystem::path results_path = std::filesystem::path(seeded_out_path) / "results";
-  const std::filesystem::path bins_path = std::filesystem::path(seeded_out_path) / "bins";
-
-  std::filesystem::create_directories(results_path);
-  std::filesystem::create_directories(bins_path);
-
+void Dqmc::write_results(const std::filesystem::path& results_path,
+                         const std::filesystem::path& bins_path) const {
   std::ofstream outfile;
 
   // Output bosonic fields

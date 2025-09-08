@@ -9,21 +9,7 @@
 #include <sstream>
 
 namespace Utils {
-Logger::Logger() : m_level(LogLevel::Info), m_console(true), m_file(nullptr) {
-  pid_t pid = getpid();
-
-  auto now = std::chrono::system_clock::now();
-  auto now_c = std::chrono::system_clock::to_time_t(now);
-  std::tm now_tm;
-
-  localtime_r(&now_c, &now_tm);
-
-  std::ostringstream timestamp_stream;
-  timestamp_stream << std::put_time(&now_tm, "%Y-%m-%d %H:%M:%S");
-  std::string timestamp = timestamp_stream.str();
-
-  set_file(timestamp + "_" + std::to_string(pid) + ".log");
-}
+Logger::Logger() : m_level(LogLevel::Info), m_console(true), m_file(nullptr) {}
 
 void Logger::set_level(LogLevel level) { m_level = level; }
 

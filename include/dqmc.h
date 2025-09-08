@@ -10,6 +10,7 @@
  */
 
 #include <chrono>
+#include <filesystem>
 #include <memory>
 #include <random>
 #include <string>
@@ -80,7 +81,8 @@ class Dqmc {
   ~Dqmc();
 
   void run();
-  void write_results(const std::string& out_path) const;
+  void write_results(const std::filesystem::path& results_path,
+                     const std::filesystem::path& bins_path) const;
 
   // ---------------------------------------- Useful tools
   std::chrono::milliseconds timer_as_duration() const {

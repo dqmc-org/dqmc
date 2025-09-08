@@ -126,12 +126,16 @@ int main(int argc, char* argv[]) {
     return 0;
   }
 
-  try {
-    std::filesystem::create_directories(out_path);
-  } catch (const std::filesystem::filesystem_error& e) {
-    throw std::runtime_error(
-        std::format("DQMC::main(): Failed to initialize output folder at {}.", out_path));
-  }
+  // Setup the directories
+  const std::filesystem::path seeded_output_path = out_path + std::to_string(seed);
+  const std::filesystem::path results_path = seeded_output_path / "results";
+  const std::filesystem::path bins_path = seeded_output_path / "bins";
+
+  std::filesystem::create_directories(seeded_output_path);
+  std::filesystem::create_directories(results_path);
+  std::filesystem::create_directories(bins_path);
+
+  logger.set_file(seeded_output_path / "app.log");
 
   // ------------------------------------------------------------------------------------------------
   //                                Output current date and time
@@ -198,7 +202,7 @@ int main(int argc, char* argv[]) {
     simulation.output_results(std::cout);
 
     // 7. Write all detailed results to files
-    simulation.write_results(out_path);
+    simulation.write_results(results_path, bins_path);
 
   } catch (const std::exception& e) {
     logger.error("Simulation error: {}", e.what());
