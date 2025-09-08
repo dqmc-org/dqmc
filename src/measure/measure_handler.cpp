@@ -3,6 +3,7 @@
 #include <format>
 
 #include "utils/assert.h"
+#include "utils/format_output.h"
 #include "walker.h"
 
 namespace Measure {
@@ -203,22 +204,13 @@ void MeasureHandler::analyse(int optimal_bin_size_blocks) {
 }
 
 void MeasureHandler::output_measuring_info(std::ostream& ostream) const {
-  auto fmt_str = [](const std::string& desc, const std::string& value) {
-    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
-  };
-
-  auto fmt_int = [](const std::string& desc, int value) {
-    return std::format("{:>30s}{:>7s}{:>24d}\n", desc, "->", value);
-  };
-
   auto bool_to_str = [](bool b) { return b ? "True" : "False"; };
 
   ostream << "   Measuring Params:\n"
-          << fmt_str("Warm up", bool_to_str(this->is_warmup()))
-          << fmt_str("Equal-time measure", bool_to_str(this->is_equaltime()))
-          << fmt_str("Dynamical measure", bool_to_str(this->is_dynamic())) << std::endl;
-
-  ostream << fmt_int("Sweeps for warmup", this->warm_up_sweeps()) << std::endl;
+          << Utils::FormatOutput::display("Warm up", bool_to_str(this->is_warmup()))
+          << Utils::FormatOutput::display("Equal-time measure", bool_to_str(this->is_equaltime()))
+          << Utils::FormatOutput::display("Dynamical measure", bool_to_str(this->is_dynamic()))
+          << Utils::FormatOutput::display("Sweeps for warmup", this->warm_up_sweeps()) << std::endl;
 }
 
 }  // namespace Measure

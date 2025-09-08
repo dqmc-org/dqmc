@@ -3,6 +3,8 @@
 #include <cmath>
 #include <format>
 
+#include "utils/format_output.h"
+
 namespace Lattice {
 
 Chain::Chain(const std::vector<int>& lattice_size) {
@@ -11,10 +13,6 @@ Chain::Chain(const std::vector<int>& lattice_size) {
 }
 
 void Chain::output_lattice_info(std::ostream& ostream, int momentum_index) const {
-  auto fmt_str = [](const std::string& desc, const std::string& value) {
-    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
-  };
-
   auto fmt_cell = [](int side) { return std::format("{}", side); };
 
   auto fmt_momentum = [](double px) { return std::format("({:.2f}) pi", px); };
@@ -22,8 +20,8 @@ void Chain::output_lattice_info(std::ostream& ostream, int momentum_index) const
   const double px = (this->index_to_momentum(momentum_index, 0) / M_PI);
 
   ostream << "   Lattice: 1D Chain\n"
-          << fmt_str("Size of cell", fmt_cell(this->m_side_length))
-          << fmt_str("Momentum point", fmt_momentum(px)) << std::flush;
+          << Utils::FormatOutput::display("Size of cell", fmt_cell(this->m_side_length))
+          << Utils::FormatOutput::display("Momentum point", fmt_momentum(px)) << std::flush;
 }
 
 void Chain::set_lattice_params(const std::vector<int>& side_length_vec) {

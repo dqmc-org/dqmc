@@ -2,6 +2,8 @@
 
 #include <format>
 
+#include "utils/format_output.h"
+
 namespace Lattice {
 
 Square::Square(const std::vector<int>& lattice_size) {
@@ -10,10 +12,6 @@ Square::Square(const std::vector<int>& lattice_size) {
 }
 
 void Square::output_lattice_info(std::ostream& ostream, int momentum_index) const {
-  auto fmt_str = [](const std::string& desc, const std::string& value) {
-    return std::format("{:>30s}{:>7s}{:>24s}\n", desc, "->", value);
-  };
-
   auto fmt_cell = [](int side) { return std::format("{} * {}", side, side); };
 
   auto fmt_momentum = [](double px, double py) {
@@ -24,8 +22,8 @@ void Square::output_lattice_info(std::ostream& ostream, int momentum_index) cons
   const double py = (this->index_to_momentum(momentum_index, 1) / M_PI);
 
   ostream << "   Lattice: Square lattice\n"
-          << fmt_str("Size of cell", fmt_cell(this->m_side_length))
-          << fmt_str("Momentum point", fmt_momentum(px, py)) << std::flush;
+          << Utils::FormatOutput::display("Size of cell", fmt_cell(this->m_side_length))
+          << Utils::FormatOutput::display("Momentum point", fmt_momentum(px, py)) << std::flush;
 }
 
 void Square::set_lattice_params(const std::vector<int>& side_length_vec) {

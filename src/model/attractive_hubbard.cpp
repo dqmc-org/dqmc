@@ -9,6 +9,7 @@
 
 #include "lattice/lattice_base.h"
 #include "utils/assert.h"
+#include "utils/format_output.h"
 #include "walker.h"
 
 namespace Model {
@@ -33,14 +34,11 @@ RealScalar AttractiveHubbard::ChemicalPotential() const { return this->m_chemica
 RealScalar AttractiveHubbard::OnSiteU() const { return this->m_onsite_u; }
 
 void AttractiveHubbard::output_model_info(std::ostream& ostream) const {
-  auto fmt_double = [](const std::string& desc, double value) {
-    return std::format("{:>30s}{:>7s}{:>24.3f}\n", desc, "->", value);
-  };
-
   ostream << "   Model: Attractive Hubbard\n"
-          << fmt_double("Hopping constant 't'", HoppingT())
-          << fmt_double("Onsite interaction 'U'", OnSiteU())
-          << fmt_double("Checimcal potential 'mu'", ChemicalPotential()) << std::endl;
+          << Utils::FormatOutput::display("Hopping constant 't'", HoppingT())
+          << Utils::FormatOutput::display("Onsite interaction 'U'", OnSiteU())
+          << Utils::FormatOutput::display("Checimcal potential 'mu'", ChemicalPotential())
+          << std::endl;
 }
 
 void AttractiveHubbard::output_configuration(std::ostream& ostream) const {
