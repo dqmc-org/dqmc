@@ -6,17 +6,21 @@ namespace Lattice {
 
 void LatticeBase::output_k_points(std::ostream& ostream) const {
   // output k stars list
-  auto fmt_info = [](int value) { return std::format("{:>20d}", value); };
-  auto fmt_kstars = [](double value) { return std::format("{:>20.10f}", value); };
-  ostream << fmt_info(k_stars_num()) << std::endl;
+  std::string header = "index";
+  const std::vector<std::string> axes = {"kx", "ky", "kz"};
+  for (int i = 0; i < space_dim(); ++i) {
+    header += "," + axes[i];
+  }
+  ostream << header << "\n";
+
   // loop for inequivalent momentum points
   for (auto i = 0; i < k_stars_num(); ++i) {
-    ostream << fmt_info(i);
+    ostream << i;
     // loop for axes of the reciprocal lattice
     for (auto axis = 0; axis < space_dim(); ++axis) {
-      ostream << fmt_kstars(index_to_momentum(i, axis));
+      ostream << "," << index_to_momentum(i, axis);
     }
-    ostream << std::endl;
+    ostream << "\n";
   }
 }
 }  // namespace Lattice

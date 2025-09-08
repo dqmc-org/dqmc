@@ -283,20 +283,24 @@ void output_observable_to_file(std::ofstream& ostream, const Observable<ObsType>
   if constexpr (std::is_same_v<ObsType, ScalarType>) {
     // for specfic scalar observable, output the mean value, error bar and
     // relative error in order.
-    ostream << std::format("{:>20.10f}{:>20.10f}{:>20.10f}\n", obs.mean_value(), obs.error_bar(),
-                           obs.error_bar() / obs.mean_value());
+    const double mean = obs.mean_value();
+    const double err = obs.error_bar();
+    const double rel_err = (std::abs(mean) > 1e-12) ? err / std::abs(mean) : 0.0;
+    ostream << "mean,error,relative_error\n";
+    ostream << std::format("{},{},{}\n", mean, err, rel_err);
   }
 
   // for vector observables
   else if constexpr (std::is_same_v<ObsType, VectorType>) {
     // output vector observable
     const int size = obs.mean_value().size();
-    const auto relative_error = (obs.error_bar().array() / obs.mean_value().array()).matrix();
-    ostream << std::format("{:>20d}", size) << std::endl;
+    ostream << "index,mean,error,relative_error\n";
     for (auto i = 0; i < size; ++i) {
+      const double mean = obs.mean_value()(i);
+      const double err = obs.error_bar()(i);
+      const double rel_err = (std::abs(mean) > 1e-12) ? err / std::abs(mean) : 0.0;
       // output the mean value, error bar and relative error in order.
-      ostream << std::format("{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i, obs.mean_value()(i),
-                             obs.error_bar()(i), relative_error(i));
+      ostream << std::format("{},{},{},{}\n", i, mean, err, rel_err);
     }
   }
 
@@ -305,13 +309,14 @@ void output_observable_to_file(std::ofstream& ostream, const Observable<ObsType>
     // output matrix observable
     const int row = obs.mean_value().rows();
     const int col = obs.mean_value().cols();
-    const auto relative_error = (obs.error_bar().array() / obs.mean_value().array()).matrix();
-    ostream << std::format("{:>20d}{:>20d}", row, col) << std::endl;
+    ostream << "i,j,mean,error,relative_error\n";
     for (auto i = 0; i < row; ++i) {
       for (auto j = 0; j < col; ++j) {
+        const double mean = obs.mean_value()(i, j);
+        const double err = obs.error_bar()(i, j);
+        const double rel_err = (std::abs(mean) > 1e-12) ? err / std::abs(mean) : 0.0;
         // output the mean value, error bar and relative error in order.
-        ostream << std::format("{:>20d}{:>20d}{:>20.10f}{:>20.10f}{:>20.10f}\n", i, j,
-                               obs.mean_value()(i, j), obs.error_bar()(i, j), relative_error(i, j));
+        ostream << std::format("{},{},{},{},{}\n", i, j, mean, err, rel_err);
       }
     }
   }
@@ -333,9 +338,9 @@ void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<
   if constexpr (std::is_same_v<ObsType, ScalarType>) {
     // output bin data of scalar observable
     const int number_of_bins = obs.bin_count();
-    ostream << std::format("{:>20d}\n", number_of_bins);
+    ostream << "bin,value\n";
     for (auto bin = 0; bin < number_of_bins; ++bin) {
-      ostream << std::format("{:>20d}{:>20.10f}\n", bin, obs.bin_data(bin));
+      ostream << std::format("{},{}\n", bin, obs.bin_data(bin));
     }
   }
 
@@ -344,10 +349,10 @@ void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<
     // output bin data of vector observable
     const int number_of_bins = obs.bin_count();
     const int size = obs.mean_value().size();
-    ostream << std::format("{:>20d}{:>20d}\n", number_of_bins, size);
+    ostream << "bin,index,value\n";
     for (auto bin = 0; bin < number_of_bins; ++bin) {
       for (auto i = 0; i < size; ++i) {
-        ostream << std::format("{:>20d}{:>20d}{:>20.10f}\n", bin, i, obs.bin_data(bin)(i));
+        ostream << std::format("{},{},{}\n", bin, i, obs.bin_data(bin)(i));
       }
     }
   }
@@ -358,12 +363,11 @@ void output_observable_in_bins_to_file(std::ofstream& ostream, const Observable<
     const int number_of_bins = obs.bin_count();
     const int row = obs.mean_value().rows();
     const int col = obs.mean_value().cols();
-    ostream << std::format("{:>20d}{:>20d}{:>20d}\n", number_of_bins, row, col);
+    ostream << "bin,i,j,value\n";
     for (auto bin = 0; bin < number_of_bins; ++bin) {
       for (auto i = 0; i < row; ++i) {
         for (auto j = 0; j < col; ++j) {
-          ostream << std::format("{:>20d}{:>20d}{:>20d}{:>20.10f}\n", bin, i, j,
-                                 obs.bin_data(bin)(i, j));
+          ostream << std::format("{},{},{},{}\n", bin, i, j, obs.bin_data(bin)(i, j));
         }
       }
     }

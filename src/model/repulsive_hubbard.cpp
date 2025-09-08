@@ -47,10 +47,10 @@ void RepulsiveHubbard::output_configuration(std::ostream& ostream) const {
   const int time_size = this->m_bosonic_field.rows();
   const int space_size = this->m_bosonic_field.cols();
 
-  ostream << std::format("{:>20d}{:>20d}\n", time_size, space_size);
+  ostream << "t,i,field_value\n";
   for (auto t = 0; t < time_size; ++t) {
     for (auto i = 0; i < space_size; ++i) {
-      ostream << std::format("{:>20d}{:>20d}{:>20.1f}\n", t, i, this->m_bosonic_field(t, i));
+      ostream << std::format("{},{},{:.1f}\n", t, i, this->m_bosonic_field(t, i));
     }
   }
 }

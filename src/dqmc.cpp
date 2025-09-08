@@ -135,7 +135,7 @@ void Dqmc::write_results(const std::string& out_path) const {
   std::ofstream outfile;
 
   // Output bosonic fields
-  outfile.open(std::format("{}/bosonic_fields_{}.out", out_path, m_seed));
+  outfile.open(std::format("{}/bosonic_fields_{}.csv", out_path, m_seed));
   if (!outfile.is_open()) {
     throw std::runtime_error(dqmc_format_error("failed to open file"));
   }
@@ -143,7 +143,7 @@ void Dqmc::write_results(const std::string& out_path) const {
   outfile.close();
 
   // Output k stars
-  outfile.open(std::format("{}/kstars.out", out_path));
+  outfile.open(std::format("{}/kstars.csv", out_path));
   if (!outfile.is_open()) {
     throw std::runtime_error(dqmc_format_error("failed to open file"));
   }
@@ -151,7 +151,7 @@ void Dqmc::write_results(const std::string& out_path) const {
   outfile.close();
 
   // Output imaginary-time grids
-  outfile.open(std::format("{}/imaginary_time_grids.out", out_path));
+  outfile.open(std::format("{}/imaginary_time_grids.csv", out_path));
   if (!outfile.is_open()) {
     throw std::runtime_error(dqmc_format_error("failed to open file"));
   }
@@ -160,11 +160,11 @@ void Dqmc::write_results(const std::string& out_path) const {
 
   // Helper lambda for observables
   auto output_observable_files = [&](const auto& obs, const std::string& obs_name) {
-    outfile.open(std::format("{}/{}_{}.out", out_path, obs_name, m_seed));
+    outfile.open(std::format("{}/{}_{}.csv", out_path, obs_name, m_seed));
     Observable::output_observable_to_file(outfile, *obs);
     outfile.close();
 
-    outfile.open(std::format("{}/{}.bins.out", out_path, obs_name));
+    outfile.open(std::format("{}/{}.bins.csv", out_path, obs_name));
     Observable::output_observable_in_bins_to_file(outfile, *obs);
     outfile.close();
   };

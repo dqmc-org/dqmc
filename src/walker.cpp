@@ -526,10 +526,9 @@ void Walker::output_montecarlo_info(std::ostream& ostream) const {
 
 void Walker::output_imaginary_time_grids(std::ostream& ostream) const {
   // output the imaginary-time grids
-  ostream << std::format("{:>20d}{:>20.5f}{:>20.5f}\n", this->time_size(), this->beta(),
-                         this->time_interval());
+  ostream << "t,tau\n";
   for (auto t = 0; t < this->time_size(); ++t) {
-    ostream << std::format("{:>20d}{:>20.10f}\n", t, (t * this->time_interval()));
+    ostream << std::format("{},{}\n", t, (t * this->time_interval()));
   }
 }
 
