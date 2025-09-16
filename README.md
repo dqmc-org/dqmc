@@ -5,7 +5,7 @@
 
 In this repository, we present a general C++ implementation of determinant Quantum Monte Carlo `(DQMC)` algorithm for the simulation of fermionic quantum models on various lattice geometries.
 
-Currently, simulations of the fermionic Hubbard model with both attractive and repulsive interaction are supported. Different lattices, e.g. 2d square lattice, 2d honeycomb lattice (todo) and 3d cubic lattice (todo) are supported or scheduled to be implemented.
+Currently, simulations of the fermionic Hubbard model with both attractive and repulsive interaction are supported. Lattices including 1d chains, 2d square and the 3d cubic lattice are available, with additional geometries planned.
 
 <img src="./assets/plot.png" width="450">
 
@@ -16,20 +16,26 @@ Currently, simulations of the fermionic Hubbard model with both attractive and r
 
 ### Prerequisites ###
 
-* `gcc/g++` `( version >= 7.1, support C++17 standard )` and `cmake` `( version >= 3.21 )` installed.
-* `Boost C++ libraries` `( version >= 1.71 )` installed.
-* `Eigen library` `( version >= 3.4.0 )` providing a user-friendly matrix interfaces.
+* A C++20-capable compiler such as `g++ >= 11` or `clang++ >= 14`, and `cmake >= 3.21`.
+* `Boost` program options module `( version >= 1.83 )`.
+* `Eigen` linear algebra library `( version >= 3.4.0 )`.
+* A BLAS/LAPACKE implementation (e.g., `OpenBLAS`, `Intel MKL`, `Accelerate` on macOS) available at link time.
 
 ### Building ###
 
 1. Configure the build with CMake:
    ```shell
-   cmake -S . -B build -G Ninja
+   cmake -S . -B build -G Ninja -DBUILD_TESTING=ON
    ```
 
 2. Build the project:
    ```shell
    cmake --build build
+   ```
+
+3. (Optional) Run the unit tests:
+   ```shell
+   ctest --test-dir build
    ```
 
 ### Usage ###
@@ -39,44 +45,12 @@ Run the simulation with default parameters:
 ./build/main
 ```
 
-Or use command-line options:
+Inspect available command-line options:
 ```shell
-./build/main --help  # See all available options
+./build/main --help
 ```
 
 For detailed configuration options and examples, see [example/README.md](example/README.md).
-
-<!-- 1. Download the source code from github.
-    ``` shell
-    $ # download the source code
-    $ git clone https://github.com/JefferyWangSH/general-dqmc.git {PROGRAM_ROOT}
-    ```
-2. Enter the [`build/`](build/) directory and run [`runcmake.sh`](build/runcmake.sh) which will analyse the program using cmake.
-    ``` shell
-    $ # initialize cmake
-    $ cd {PROGRAM_ROOT}/build && ./runcmake.sh
-    ```
-3. Enter the [`run/`](run/) directory and compile the codes. 
-    ``` shell
-    $ # build the program
-    $ cd {PROGRAM_ROOT}/run && ./make.sh
-    ```
-4. Run the script [`run/batch.sh`](run/batch.sh) to start the simulation if the program is successfully build. ( We use `Slurm` for managements of program tasks, hence the simulation parameters should be edited in the script [`run/batch.sh`](run/batch.sh) in advance. )
-    ```shell
-    $ # edit the simulation params
-    $ vim batch.sh
-
-    $ # start simulation using Slurm
-    $ ./batch.sh
-    ```
-5. Running the program directly with command `mpirun` also works, and one can always use option `--help` to see helping messages:
-    ``` shell
-    $ # start simulation
-    $ mpirun -np 4 --oversubscribe {PROGRAM_ROOT}/build/dqmc
-    $
-    $ # show helping messages
-    $ mpirun {PROGRAM_ROOT}/build/dqmc --help
-    ``` -->
 
 
 ## Features ##
@@ -103,4 +77,4 @@ For detailed configuration options and examples, see [example/README.md](example
 
 This code is an open-source software under the MIT license.
 
-If any problems or bugs, feel free to contact me via email 17307110117@fudan.edu.cn.
+If any problems or bugs arise, please open an issue on GitHub or reach out to the dqmc-org maintainers.
